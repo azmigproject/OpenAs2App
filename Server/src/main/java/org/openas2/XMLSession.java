@@ -7,11 +7,12 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
-
+import  java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.xml.parsers.DocumentBuilder;
@@ -28,6 +29,7 @@ import org.openas2.cmd.processor.BaseCommandProcessor;
 import org.openas2.logging.LogManager;
 import org.openas2.logging.Logger;
 import org.openas2.partner.PartnershipFactory;
+import org.openas2.partner.XMLPartnershipFactory;
 import org.openas2.processor.Processor;
 import org.openas2.processor.ProcessorModule;
 import org.openas2.schedule.SchedulerComponent;
@@ -38,6 +40,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+import org.openas2.util.AzureUtil;
+import  org.openas2.lib.dbUtils.*;
 
 /**
  * original author unknown
@@ -55,14 +59,27 @@ public class XMLSession extends BaseSession {
     private static final String EL_COMMANDS = "commands";
     private static final String EL_LOGGERS = "loggers";
     private static final String PARAM_BASE_DIRECTORY = "basedir";
-
+	private static final String EL_AZURE = "azdetails";
     private CommandRegistry commandRegistry;
     private CommandManager cmdManager = new CommandManager();
 
     private String VERSION;
     private String TITLE;
-
+    private  AzureUtil azureUtil;
     private static final Log LOGGER = LogFactory.getLog(XMLSession.class.getSimpleName());
+    private org.openas2.lib.dbUtils.Properties prop;
+
+
+    public XMLSession() throws OpenAS2Exception, IOException,Exception
+    {
+        azureUtil=new AzureUtil();
+        azureUtil.init();
+        load(azureUtil);
+
+        // scheduler should be initializer after all modules
+        addSchedulerComponent();
+    }
+
 
     public XMLSession(String configAbsPath) throws OpenAS2Exception,
             ParserConfigurationException, SAXException, IOException
@@ -86,6 +103,16 @@ public class XMLSession extends BaseSession {
         comp.init(this, Collections.<String, String>emptyMap());
     }
 
+   protected  void load (AzureUtil azureUtil)  throws   OpenAS2Exception
+   {
+       loadProperties(azureUtil.getProperties());
+       loadCertificates(azureUtil.getCertificates());
+       loadProcessor(azureUtil.getProcessor());
+       loadCommandProcessors(azureUtil.getCommandProcessors());
+       loadPartnerships(azureUtil.getPartnerList());
+       loadCommands(azureUtil.getCommand());
+       //loadLoggers(azureUtil.);
+   }
 
     protected void load(InputStream in) throws ParserConfigurationException,
             SAXException, IOException, OpenAS2Exception
@@ -130,7 +157,9 @@ public class XMLSession extends BaseSession {
             } else if (nodeName.equals(EL_LOGGERS))
             {
                 loadLoggers(rootNode);
-            } else if (nodeName.equals("#text"))
+            }
+           
+			else if (nodeName.equals("#text"))
             {
                 // do nothing
             } else if (nodeName.equals("#comment"))
@@ -144,6 +173,141 @@ public class XMLSession extends BaseSession {
 
         cmdManager.registerCommands(commandRegistry);
     }
+
+    private void loadCommands(Commands commands ) throws OpenAS2Exception
+    {
+        LOGGER.info("Loading Commands...");
+        Map<String, String> parameters =  new HashMap<String, String>();
+        parameters.put("classname", commands.getClassName());
+        parameters.put("filename", commands.getFileName());
+        Map<String, Object> commandMap=new HashMap<String, Object>();
+        commandMap.put("command",commands.getMulticommands());
+        Component component = XMLUtil.getCommandComponent(commands.getClassName(),parameters,commandMap, this);
+        commandRegistry = (CommandRegistry) component;
+    }
+    private void loadPartnerships(List<partner> partnerList) throws OpenAS2Exception
+    {
+        LOGGER.info("Loading partnerships...");
+        Map<String, String> parameters =  new HashMap<String, String>();
+       // parameters.put("classname", partnerList.getClassName());
+       // parameters.put("filename", partnerList.getFileName());
+
+         //TODO ADD UPDATES TO PASS PARTNER DATA FROM partnerList
+
+        XMLPartnershipFactory partnerFx = (XMLPartnershipFactory) XMLUtil
+                .getComponent("org.openas2.partner.XMLPartnershipFactory",parameters, this);
+        partnerFx.setPartnersFromDB(partnerList);
+        setComponent(PartnershipFactory.COMPID_PARTNERSHIP_FACTORY, partnerFx);
+    }
+
+    private void loadProperties(org.openas2.lib.dbUtils.Properties azProperties)
+    {
+        LOGGER.info("Loading properties...");
+
+        Map<String, String> properties =  new HashMap<String, String>();
+        // Make key things accessible via static object for things that do not have accesss to ses sion object
+        setBaseDirectory(azProperties.BasePath());
+
+        properties.put("as2_message_id_format", azProperties.As2MessageIdFormat());
+        properties.put("log_date_format", azProperties.As2MessageIdFormat());
+        properties.put("sql_timestamp_format", azProperties.SqlTimestampFormat());
+        properties.put(Properties.APP_TITLE_PROP, getAppTitle());
+        properties.put(Properties.APP_VERSION_PROP, getAppVersion());
+        Properties.setProperties(properties);
+    }
+
+    private void loadCertificates(org.openas2.lib.dbUtils.Certificates certificates) throws OpenAS2Exception
+    {
+        LOGGER.info("Loading certificates...");
+        Map<String, String> parameters =  new HashMap<String, String>();
+        parameters.put("classname", certificates.getClassName());
+        parameters.put("filename", certificates.getFileName());
+        parameters.put("password", certificates.getPassword());
+        parameters.put("interval", String.valueOf(certificates.getInterval()));
+
+        CertificateFactory certFx = (CertificateFactory) XMLUtil.getComponent( certificates.getClassName(),parameters, this);
+        setComponent(CertificateFactory.COMPID_CERTIFICATE_FACTORY, certFx);
+    }
+
+
+    private void loadProcessor(org.openas2.lib.dbUtils.Processor processor) throws OpenAS2Exception
+    {
+        Map<String, String> parameters =  new HashMap<String, String>();
+        parameters.put("classname", processor.getClassName());
+        parameters.put("pendingmdn", processor.getPendingMDN());
+        parameters.put("pendingmdninfo", processor.getPendingMDNInfo());
+        org.openas2.processor.Processor proc = (org.openas2.processor.Processor)  XMLUtil.getComponent( processor.getClassName(),parameters, this);
+        //XMLUtil.getComponent(rootNode, this);
+        setComponent(Processor.COMPID_PROCESSOR, proc);
+        LOGGER.info("Loading processor modules...");
+
+        for (int i = 0; i < processor.getModules().length; i++)
+        {
+            org.openas2.lib.dbUtils.module mod = processor.getModules()[i];
+
+                loadProcessorModule(proc, mod,parameters);
+        }
+    }
+
+    private void loadProcessorModule(Processor proc,  org.openas2.lib.dbUtils.module mod,Map<String, String> parameters)
+            throws OpenAS2Exception
+    {
+
+
+        parameters.put("classname", mod.getClassName());
+        parameters.put("delimiters", mod.getDelimiters());
+        parameters.put("errordir", mod.getErrorDir());
+        parameters.put("errorformat", mod.getErrorFormat());
+        parameters.put("filename", mod.getFileName());
+        parameters.put("format", mod.getFormat());
+        parameters.put("header", mod.getHeader());
+        parameters.put("mimetype", mod.getMimetype());
+        parameters.put("outboxdir", mod.getOutboxDir());
+        parameters.put("protocol", mod.getProtocol());
+        parameters.put("resenddir", mod.getResendDir());
+        parameters.put("sendfilename", mod.getSendFileName());
+        parameters.put("tempdir", mod.getTempDir());
+        parameters.put("interval",  String.valueOf(mod.getInterval()));
+        parameters.put("port", String.valueOf(mod.getPort()));
+        parameters.put("retries", String.valueOf(mod.getRetries()));
+        parameters.put("resenddelay", String.valueOf(mod.getResendDelay()));
+
+
+        ProcessorModule procmod = (ProcessorModule) XMLUtil.getComponent(
+                mod.getClassName(),parameters, this);
+        proc.getModules().add(procmod);
+    }
+
+
+    private void loadCommandProcessors(List<CommandProcessors> commandProcessors) throws OpenAS2Exception
+    {
+
+        // get a registry of Command objects, and add Commands for the Session
+        LOGGER.info("Loading command processor(s)...");
+
+        for (CommandProcessors processor:commandProcessors
+             ) {
+                loadCommandProcessor(cmdManager, processor);
+        }
+    }
+
+    private void loadCommandProcessor(CommandManager manager,
+                                      CommandProcessors processor) throws OpenAS2Exception
+    {
+
+        Map<String, String> parameters =  new HashMap<String, String>();
+        parameters.put("classname", processor.getClassName());
+        parameters.put("userId", processor.getUserName());
+        parameters.put("password", processor.getPassword());
+        parameters.put("portId", String.valueOf(processor.getPort()));
+
+        BaseCommandProcessor cmdProcesor = (BaseCommandProcessor) XMLUtil
+                .getComponent( processor.getClassName(),parameters, this);
+        manager.addProcessor(cmdProcesor);
+
+        setComponent(cmdProcesor.getName(), cmdProcesor);
+    }
+
 
     private void loadProperties(Node propNode)
     {
@@ -174,7 +338,7 @@ public class XMLSession extends BaseSession {
         LOGGER.info("Loading log manager(s)...");
 
         LogManager manager = LogManager.getLogManager();
-        if (LogManager.isRegisteredWithApache())
+       /* if (LogManager.isRegisteredWithApache())
         {
             ; // continue
         } else
@@ -182,7 +346,7 @@ public class XMLSession extends BaseSession {
             // if using the OpenAS2 loggers the log manager must registered with the jvm argument
             // -Dorg.apache.commons.logging.Log=org.openas2.logging.Log
             throw new OpenAS2Exception("the OpenAS2 loggers' log manager must registered with the jvm argument -Dorg.apache.commons.logging.Log=org.openas2.logging.Log");
-        }
+        }*/
         NodeList loggers = rootNode.getChildNodes();
         Node logger;
 

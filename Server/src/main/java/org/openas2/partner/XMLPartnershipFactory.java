@@ -22,6 +22,8 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openas2.OpenAS2Exception;
+import org.openas2.lib.dbUtils.Profile;
+import org.openas2.lib.dbUtils.partner;
 import org.openas2.schedule.HasSchedule;
 import org.openas2.Session;
 import org.openas2.WrappedException;
@@ -46,6 +48,17 @@ public class XMLPartnershipFactory extends BasePartnershipFactory implements Has
     public static final String PARAM_INTERVAL = "interval";
 
     private Map<String, Object> partners;
+
+    private List<partner>  _partnerFromDB;
+
+    public List<partner>  getPartnersFromDB(){return _partnerFromDB;}
+    public void setPartnersFromDB(List<partner>  partners){this._partnerFromDB=partners;}
+
+    private Profile _companyProfile;
+
+    public Profile  getCompanyProfile(){return _companyProfile;}
+    public void setCompanyProfile(Profile  profile){this._companyProfile=profile;}
+
 
     private Log logger = LogFactory.getLog(XMLPartnershipFactory.class.getSimpleName());
 
@@ -78,9 +91,127 @@ public class XMLPartnershipFactory extends BasePartnershipFactory implements Has
     public void init(Session session, Map<String, String> parameters) throws OpenAS2Exception
     {
         super.init(session, parameters);
+        if(_partnerFromDB!=null)
+        {
 
-        refresh();
+            refresh(_partnerFromDB);
+        }
+        else {
+            refresh();
+        }
     }
+
+    void refresh(List<partner>  partners) throws OpenAS2Exception
+    {
+
+        try {
+            Map<String, Object> newPartners = new HashMap<String, Object>();
+            List<Partnership> newPartnerships = new ArrayList<Partnership>();
+            partner companyPartner=new partner();
+            companyPartner.setEmailAddress(_companyProfile.getEmailAddress());
+            companyPartner.setPartnerName(Profile.PROFILENAME);
+            companyPartner.setAS2Identifier(_companyProfile.getAS2Idenitfier());
+            companyPartner.setPublicCertificate(_companyProfile.getPublicCertificate());
+            loadPartner(newPartners, companyPartner);
+
+            Map<String ,String> PartnerToServer=new HashMap<String, String>();
+            PartnerToServer.put("receiver",Profile.PROFILENAME);
+            PartnerToServer.put("protocol","AS2");
+            PartnerToServer.put("content_transfer_encoding","8bit");
+            PartnerToServer.put("mdnsubject","Your requested MDN response from $receiver.as2_id$");
+            PartnerToServer.put("as2_mdn_to",companyPartner.getEmailAddress());
+            PartnerToServer.put("prevent_canonicalization_for_mic","false");
+            PartnerToServer.put("no_set_transfer_encoding_for_signing","false");
+            PartnerToServer.put("rename_digest_to_old_name","false");
+            PartnerToServer.put("emove_cms_algorithm_protection_attrib","false");
+
+
+            for (partner Partner : partners
+                    ) {
+
+
+                    loadPartner(newPartners, Partner);
+
+
+            }
+            for (partner Partner : partners
+                    ) {
+
+                PartnerToServer.put("sender",Partner.getPartnerName());
+                PartnerToServer.put("name",Partner.getPartnerName()+"-to-"+Profile.PROFILENAME);
+                PartnerToServer.put("subject","AS2 Message From "+ Partner.getPartnerName() +" to serverProfile");
+                PartnerToServer.put("encrypt",Partner.getEncryptionAlgorithm());
+                PartnerToServer.put("sign",Partner.getSignatureAlgorithm());
+                PartnerToServer.put("resend_max_retries",String.valueOf(Partner.getMaxAttempts()));
+                if(Partner.getISMDNSigned())
+                {
+                    PartnerToServer.put("as2_mdn_options","signed-receipt-protocol=optional, pkcs7-signature; signed-receipt-micalg=optional, SHA256");
+                }
+                if(!Partner.getIsSyncronous())
+                {
+                    PartnerToServer.put("as2_url",_companyProfile.getAsynchronousMDNURL());
+                }
+
+                Map<String ,String> ServerToPartner=new HashMap<String, String>();
+                ServerToPartner.put("sender",Profile.PROFILENAME);
+                ServerToPartner.put("name",Profile.PROFILENAME+"-to-"+Partner.getPartnerName());
+                ServerToPartner.put("receiver",Partner.getPartnerName());
+                ServerToPartner.put("protocol","AS2");
+                ServerToPartner.put("content_transfer_encoding","8bit");
+                ServerToPartner.put("mdnsubject","Your requested MDN response from $receiver.as2_id$");
+                ServerToPartner.put("as2_mdn_to",Partner.getEmailAddress());
+                ServerToPartner.put("prevent_canonicalization_for_mic","false");
+                ServerToPartner.put("no_set_transfer_encoding_for_signing","false");
+                ServerToPartner.put("rename_digest_to_old_name","false");
+                ServerToPartner.put("emove_cms_algorithm_protection_attrib","false");
+                if(Partner.getISMDNSigned())
+                {
+                    ServerToPartner.put("as2_mdn_options","signed-receipt-protocol=optional, pkcs7-signature; signed-receipt-micalg=optional, SHA256");
+                }
+                if(!Partner.getIsSyncronous())
+                {
+                    ServerToPartner.put("as2_url",Partner.getPartnerUrl());
+                }
+                ServerToPartner.put("encrypt",Partner.getEncryptionAlgorithm());
+                ServerToPartner.put("sign",Partner.getSignatureAlgorithm());
+                ServerToPartner.put("resend_max_retries",String.valueOf(Partner.getMaxAttempts()));
+
+
+                loadPartnership(newPartners, newPartnerships, ServerToPartner);
+                loadPartnership(newPartners, newPartnerships, PartnerToServer);
+
+
+            }
+            synchronized (this)
+            {
+                setPartners(newPartners);
+                setPartnerships(newPartnerships);
+            }
+        }
+        catch (Exception e)
+        {
+            throw new WrappedException(e);
+        }
+    }
+
+    public void loadPartner(Map<String, Object> partners, Node node)
+            throws OpenAS2Exception
+    {
+        String[] requiredAttributes = {"name"};
+
+        Map<String, String> newPartner = XMLUtil.mapAttributes(node, requiredAttributes);
+        String name = newPartner.get("name");
+
+        if (partners.get(name) != null)
+        {
+            throw new OpenAS2Exception("Partner is defined more than once: " + name);
+        }
+
+        partners.put(name, newPartner);
+    }
+
+
+
 
     void refresh() throws OpenAS2Exception
     {
@@ -110,6 +241,7 @@ public class XMLPartnershipFactory extends BasePartnershipFactory implements Has
                 {
                     loadPartner(newPartners, rootNode);
                 } else if (nodeName.equals("partnership"))
+
                 {
                     loadPartnership(newPartners, newPartnerships, rootNode);
                 }
@@ -137,12 +269,26 @@ public class XMLPartnershipFactory extends BasePartnershipFactory implements Has
         partnership.getAttributes().putAll(nodes);
     }
 
-    public void loadPartner(Map<String, Object> partners, Node node)
+
+    private void loadAttributes( Map<String, String> attributes, Partnership partnership)
+
+    {
+
+        partnership.getAttributes().putAll(attributes);
+    }
+
+    public void loadPartner(Map<String, Object> partners, partner Partner)
             throws OpenAS2Exception
     {
         String[] requiredAttributes = {"name"};
 
-        Map<String, String> newPartner = XMLUtil.mapAttributes(node, requiredAttributes);
+        Map<String, String> newPartner =new HashMap<String, String>();
+        newPartner.put("name",Partner.getPartnerName());
+        newPartner.put("as2_id",Partner.getAS2Identifier());
+        newPartner.put("x509_alias",Partner.getPublicCertificate());
+        newPartner.put("email",Partner.getEmailAddress());
+        newPartner=XMLUtil.mapAttributes(newPartner, requiredAttributes);
+
         String name = newPartner.get("name");
 
         if (partners.get(name) != null)
@@ -153,6 +299,68 @@ public class XMLPartnershipFactory extends BasePartnershipFactory implements Has
         partners.put(name, newPartner);
     }
 
+
+    public void loadPartnership(Map<String, Object> partners, List<Partnership> partnerships, Map<String ,String> newPartnership )
+            throws OpenAS2Exception
+    {
+        Partnership partnership = new Partnership();
+        String[] requiredAttributes = {"name"};
+
+        Map<String, String> psAttributes=new HashMap<String, String>();
+        psAttributes=XMLUtil.mapAttributes(newPartnership, requiredAttributes);
+        String name = psAttributes.get("name");
+
+        if (getPartnership(partnerships, name) != null)
+        {
+            throw new OpenAS2Exception("Partnership is defined more than once: " + name);
+        }
+
+        partnership.setName(name);
+
+        // load the sender and receiver information
+        loadPartnerIDs(partners, name, newPartnership, "sender", partnership.getReceiverIDs());
+        loadPartnerIDs(partners, name, newPartnership, "receiver", partnership.getReceiverIDs());
+
+        // read in the partnership attributes
+        loadAttributes(newPartnership, partnership);
+
+        // add the partnership to the list of available partnerships
+        partnerships.add(partnership);
+    }
+
+    private void loadPartnerIDs(Map<String, Object> partners, String partnershipName, Map<String ,String> partnershipNode,
+                                String partnerType, Map<String, Object> idMap) throws OpenAS2Exception
+    {
+
+
+        boolean partnerNode = partnershipNode.containsKey(partnerType);
+
+        if (!partnerNode)
+        {
+            throw new OpenAS2Exception("Partnership " + partnershipName + " is missing "+partnerType);
+        }
+
+
+        // check for a partner name, and look up in partners list if one is found
+        String partnerName =  partnershipNode.get(partnerType);
+
+        if (partnerName != null)
+        {
+            Map<String, Object> map = (Map<String, Object>) partners.get(partnerName);
+            Map<String, Object> partner = map;
+
+            if (partner == null)
+            {
+                throw new OpenAS2Exception("Partnership " + partnershipName + " has an undefined " +
+                        partnerType + ": " + partnerName);
+            }
+
+            idMap.putAll(partner);
+        }
+
+        // copy all other attributes to the partner id map		
+        idMap.putAll(partnershipNode);
+    }
 
     private void loadPartnerIDs(Map<String, Object> partners, String partnershipName, Node partnershipNode,
                                 String partnerType, Map<String, Object> idMap) throws OpenAS2Exception
@@ -183,7 +391,7 @@ public class XMLPartnershipFactory extends BasePartnershipFactory implements Has
             idMap.putAll(partner);
         }
 
-        // copy all other attributes to the partner id map		
+        // copy all other attributes to the partner id map
         idMap.putAll(partnerAttr);
     }
 

@@ -8,7 +8,7 @@ import org.openas2.Session;
 import org.openas2.params.InvalidParameterException;
 
 
-public abstract class BaseCommand extends BaseComponent implements Command {
+public abstract class  BaseCommand extends BaseComponent implements Command {
     public static final String PARAM_NAME = "name";
     public static final String PARAM_DESCRIPTION = "description";
     public static final String PARAM_USAGE = "usage";

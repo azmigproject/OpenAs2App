@@ -52,6 +52,63 @@ public class XMLUtil {
         }
     }
 
+
+    public static Component getComponent(String className, Map<String,String>mapParms, Session session)
+            throws OpenAS2Exception
+    {
+        try
+        {
+            Class<?> objClass = Class.forName(className);
+
+            if (!Component.class.isAssignableFrom(objClass))
+            {
+                throw new OpenAS2Exception("Class " + className + " must implement " +
+                        Component.class.getName());
+            }
+
+            Component obj = (Component) objClass.newInstance();
+
+            Map<String, String> parameters = XMLUtil.mapAttributes(mapParms,true);
+
+            updateDirectories(session.getBaseDirectory(), parameters);
+
+            obj.init(session, parameters);
+
+            return obj;
+        } catch (Exception e)
+        {
+            throw new WrappedException("Error creating component: " + className, e);
+        }
+    }
+
+    public static Component getCommandComponent(String className, Map<String,String>mapParms, Map<String, Object> cmdList, Session session)
+            throws OpenAS2Exception
+    {
+        try
+        {
+            Class<?> objClass = Class.forName(className);
+
+            if (!Component.class.isAssignableFrom(objClass))
+            {
+                throw new OpenAS2Exception("Class " + className + " must implement " +
+                        Component.class.getName());
+            }
+
+            org.openas2.cmd.XMLCommandRegistry obj = (org.openas2.cmd.XMLCommandRegistry) objClass.newInstance();
+
+            Map<String, String> parameters = XMLUtil.mapAttributes(mapParms,true);
+
+            updateDirectories(session.getBaseDirectory(), parameters);
+            obj.setMultiCommands(cmdList);
+            obj.init(session, parameters);
+
+            return obj;
+        } catch (Exception e)
+        {
+            throw new WrappedException("Error creating component: " + className, e);
+        }
+    }
+
     public static Node findChildNode(Node parent, String childName)
     {
         NodeList childNodes = parent.getChildNodes();
@@ -132,10 +189,45 @@ public class XMLUtil {
         return attrMap;
     }
 
+    public static Map<String, String> mapAttributes(Map<String, String> attributeList, boolean keyToLowerCase)
+    {
+        Map<String, String> attrMap = new HashMap<String, String>();
+
+        for(Map.Entry<String, String> entry : attributeList.entrySet()) {
+        String key = entry.getKey();
+            String parmValue = entry.getValue();
+
+            if (keyToLowerCase) key = key.toLowerCase();
+            attrMap.put(key, parmValue);
+        }
+
+        return attrMap;
+    }
+
     public static Map<String, String> mapAttributes(Node node)
     {
     	return mapAttributes(node, true);
     }
+    public static Map<String, String> mapAttributes(Map<String, String> attributeList, String[] requiredAttributes)
+            throws OpenAS2Exception
+    {
+        Map<String, String> attributes = mapAttributes(attributeList,true);
+        String attrName;
+
+        for (String requiredAttribute : requiredAttributes)
+        {
+            attrName = requiredAttribute;
+
+            if (attributes.get(attrName) == null)
+            {
+                throw new OpenAS2Exception("AttributeList is missing required attribute: " +
+                        attrName);
+            }
+        }
+
+        return attributes;
+    }
+
     public static Map<String, String> mapAttributes(Node node, String[] requiredAttributes)
             throws OpenAS2Exception
     {

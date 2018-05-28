@@ -2,11 +2,11 @@
 	<partner name="OpenAS2A"
 		as2_id="OpenAS2A_OID"
 		x509_alias="openas2a"
-		email="as2msgs@openas2a.com"/>	
+		email="as2msgs@openas2a.com" />	
 	<partner name="OpenAS2B"
 		as2_id="OpenAS2B_OID"
 		x509_alias="openas2b"
-		email="as2msgs@openas2b.com"/>	
+		email="as2msgs@openas2b.com" />	
 
 	<partnership name="OpenAS2A-to-OpenAS2B">
 		<sender name="OpenAS2A"/>
