@@ -43,7 +43,8 @@ import org.w3c.dom.NodeList;
  *
  * @author joseph mcverry
  */
-public class XMLPartnershipFactory extends BasePartnershipFactory implements HasSchedule {
+public class XMLPartnershipFactory extends BasePartnershipFactory{
+//public class XMLPartnershipFactory extends BasePartnershipFactory implements HasSchedule {
     public static final String PARAM_FILENAME = "filename";
     public static final String PARAM_INTERVAL = "interval";
 
@@ -499,7 +500,7 @@ public class XMLPartnershipFactory extends BasePartnershipFactory implements Has
         }
     }
 
-    @Override
+   /* @Override
     public void schedule(ScheduledExecutorService executor) throws OpenAS2Exception
     {
         new FileMonitorAdapter() {
@@ -510,5 +511,5 @@ public class XMLPartnershipFactory extends BasePartnershipFactory implements Has
                 logger.debug("- Partnerships Reloaded -");
             }
         }.scheduleIfNeed(executor, new File(getFilename()), getRefreshInterval(), TimeUnit.SECONDS);
-    }
+    }*/
 }

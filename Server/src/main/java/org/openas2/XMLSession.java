@@ -109,7 +109,7 @@ public class XMLSession extends BaseSession {
        loadCertificates(azureUtil.getCertificates());
        loadProcessor(azureUtil.getProcessor());
        loadCommandProcessors(azureUtil.getCommandProcessors());
-       loadPartnerships(azureUtil.getPartnerList());
+       loadPartnerships(azureUtil.getPartnerList(),azureUtil.getProfile() );
        loadCommands(azureUtil.getCommand());
        //loadLoggers(azureUtil.);
    }
@@ -185,7 +185,7 @@ public class XMLSession extends BaseSession {
         Component component = XMLUtil.getCommandComponent(commands.getClassName(),parameters,commandMap, this);
         commandRegistry = (CommandRegistry) component;
     }
-    private void loadPartnerships(List<partner> partnerList) throws OpenAS2Exception
+    private void loadPartnerships(List<partner> partnerList,Profile companyProfile) throws OpenAS2Exception
     {
         LOGGER.info("Loading partnerships...");
         Map<String, String> parameters =  new HashMap<String, String>();
@@ -195,8 +195,8 @@ public class XMLSession extends BaseSession {
          //TODO ADD UPDATES TO PASS PARTNER DATA FROM partnerList
 
         XMLPartnershipFactory partnerFx = (XMLPartnershipFactory) XMLUtil
-                .getComponent("org.openas2.partner.XMLPartnershipFactory",parameters, this);
-        partnerFx.setPartnersFromDB(partnerList);
+                .getPartnerShipComponent("org.openas2.partner.XMLPartnershipFactory",parameters, partnerList,companyProfile,this);
+
         setComponent(PartnershipFactory.COMPID_PARTNERSHIP_FACTORY, partnerFx);
     }
 

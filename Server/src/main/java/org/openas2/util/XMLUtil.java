@@ -2,6 +2,7 @@ package org.openas2.util;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -9,6 +10,7 @@ import org.openas2.Component;
 import org.openas2.OpenAS2Exception;
 import org.openas2.Session;
 import org.openas2.WrappedException;
+import org.openas2.lib.dbUtils.*;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -100,6 +102,35 @@ public class XMLUtil {
 
             updateDirectories(session.getBaseDirectory(), parameters);
             obj.setMultiCommands(cmdList);
+            obj.init(session, parameters);
+
+            return obj;
+        } catch (Exception e)
+        {
+            throw new WrappedException("Error creating component: " + className, e);
+        }
+    }
+
+    public static Component getPartnerShipComponent(String className, Map<String,String>mapParms, List<partner> partnerList, Profile companyProfile,  Session session)
+            throws OpenAS2Exception
+    {
+        try
+        {
+            Class<?> objClass = Class.forName(className);
+
+            if (!Component.class.isAssignableFrom(objClass))
+            {
+                throw new OpenAS2Exception("Class " + className + " must implement " +
+                        Component.class.getName());
+            }
+
+            org.openas2.partner.XMLPartnershipFactory obj = (org.openas2.partner.XMLPartnershipFactory) objClass.newInstance();
+
+            Map<String, String> parameters = XMLUtil.mapAttributes(mapParms,true);
+
+            updateDirectories(session.getBaseDirectory(), parameters);
+            obj.setPartnersFromDB(partnerList);
+            obj.setCompanyProfile(companyProfile);
             obj.init(session, parameters);
 
             return obj;

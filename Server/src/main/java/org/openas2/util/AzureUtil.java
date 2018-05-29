@@ -247,10 +247,10 @@ public class AzureUtil {
             for (int i=0;i<objarr.length();i++)
             {
                 tempCommand[i]=new Multicommand();
-                JSONObject objTemp=objarr.getJSONObject(i);
+                JSONObject objTemp=objarr.getJSONObject(i).getJSONObject("multicommands");
                 tempCommand[i].setName(objTemp.getString("name"));
                 tempCommand[i].setDescription(objTemp.getString("description"));
-                JSONArray objCommandarr= objJSON.optJSONArray("command");
+                JSONArray objCommandarr= objTemp.optJSONArray("command");
                 Command[] availableCommands=new Command[objCommandarr.length()];
                 for (int count=0;count<objCommandarr.length();count++) {
                     availableCommands[count]=new Command();
@@ -274,35 +274,82 @@ public class AzureUtil {
         FeedOptions queryOptions = new FeedOptions();
         queryOptions.setPageSize(-1);
         queryOptions.setEnableCrossPartitionQuery(true);
-        List<partner> partnerlist=null;
+        List<partner> partnerlist=new ArrayList<partner>();
 
         String collectionLink = String.format("/dbs/%s/colls/%s", COSMOS_DB_NAME, PARTNER_TABLE_NAME);
         FeedResponse<Document> queryResults = this.documentClient.queryDocuments(collectionLink,
                 "SELECT * FROM "+ PARTNER_TABLE_NAME, queryOptions);
         for (Document doc : queryResults.getQueryIterable()) {
 
-            partner  partnerInfp= gson.fromJson(doc.toJson(),org.openas2.lib.dbUtils.partner.class);
+            JSONObject objJSON=new JSONObject(doc.toJson());
+            partner partnerInfp=new partner();
+            partnerInfp.setPublicCertificate(objJSON.getString("PublicCertificate"));
+            partnerInfp.setPartnerUrl(objJSON.getString("PartnerUrl"));
+            partnerInfp.setAS2Identifier(objJSON.getString("AS2Identifier"));
+            partnerInfp.setEmailAddress(objJSON.getString("EmailAddress"));
+            partnerInfp.setPartnerName(objJSON.getString("PartnerName"));
+            //partnerInfp.setBlobFoldername(objJSON.getString("BlobFoldername"));
+            partnerInfp.setConnectionTimeOutInSec(objJSON.getInt("ConnectionTimeOutInSec"));
+            partnerInfp.setEnableAutomation(objJSON.getBoolean("EnableAutomation"));
+            //partnerInfp.setCreatedBy(objJSON.getString("CreatedBy"));
+            //partnerInfp.setCreatedOn(objJSON.getString("CreatedOn"));
+            partnerInfp.setEncryptionAlgorithm(objJSON.getString("EncryptionAlgorithm"));
+            partnerInfp.setIncomingMessageRequireEncryption(objJSON.getBoolean("IncomingMessageRequireEncryption"));
+            partnerInfp.setIncomingMessageRequireSignature(objJSON.getBoolean("IncomingMessageRequireSignature"));
+            partnerInfp.setSignOutgoingMessage(objJSON.getBoolean("SignOutgoingMessage"));
+            partnerInfp.setIncomingQueue(objJSON.getString("IncomingQueue"));
+            partnerInfp.setOutgoingQueue(objJSON.getString("OutgoingQueue"));
+            partnerInfp.setSentQueue(objJSON.getString("SentQueue"));
+            partnerInfp.setInErrorQueue(objJSON.getString("IncommingErrorQueue"));
+            partnerInfp.setOutErrorQueue(objJSON.getString("OutgoingErrorQueue"));
+            partnerInfp.setIsFolderCreated(objJSON.getBoolean("IsFolderCreated"));
+            partnerInfp.setIsMDNRequested(objJSON.getBoolean("IsMDNRequested"));
+            partnerInfp.setISMDNSigned(objJSON.getBoolean("ISMDNSigned"));
+            partnerInfp.setISMDNSigned(objJSON.getBoolean("IsSyncronous"));
+            partnerInfp.setMaxAttempts(objJSON.getInt("MaxAttempts"));
+            partnerInfp.setResendInterval(objJSON.getInt("ResendInterval"));
+            partnerInfp.setRetryInterval(objJSON.getInt("RetryInterval"));
+            partnerInfp.setIsMessageCompressed(objJSON.getBoolean("ISMessageCompressed"));
+            partnerInfp.setSendFileNameInContentType(objJSON.getBoolean("SendFileNameInContentType"));
+            partnerInfp.setOnPremIncomingDirName(objJSON.getString("OnPremIncomingDirName"));
+            partnerInfp.setOnPremOutgoingDirName(objJSON.getString("OnPremOutgoingDirName"));
+            partnerInfp.setOnPremSentDirName(objJSON.getString("OnPremSentDirName"));
+            partnerInfp.setOnPremErrDirName(objJSON.getString("OnPremErrDirName"));
+            partnerInfp.SetSSLEnabledProtocolsSSLv2(objJSON.getBoolean("SSLEnabledProtocolsSSLv2"));
+            partnerInfp.SetSSLEnabledProtocolsSSLv3(objJSON.getBoolean("SSLEnabledProtocolsSSLv3"));
+            partnerInfp.SetSSLEnabledProtocolsTLSv1(objJSON.getBoolean("SSLEnabledProtocolsTLSv1"));
+            partnerInfp.SetSSLEnabledProtocolsTLSv11(objJSON.getBoolean("SSLEnabledProtocolsTLSv11"));
+            partnerInfp.SetSSLEnabledProtocolsTLSv12(objJSON.getBoolean("SSLEnabledProtocolsTLSv12"));
+
+
             partnerlist.add(partnerInfp);
         }
         return partnerlist;
     }
 
-    public List<Profile> getProfileList() {
+    public Profile getProfile() {
         // Set some common query options
         FeedOptions queryOptions = new FeedOptions();
         queryOptions.setPageSize(-1);
         queryOptions.setEnableCrossPartitionQuery(true);
-        List<Profile> profileInfo=null;
+        List<Profile> profileInfo=new ArrayList<Profile>();
         String collectionLink = String.format("/dbs/%s/colls/%s", COSMOS_DB_NAME, PROFILE_TABLE_NAME);
         FeedResponse<Document> queryResults = this.documentClient.queryDocuments(collectionLink,
                 "SELECT * FROM "+ PROFILE_TABLE_NAME, queryOptions);
 
         for (Document doc : queryResults.getQueryIterable()) {
 
-            Profile  profile= gson.fromJson(doc.toJson(),Profile.class);
+            JSONObject objJSON=new JSONObject(doc.toJson());
+            Profile profile=new Profile();
+            profile.setAS2Idenitfier(objJSON.getString("AS2Idenitfier"));
+            profile.setEemailAddress(objJSON.getString("EmailAddress"));
+            profile.setAsynchronousMDNURL(objJSON.getString("AsynchronousMDNURL"));
+            profile.setPrivateCertificate(objJSON.getString("PrivateCertificate"));
+            profile.setPublicCertificate(objJSON.getString("PublicCertificate"));
+            profile.setCertificatePassword(objJSON.getString("CertificatePassword"));
             profileInfo.add(profile);
         }
-        return profileInfo;
+        return profileInfo.get(0);
 
     }
 

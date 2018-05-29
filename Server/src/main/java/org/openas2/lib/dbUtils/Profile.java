@@ -42,6 +42,12 @@ public class Profile {
     public void setPublicCertificate(String publicCertificate) {
         this._publicCertificate = publicCertificate;
     }
+    public String getPrivateCertificate() {
+        return _privateCertificate;
+    }
+    public void setPrivateCertificate(String privateCertificate) {
+        this._privateCertificate = privateCertificate;
+    }
     public String getUpdatedBy() {
         return _updatedBy;
     }
@@ -73,6 +79,7 @@ public class Profile {
     private String _asynchronousMDNURL;
     private String _certificatePassword;
     private String _publicCertificate;
+    private String _privateCertificate;
     private String _updatedBy;
     private String _createdBy;
     private DateTime _createdOn;

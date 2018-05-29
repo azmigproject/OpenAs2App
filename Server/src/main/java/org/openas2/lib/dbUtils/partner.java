@@ -114,6 +114,18 @@ public class partner {
     public void setIsFolderCreated(boolean isFolderCreated) {
         this._isFolderCreated = isFolderCreated;
     }
+    public String getOnPremErrDirName() {
+        return _onPremErrDirName;
+    }
+    public void setOnPremErrDirName(String onPremErrDirName) {
+        this._onPremErrDirName = onPremErrDirName;
+    }
+    public boolean getIsMessageCompressed() {
+        return _isMessageCompressed;
+    }
+    public void setIsMessageCompressed(boolean isMessageCompressed) {
+        this._isMessageCompressed = isMessageCompressed;
+    }
     public String getBlobFoldername() {
         return _blobFoldername;
     }
@@ -229,6 +241,41 @@ public class partner {
         this._updatedOn = updatedOn;
     }
 
+    public boolean getSSLEnabledProtocolsSSLv2() {
+        return _sslEnabledProtocolsSSLv2;
+    }
+    public void SetSSLEnabledProtocolsSSLv2(boolean sslEnabledProtocolsSSLv2) {
+        this._sslEnabledProtocolsSSLv2 = sslEnabledProtocolsSSLv2;
+    }
+
+    public boolean getSSLEnabledProtocolsSSLv3() {
+        return _sslEnabledProtocolsSSLv3;
+    }
+    public void SetSSLEnabledProtocolsSSLv3(boolean sslEnabledProtocolsSSLv3) {
+        this._sslEnabledProtocolsSSLv3 = sslEnabledProtocolsSSLv3;
+    }
+
+    public boolean getSSLEnabledProtocolsTLSv1() {
+        return _sslEnabledProtocolsTLSv1;
+    }
+    public void SetSSLEnabledProtocolsTLSv1(boolean sslEnabledProtocolsTLSv1) {
+        this._sslEnabledProtocolsTLSv1 = sslEnabledProtocolsTLSv1;
+    }
+
+    public boolean getSSLEnabledProtocolsTLSv11() {
+        return _sslEnabledProtocolsTLSv11;
+    }
+    public void SetSSLEnabledProtocolsTLSv11(boolean sslEnabledProtocolsTLSv11) {
+        this._sslEnabledProtocolsTLSv11 = sslEnabledProtocolsTLSv11;
+    }
+
+    public boolean getSSLEnabledProtocolsTLSv12() {
+        return _sslEnabledProtocolsTLSv12;
+    }
+    public void SetSSLEnabledProtocolsTLSv12(boolean sslEnabledProtocolsTLSv12) {
+        this._sslEnabledProtocolsTLSv12 = sslEnabledProtocolsTLSv12;
+    }
+
 
     private String _outErrorQueue;
     private DateTime _createdOn;
@@ -253,6 +300,8 @@ public class partner {
     private boolean _isSyncronous;
     private boolean _sendFileNameInContentType;
     private boolean _isFolderCreated;
+    private boolean _isMessageCompressed;
+    private String _onPremErrDirName;
     private int _retryInterval;
     private int _resendInterval;
     private int _maxAttempts;
@@ -263,6 +312,11 @@ public class partner {
     private boolean _signOutgoingMessage;
     private boolean _encryptOutgoingMessage;
     private boolean _isMDNRequested;
+    private boolean _sslEnabledProtocolsSSLv2;
+    private boolean _sslEnabledProtocolsSSLv3;
+    private boolean _sslEnabledProtocolsTLSv1;
+    private boolean _sslEnabledProtocolsTLSv11;
+    private boolean _sslEnabledProtocolsTLSv12;
     private String _partnerUrl;
     private String _as2Identifier;
     private String _partnerName;

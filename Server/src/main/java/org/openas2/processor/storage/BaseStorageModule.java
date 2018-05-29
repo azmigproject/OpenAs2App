@@ -138,7 +138,8 @@ public abstract class BaseStorageModule extends BaseProcessorModule implements S
             IOUtils.copy(in, out);
         } finally
         {
-            IOUtils.closeQuietly(in, out);
+            IOUtils.closeQuietly(in);
+            IOUtils.closeQuietly(out);
         }
     }
 
