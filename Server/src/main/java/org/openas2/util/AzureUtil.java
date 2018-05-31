@@ -142,6 +142,9 @@ public class AzureUtil {
                 tempModule[i].setTempDir(objTemp.getString("tempdir"));
                 tempModule[i].setSendFileName(objTemp.getString("sendfilename"));
                 tempModule[i].setFormat(objTemp.getString("format"));
+                tempModule[i].setDefaults(objTemp.getString("defaults"));
+                tempModule[i].setQueueName(objTemp.getString("queuename"));
+
 
             }
             processor.setModules(tempModule);
