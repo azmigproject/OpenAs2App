@@ -208,7 +208,7 @@ public class AzureUtil {
         FeedOptions queryOptions = new FeedOptions();
         queryOptions.setPageSize(-1);
         queryOptions.setEnableCrossPartitionQuery(true);
-        List<ServersSettings> serverSettingsInfo=null;
+        List<ServersSettings> serverSettingsInfo=new ArrayList<ServersSettings>();
 
         String collectionLink = String.format("/dbs/%s/colls/%s", COSMOS_DB_NAME, SERVER_SETTINGS_TABLE_NAME);
         FeedResponse<Document> queryResults = this.documentClient.queryDocuments(collectionLink,
