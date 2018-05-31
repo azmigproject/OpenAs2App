@@ -214,8 +214,10 @@ public class AzureUtil {
         FeedResponse<Document> queryResults = this.documentClient.queryDocuments(collectionLink,
                 "SELECT * FROM "+ SERVER_SETTINGS_TABLE_NAME, queryOptions);
         for (Document doc : queryResults.getQueryIterable()) {
-
-            ServersSettings  serverSetting= gson.fromJson(doc.toJson(),ServersSettings.class);
+            JSONObject objJSON=new JSONObject(doc.toJson());
+            ServersSettings  serverSetting= new ServersSettings();
+            serverSetting.setAllowHealthCheck(objJSON.getBoolean("AllowHealthCheck"));
+            serverSetting.setAzureStoragekey(objJSON.getString("AzureStoragekey"));
             serverSettingsInfo.add(serverSetting);
         }
         return serverSettingsInfo;
