@@ -12,8 +12,10 @@ import org.openas2.Session;
 import org.openas2.message.Message;
 import org.openas2.params.InvalidParameterException;
 import org.openas2.processor.BaseProcessorModule;
+import org.openas2.util.BlobHelper;
 import org.openas2.util.IOUtilOld;
 import org.openas2.util.Properties;
+import org.openas2.util.QueueHelper;
 
 public abstract class BaseStorageModule extends BaseProcessorModule implements StorageModule {
     public static final String PARAM_FILENAME = "filename";
@@ -124,11 +126,38 @@ public abstract class BaseStorageModule extends BaseProcessorModule implements S
 
             // copy the temp file over to the destination
             IOUtilOld.moveFile(tempFile, msgFile, true, false);
+
         } else
         {
             writeStream(in, msgFile);
         }
     }
+
+
+    protected void store(File msgFile, InputStream in, String queueName,String blobContainer, int minByteLength) throws IOException, OpenAS2Exception, Exception
+    {
+        String tempDirname = getParameter(PARAM_TEMPDIR, false);
+        byte[] bytes = IOUtils.toByteArray(in);
+        String queueMsg="";
+        if(bytes.length>minByteLength)
+        {
+            //ToDO Save File In BlobLocation
+
+            BlobHelper blobHelper=new BlobHelper();
+            blobHelper.UploadFileInBlob(blobContainer,msgFile.getName(),bytes);
+
+            queueMsg=msgFile.getName()+"|_B_|";
+        }
+       else {
+
+            queueMsg=msgFile.getName()+"|__|"+bytes.toString();
+        }
+        QueueHelper queueHelper=new QueueHelper();
+        queueHelper.AddMsgToQueue(queueName, queueMsg);
+
+    }
+
+
 
     protected void writeStream(InputStream in, File destination) throws IOException
     {

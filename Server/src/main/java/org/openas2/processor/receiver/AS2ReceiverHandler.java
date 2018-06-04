@@ -118,7 +118,7 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 					}
 					OpenAS2Exception oe = new OpenAS2Exception("Missing data in AS2 request.");
 					msg.setLogMsg("Error receiving message for inbound AS2 request. There is no data.");
-					logger.error(msg, oe);
+
 					return;
 				}
 			}
@@ -228,7 +228,7 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 								"processed", "Error", "unexpected-processing-error"),
 								AS2ReceiverModule.DISP_STORAGE_FAILED, oae);
 					}
-
+					// Put the file inthe queue
 					// Transmit a success MDN if requested
 					try {
 						if (msg.isRequestingMDN()) {

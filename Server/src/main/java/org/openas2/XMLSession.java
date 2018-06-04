@@ -271,6 +271,8 @@ public class XMLSession extends BaseSession {
         parameters.put("port", String.valueOf(mod.getPort()));
         parameters.put("retries", String.valueOf(mod.getRetries()));
         parameters.put("resenddelay", String.valueOf(mod.getResendDelay()));
+        parameters.put("defaults", String.valueOf(mod.getDefaults()));
+        parameters.put("queuename", String.valueOf(mod.getQueueName()));
 
 
         ProcessorModule procmod = (ProcessorModule) XMLUtil.getComponent(

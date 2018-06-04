@@ -2,7 +2,7 @@ package org.openas2.lib.dbUtils;
 
 import org.joda.time.DateTime;
 
-public class module {
+public class  module {
 
     public String getProtocol() {
         return _protocol;
@@ -137,6 +137,20 @@ public class module {
         this._interval = interval;
     }
 
+    public String getDefaults() {
+        return _defaults;
+    }
+    public void setDefaults(String defaults) {
+        this._defaults = _defaults;
+    }
+
+    public String getQueueName() {
+        return _queuename;
+    }
+    public void setQueueName(String queuename) {
+        this._queuename = queuename;
+    }
+
     private int _retries;
     private String _port;
     private int _interval;
@@ -154,6 +168,8 @@ public class module {
     private String _delimiters;
     private String _mimetype;
     private String _format;
+    private String _defaults;
+    private String _queuename;
     /*private String _updatedBy;
     private String _createdBy;
     private DateTime _createdOn;

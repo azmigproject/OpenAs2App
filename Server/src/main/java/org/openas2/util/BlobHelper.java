@@ -3,8 +3,6 @@ package org.openas2.util;
 import com.microsoft.azure.storage.*;
 import com.microsoft.azure.storage.blob.*;
 import org.openas2.lib.dbUtils.ServersSettings;
-
-import java.io.File;
 import java.util.List;
 
 public class BlobHelper {
@@ -19,7 +17,8 @@ public class BlobHelper {
             ServersSettings serverSetting = serverSettings.get(0);
 
             // Retrieve storage account from connection-string.
-            CloudStorageAccount storageAccount = CloudStorageAccount.parse(serverSetting.getAzureStoragekey());
+            CloudStorageAccount storageAccount =
+                    CloudStorageAccount.parse(serverSetting.getAzureStoragekey());
 
             // Create the queue client.
             CloudBlobClient blobClient = storageAccount.createCloudBlobClient();
@@ -36,7 +35,7 @@ public class BlobHelper {
     }
 
 
-    public boolean DownloadBlobInFile(String blobContainer,String blobName,String filePath, String fileName) throws Exception {
+    public boolean DownloadBlobInFile(String blobContainer,String blobName,String filePath) throws Exception {
         final String storageConnectionString = "DefaultEndpointsProtocol=http;" + "AccountName=your_storage_account;" + "AccountKey=your_storage_account_key";
 
 
@@ -54,9 +53,11 @@ public class BlobHelper {
 
         // Retrieve a reference to a queue.
         CloudBlobContainer blockBlobContainer = blobClient.getContainerReference(blobContainer);
+
+        // Create the queue if it doesn't already exist.
+        blockBlobContainer.createIfNotExists();
         CloudBlockBlob blockBlob = blockBlobContainer.getBlockBlobReference(blobName);
-        String fileDownloadPath = filePath +File.separator+fileName;
-        blockBlob.downloadToFile(fileDownloadPath);
+        blockBlob.downloadToFile(filePath);
 
         return true;
     }
