@@ -2,14 +2,18 @@ package org.openas2.util;
 
 import com.microsoft.azure.storage.*;
 import com.microsoft.azure.storage.queue.*;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.joda.time.DateTime;
 import org.openas2.lib.dbUtils.ServersSettings;
+
 
 import java.io.File;
 import java.io.FileWriter;
 import java.util.List;
 
 public class QueueHelper {
+    private Log logger = LogFactory.getLog("QueueHelper Class Process");
     public boolean AddMsgToQueue(String queueName, String Msg) {
 
         try {
@@ -32,6 +36,7 @@ public class QueueHelper {
         } catch (Exception e) {
             // Output the stack trace.
             e.printStackTrace();
+            logger.error(e);
         }
         return true;
     }
@@ -70,6 +75,7 @@ public class QueueHelper {
             azureUtil.init();
             String as2NewIdentifier = this.GetAS2Identifier(outDir);
             String queueName = this.GetQueueName(as2NewIdentifier);
+
             List<ServersSettings> serverSettings = azureUtil.getServersSettings();
             ServersSettings serverSetting = serverSettings.get(0);
             // Retrieve storage account from connection-string.
@@ -127,13 +133,15 @@ public class QueueHelper {
     }
    public String GetAS2Identifier(String outDir)
    {
-       String arr [] = outDir.split(File.separator);
+
+       String arr [] = outDir.split("\\\\");
        String as2Identifier = arr[arr.length-1];
        return as2Identifier;
    }
     public String GetQueueName(String as2Identifier)
     {
-       String queueName = as2Identifier+"-"+"out";
+
+        String queueName = as2Identifier+"-"+"out";
         return queueName;
     }
 }
