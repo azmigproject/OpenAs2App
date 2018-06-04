@@ -34,7 +34,15 @@ public class MessageFileModule extends BaseStorageModule {
         try {
             File msgFile = getFile(msg, getParameter(PARAM_FILENAME, true), action);
             InputStream in = msg.getData().getInputStream();
-            store(msgFile, in);
+
+            if(options!=null) {
+                store(msgFile, in, options.get("queueName").toString(), options.get("blobContainer").toString(), 100);
+            }
+            else
+            {
+                store(msgFile, in);
+            }
+
             logger.info("stored message to " + msgFile.getAbsolutePath()+msg.getLogMsgID());
         } catch (Exception e) {
             throw new DispositionException(new DispositionType("automatic-action", "MDN-sent-automatically",

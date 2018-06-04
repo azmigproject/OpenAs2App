@@ -12,7 +12,7 @@ import org.apache.commons.io.filefilter.TrueFileFilter;
 /**
  * Utilities for tests
  */
-public class TestUtils {
+public class   TestUtils {
 
     /**
      * Wait till a file will occur on the file system.

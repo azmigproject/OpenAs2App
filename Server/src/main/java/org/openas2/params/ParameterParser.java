@@ -8,7 +8,7 @@ import java.util.StringTokenizer;
 import org.openas2.OpenAS2Exception;
 
 
-public abstract class ParameterParser {
+ public abstract class ParameterParser {
     public abstract void setParameter(String key, String value)
         throws InvalidParameterException;
 

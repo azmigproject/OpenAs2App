@@ -8,6 +8,7 @@ import java.net.Socket;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.Enumeration;
+import java.util.HashMap;
 
 import javax.activation.DataHandler;
 import javax.mail.MessagingException;
@@ -43,6 +44,7 @@ import org.openas2.util.IOUtilOld;
 import org.openas2.util.Profiler;
 import org.openas2.util.ProfilerStub;
 import org.openas2.util.Properties;
+import java.util.*;
 
 public class AS2ReceiverHandler implements NetModuleHandler {
     private AS2ReceiverModule module;
@@ -216,7 +218,11 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 
 					// Process the received message
 					try {
-						getModule().getSession().getProcessor().handle(StorageModule.DO_STORE, msg, null);
+						Map<Object,Object> optMap =new HashMap<Object,Object>();
+						optMap.put("queueName",msg.getPartnership().getAttribute("queueName"));
+						optMap.put("blobContainer",msg.getPartnership().getAttribute("blobContainer"));
+
+						getModule().getSession().getProcessor().handle(StorageModule.DO_STORE, msg,optMap);
 					} catch (OpenAS2Exception oae) {
 						msg.setLogMsg("Error handling received message: " + oae.getCause());
 						logger.error(msg, oae);

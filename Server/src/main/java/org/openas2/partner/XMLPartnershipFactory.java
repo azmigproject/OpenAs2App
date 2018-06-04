@@ -319,7 +319,7 @@ public class XMLPartnershipFactory extends BasePartnershipFactory{
         partnership.setName(name);
 
         // load the sender and receiver information
-        loadPartnerIDs(partners, name, newPartnership, "sender", partnership.getReceiverIDs());
+        loadPartnerIDs(partners, name, newPartnership, "sender", partnership.getSenderIDs());
         loadPartnerIDs(partners, name, newPartnership, "receiver", partnership.getReceiverIDs());
 
         // read in the partnership attributes
