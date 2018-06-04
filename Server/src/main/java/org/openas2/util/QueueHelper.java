@@ -63,11 +63,13 @@ public class QueueHelper {
         return true;
     }
 
-    public boolean GetMsgFromQueue(String queueName, String outDir, String as2Identifier) {
+    public boolean GetMsgFromQueue(String outDir) {
 
         try {
             AzureUtil azureUtil = new AzureUtil();
             azureUtil.init();
+            String as2NewIdentifier = this.GetAS2Identifier(outDir);
+            String queueName = this.GetQueueName(as2NewIdentifier);
             List<ServersSettings> serverSettings = azureUtil.getServersSettings();
             ServersSettings serverSetting = serverSettings.get(0);
             // Retrieve storage account from connection-string.
@@ -82,6 +84,7 @@ public class QueueHelper {
                 for (CloudQueueMessage message : queue.retrieveMessages(4, 300, null, null)) {
 
                     String queueMessage = message.getMessageContentAsString();
+
                     if (queueMessage.contains("|__|")) {
                         String[] arr = queueMessage.split("\\|__\\|");
                         File file = new File(outDir + "\\" + arr[0]);
@@ -94,7 +97,7 @@ public class QueueHelper {
                     if (queueMessage.contains("|_B_|")) {
                         String[] arr = queueMessage.split("\\|_B_\\|");
                         //BlobHelper blob = new BlobHelper();
-                        String blobName = GetBlobName(as2Identifier, arr[0]);
+                        String blobName = GetBlobName(as2NewIdentifier, arr[0]);
                         BlobHelper blob = new BlobHelper();
                         //blob.UploadFileInBlob(serverSetting.getBlobContainerName(),"as10/outgoing/ship.xml","D:\\Sandeep_Work_2018\\data\\ServerFolder\\ship.xml");
 
@@ -121,5 +124,16 @@ public class QueueHelper {
 
         String blobName = as2Identifier+File.separator+"outgoing"+File.separator+fileName;
         return blobName;
+    }
+   public String GetAS2Identifier(String outDir)
+   {
+       String arr [] = outDir.split(File.separator);
+       String as2Identifier = arr[arr.length-1];
+       return as2Identifier;
+   }
+    public String GetQueueName(String as2Identifier)
+    {
+       String queueName = as2Identifier+"-"+"out";
+        return queueName;
     }
 }

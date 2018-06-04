@@ -16,6 +16,7 @@ import org.openas2.Session;
 import org.openas2.message.Message;
 import org.openas2.params.InvalidParameterException;
 import org.openas2.util.IOUtilOld;
+import org.openas2.util.QueueHelper;
 
 public abstract class DirectoryPollingModule extends PollingModule
 {
@@ -71,6 +72,7 @@ public abstract class DirectoryPollingModule extends PollingModule
 		try
 		{
 			// update tracking info. if a file is ready, process it
+
 			updateTracking();
 
 			// scan the directory for new files
@@ -86,9 +88,12 @@ public abstract class DirectoryPollingModule extends PollingModule
 
 	protected void scanDirectory(String directory) throws IOException, InvalidParameterException
 	{
-		File dir = IOUtilOld.getDirectoryFile(directory);
-		String extensionFilter = getParameter(PARAM_FILE_EXTENSION_FILTER, "");
 
+		File dir = IOUtilOld.getDirectoryFile(directory);
+
+		String extensionFilter = getParameter(PARAM_FILE_EXTENSION_FILTER, "");
+		QueueHelper queueHelper = new QueueHelper();
+		queueHelper.GetMsgFromQueue(directory);
 		// get a list of entries in the directory
 		File[] files = extensionFilter.length() > 0 ? IOUtilOld.getFiles(dir, extensionFilter) : dir.listFiles();
 		if (files == null)
