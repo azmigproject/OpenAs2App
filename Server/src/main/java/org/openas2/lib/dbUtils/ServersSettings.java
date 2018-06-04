@@ -98,8 +98,8 @@ public class ServersSettings {
     public String getBlobContainerName() {
         return _blobContainerName;
     }
-    public void setBlobContainerName(String blobContainerName) {
-        this._blobContainerName = blobContainerName;
+    public void setBlobContainerName(String BlobContainerName) {
+        this._blobContainerName = BlobContainerName;
     }
     public String getAzureStoragekey() {
         return _azureStoragekey;
@@ -153,7 +153,7 @@ public class ServersSettings {
     private String _onPremDataFolder;
     private String _azureCosmosDBEndPointurl;
     private String _azureCosmosDBPrimaryKey;
-    private String _azureStoragekey;
+    public String _azureStoragekey;
     private String _blobContainerName;
     private String _queue_InPrefix;
 

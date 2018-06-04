@@ -221,6 +221,7 @@ public class AzureUtil {
             ServersSettings  serverSetting= new ServersSettings();
             serverSetting.setAllowHealthCheck(objJSON.getBoolean("AllowHealthCheck"));
             serverSetting.setAzureStoragekey(objJSON.getString("AzureStoragekey"));
+            serverSetting.setBlobContainerName(objJSON.getString("BlobContainerName"));
             serverSettingsInfo.add(serverSetting);
         }
         return serverSettingsInfo;

@@ -39,8 +39,6 @@ public class QueueHelper {
         return true;
     }
 
-
-
     public boolean GetMsgFromQueue() {
 
         try {
@@ -102,32 +100,6 @@ public class QueueHelper {
                 // deleting each message after processing.
                 queue.deleteMessage(message);
             }
-
-        } catch (Exception e) {
-            // Output the stack trace.
-            e.printStackTrace();
-        }
-        return true;
-    }
-
-    public boolean AddMsgToQueue(String queueName, String Msg) {
-
-        try {
-            AzureUtil azureUtil = new AzureUtil();
-            azureUtil.init();
-            List<ServersSettings> serverSettings = azureUtil.getServersSettings();
-            ServersSettings serverSetting = serverSettings.get(0);
-            // Retrieve storage account from connection-string.
-            CloudStorageAccount storageAccount =
-                    CloudStorageAccount.parse(serverSetting.getAzureStoragekey());
-            // Create the queue client.
-            CloudQueueClient queueClient = storageAccount.createCloudQueueClient();
-            // Retrieve a reference to a queue.
-            CloudQueue queue = queueClient.getQueueReference(queueName);
-            // Peek at the next message.
-            CloudQueueMessage message=new CloudQueueMessage(Msg);
-            queue.addMessage(message);
-
 
         } catch (Exception e) {
             // Output the stack trace.
