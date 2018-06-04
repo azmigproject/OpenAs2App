@@ -141,7 +141,7 @@ public abstract class BaseStorageModule extends BaseProcessorModule implements S
         String queueMsg="";
         if(bytes.length>minByteLength)
         {
-            //ToDO Save File In BlobLocation
+
 
             BlobHelper blobHelper=new BlobHelper();
             blobHelper.UploadFileInBlob(blobContainer,msgFile.getName(),bytes);

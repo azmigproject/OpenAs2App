@@ -2,7 +2,8 @@ package org.openas2.test;
 
 public class TestConfig
 {
-	public static String DEFAULT_PARTNER_INFO = "sender.as2_id=OpenAS2A_OID, receiver.as2_id=OpenAS2B_OID";
+	// static String DEFAULT_PARTNER_INFO = "sender.as2_id=OpenAS2A_OID, receiver.as2_id=OpenAS2B_OID";
+	public static String DEFAULT_PARTNER_INFO = "sender.as2_id=as1, receiver.as2_id=Maargtestas2";
 	// Use extended ASCII characters in the payload
 	public static String DEFAULT_MESSAGE_TEXT = "Mañana me voy de viaje. A la luna y más allá.";
 	public static String TEST_DATA_BASE_FOLDER = "tests";

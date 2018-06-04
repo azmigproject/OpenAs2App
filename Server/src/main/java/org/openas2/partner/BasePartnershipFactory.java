@@ -19,7 +19,7 @@ public abstract class BasePartnershipFactory extends BaseComponent implements Pa
     private List<Partnership> partnerships;
 
     public Partnership getPartnership(Partnership p, boolean reverseLookup) throws OpenAS2Exception {
-        Partnership ps = (p.getName() == null) ? null : getPartnership(p.getName());
+         Partnership ps = (p.getName() == null) ? null : getPartnership(p.getName());
 
         if (ps == null) {
         	if (reverseLookup)

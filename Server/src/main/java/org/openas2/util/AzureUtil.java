@@ -300,6 +300,7 @@ public class AzureUtil {
             //partnerInfp.setCreatedBy(objJSON.getString("CreatedBy"));
             //partnerInfp.setCreatedOn(objJSON.getString("CreatedOn"));
             partnerInfp.setEncryptionAlgorithm(objJSON.getString("EncryptionAlgorithm"));
+            partnerInfp.setSignatureAlgorithm(objJSON.getString("SignatureAlgorithm"));
             partnerInfp.setIncomingMessageRequireEncryption(objJSON.getBoolean("IncomingMessageRequireEncryption"));
             partnerInfp.setIncomingMessageRequireSignature(objJSON.getBoolean("IncomingMessageRequireSignature"));
             partnerInfp.setSignOutgoingMessage(objJSON.getBoolean("SignOutgoingMessage"));

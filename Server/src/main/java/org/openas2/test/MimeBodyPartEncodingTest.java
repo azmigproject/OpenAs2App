@@ -68,7 +68,8 @@ public class MimeBodyPartEncodingTest {
                 write("java org.openas2.app.OpenAS2Server <configuration file>" + System.getProperty("line.separator"));
                 throw new Exception("Missing configuration file");
             }
-            session = new XMLSession(configFile);
+            //session = new XMLSession(configFile);
+            session=new XMLSession();
             // Do the deed...
             write("Entering test phase...." + System.getProperty("line.separator"));
             Message msg = new AS2Message();
