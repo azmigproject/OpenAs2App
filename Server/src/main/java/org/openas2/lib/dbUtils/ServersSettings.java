@@ -137,13 +137,19 @@ public class ServersSettings {
     public void setQueue_OutPrefix(String queue_OutPrefix) {
         this._queue_OutPrefix = queue_OutPrefix;
     }
-
+    public int getMaxFileSize() {
+        return _maxFileSize_Queue;
+    }
+    public void setMaxFileSize(int maxFileSize_Queue) {
+        this._maxFileSize_Queue = maxFileSize_Queue;
+    }
 
     private String _queue_OutPrefix;
     private String _queue_ErrPrefix;
     private String _queue_SentPrefix;
     private String _id;
     private int _healthCheckPort;
+    private int _maxFileSize_Queue;
     private int _mailServerPort;
     private String _logInEmail;
     private String _mailServerSMTP;

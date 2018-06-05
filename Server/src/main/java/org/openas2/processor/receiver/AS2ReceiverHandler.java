@@ -221,6 +221,7 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 						Map<Object,Object> optMap =new HashMap<Object,Object>();
 						optMap.put("queueName",msg.getPartnership().getAttribute("queueName"));
 						optMap.put("blobContainer",msg.getPartnership().getAttribute("blobContainer"));
+						optMap.put("MaxFileSize_Queue",msg.getPartnership().getAttribute("MaxFileSize_Queue"));
 
 						getModule().getSession().getProcessor().handle(StorageModule.DO_STORE, msg,optMap);
 					} catch (OpenAS2Exception oae) {
@@ -287,6 +288,7 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 							logger.error(msg, e);
 						}
 	                    try {
+
 							getModule().getSession().getProcessor().handle(SenderModule.DO_SENDMDN, msg, null);
 		                	if (logger.isDebugEnabled())
 			                	  logger.debug("Call to asynch MDN sender initiated");

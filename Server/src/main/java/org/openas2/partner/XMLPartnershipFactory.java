@@ -23,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openas2.OpenAS2Exception;
 import org.openas2.lib.dbUtils.Profile;
+import org.openas2.lib.dbUtils.ServersSettings;
 import org.openas2.lib.dbUtils.partner;
 import org.openas2.schedule.HasSchedule;
 import org.openas2.Session;
@@ -57,8 +58,13 @@ public class XMLPartnershipFactory extends BasePartnershipFactory{
 
     private Profile _companyProfile;
 
+    private ServersSettings _serverSettings;
+
     public Profile  getCompanyProfile(){return _companyProfile;}
     public void setCompanyProfile(Profile  profile){this._companyProfile=profile;}
+
+    public ServersSettings  getServerSettings(){return _serverSettings;}
+    public void setServerSettings(ServersSettings  serverSettings){this._serverSettings=serverSettings;}
 
 
     private Log logger = LogFactory.getLog(XMLPartnershipFactory.class.getSimpleName());
@@ -118,6 +124,9 @@ public class XMLPartnershipFactory extends BasePartnershipFactory{
             Map<String ,String> PartnerToServer=new HashMap<String, String>();
             PartnerToServer.put("receiver",Profile.PROFILENAME);
             PartnerToServer.put("protocol","AS2");
+
+            PartnerToServer.put("blobContainer",_serverSettings.getBlobContainerName());
+            PartnerToServer.put("MaxFileSize_Queue",String.valueOf( _serverSettings.getMaxFileSize()));
             PartnerToServer.put("content_transfer_encoding","8bit");
             PartnerToServer.put("mdnsubject","Your requested MDN response from $receiver.as2_id$");
             PartnerToServer.put("as2_mdn_to",companyPartner.getEmailAddress());
@@ -137,7 +146,11 @@ public class XMLPartnershipFactory extends BasePartnershipFactory{
             }
             for (partner Partner : partners
                     ) {
-
+                PartnerToServer.put("Inqueue",Partner.getIncomingQueue());
+                PartnerToServer.put("Outqueue",Partner.getOutgoingQueue());
+                PartnerToServer.put("SentQueue",Partner.getSentQueue());
+                PartnerToServer.put("InqueueError",Partner.getInErrorQueue());
+                PartnerToServer.put("OutqueueError",Partner.getOutErrorQueue());
                 PartnerToServer.put("sender",Partner.getPartnerName());
                 PartnerToServer.put("name",Partner.getPartnerName()+"-to-"+Profile.PROFILENAME);
                 PartnerToServer.put("subject","AS2 Message From "+ Partner.getPartnerName() +" to serverProfile");
@@ -155,6 +168,13 @@ public class XMLPartnershipFactory extends BasePartnershipFactory{
 
                 Map<String ,String> ServerToPartner=new HashMap<String, String>();
                 ServerToPartner.put("sender",Profile.PROFILENAME);
+                ServerToPartner.put("blobContainer",_serverSettings.getBlobContainerName());
+                ServerToPartner.put("MaxFileSize_Queue",String.valueOf( _serverSettings.getMaxFileSize()));
+                ServerToPartner.put("Inqueue",Partner.getIncomingQueue());
+                ServerToPartner.put("Outqueue",Partner.getOutgoingQueue());
+                ServerToPartner.put("SentQueue",Partner.getSentQueue());
+                ServerToPartner.put("InqueueError",Partner.getInErrorQueue());
+                ServerToPartner.put("OutqueueError",Partner.getOutErrorQueue());
                 ServerToPartner.put("name",Profile.PROFILENAME+"-to-"+Partner.getPartnerName());
                 ServerToPartner.put("receiver",Partner.getPartnerName());
                 ServerToPartner.put("protocol","AS2");

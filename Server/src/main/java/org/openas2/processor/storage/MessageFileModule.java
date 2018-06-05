@@ -36,7 +36,7 @@ public class MessageFileModule extends BaseStorageModule {
             InputStream in = msg.getData().getInputStream();
 
             if(options!=null) {
-                store(msgFile, in, options.get("queueName").toString(), options.get("blobContainer").toString(), 100);
+                store(msgFile, in, options.get("queueName").toString(), options.get("blobContainer").toString(), Integer.parseInt(options.get("MaxFileSize_Queue").toString()));
             }
             else
             {

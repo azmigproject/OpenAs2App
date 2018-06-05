@@ -222,6 +222,14 @@ public class AzureUtil {
             serverSetting.setAllowHealthCheck(objJSON.getBoolean("AllowHealthCheck"));
             serverSetting.setAzureStoragekey(objJSON.getString("AzureStoragekey"));
             serverSetting.setBlobContainerName(objJSON.getString("BlobContainerName"));
+            serverSetting.setAzureStoragekey(objJSON.getString("AzureStoragekey"));
+            serverSetting.setMaxFileSize(objJSON.getInt("MaxFileSize_Queue"));
+            serverSetting.setLogEmailID(objJSON.getBoolean("LogEmailID"));
+            serverSetting.setMailServerEnableSSl(objJSON.getBoolean("MailServer_EnableSSL"));
+            serverSetting.setMailServerPassword(objJSON.getString("MailServer_Password"));
+            serverSetting.setMailServerPort(objJSON.getInt("MailServer_Port"));
+            serverSetting.setMailServerSMTP(objJSON.getString("MailServer_MailServer"));
+            serverSetting.setMailServerUserName(objJSON.getString("MailServer_UserName"));
             serverSettingsInfo.add(serverSetting);
         }
         return serverSettingsInfo;
