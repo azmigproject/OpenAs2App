@@ -35,14 +35,7 @@ import org.openas2.partner.AS2Partnership;
 import org.openas2.partner.Partnership;
 import org.openas2.partner.SecurePartnership;
 import org.openas2.processor.resender.ResenderModule;
-import org.openas2.util.AS2Util;
-import org.openas2.util.DateUtil;
-import org.openas2.util.DispositionOptions;
-import org.openas2.util.HTTPUtil;
-import org.openas2.util.IOUtilOld;
-import org.openas2.util.Profiler;
-import org.openas2.util.ProfilerStub;
-import org.openas2.util.Properties;
+import org.openas2.util.*;
 
 public class AS2SenderModule extends HttpSenderModule {
 
@@ -241,6 +234,20 @@ public class AS2SenderModule extends HttpSenderModule {
                         } else
                         {
                             IOUtils.copy(connIn, mdnStream);
+                        }
+
+                        byte[] bytes = IOUtils.toByteArray(connIn);
+                        BlobHelper blobHelper=new BlobHelper();
+                        try {
+                            blobHelper.UploadFileInBlob(msg.getAttribute("blobContainer"), msg.getMDN().getMessageID(), bytes);
+                        }
+                        catch (Exception exp)
+                        {
+                            msg.setLogMsg("IO exception receiving MDN: "
+                                    + org.openas2.logging.Log.getExceptionMsg(exp));
+                            logger.error(msg, exp);
+                            // What to do???
+                            resend(msg, new OpenAS2Exception(org.openas2.logging.Log.getExceptionMsg(exp)), retries);
                         }
                     } catch (IOException ioe)
                     {

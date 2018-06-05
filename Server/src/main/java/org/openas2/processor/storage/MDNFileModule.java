@@ -30,10 +30,23 @@ public class MDNFileModule extends BaseStorageModule {
         try {
             File mdnFile = getFile(msg, getParameter(PARAM_FILENAME, true), "");
             InputStream in = getMDNStream(msg.getMDN());
-            store(mdnFile, in);
+            if(options!=null) {
+
+                try {
+                    store(mdnFile, in, options.get("blobContainer").toString());
+                }
+                catch (Exception exp)
+                {
+                    throw new WrappedException(exp);
+                }
+            }
+            else {
+                store(mdnFile, in);
+            }
         } catch (IOException ioe) {
             throw new WrappedException(ioe);
         }
+
     }
 
     protected String getModuleAction() {

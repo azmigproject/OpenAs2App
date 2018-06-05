@@ -20,7 +20,7 @@ import java.net.URL;
 
 public class AzureUtil {
 
-    private static final String LOG_TABLE_NAME = "DBLog";
+    private static String LOG_TABLE_NAME = "DBLog";
     private String PARTNER_TABLE_NAME = "Partner";
     private String PROFILE_TABLE_NAME = "Profile";
     private String PROPERTIES_TABLE_NAME="Properties";
@@ -40,7 +40,7 @@ public class AzureUtil {
     //ToDo  check and replace the following code
     private String COSMOS_DB_NAME = "NPTYAS2DB";
 
-    private static final String STORAGE_CONNECTION_STRING = "UseDevelopmentStorage=true";
+    private static  String STORAGE_CONNECTION_STRING = "UseDevelopmentStorage=true";
     //private static final String COSMOSDB_ENDPOINT = "https://localhost:8081/";
     //private static final String COSMOSDB_KEY = "C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==";
     private CloudTableClient tableClient;
@@ -50,8 +50,8 @@ public class AzureUtil {
     public void init() throws Exception
     {
         //ToDO Call API to ACCESS  THE Azure Info
+       getNptyAS2DB();
         getLogDB();
-        getNptyAS2DB();
         gson=new Gson();
     }
 
@@ -223,6 +223,7 @@ public class AzureUtil {
             serverSetting.setAzureStoragekey(objJSON.getString("AzureStoragekey"));
             serverSetting.setBlobContainerName(objJSON.getString("BlobContainerName"));
             serverSetting.setAzureStoragekey(objJSON.getString("AzureStoragekey"));
+
             serverSetting.setMaxFileSize(objJSON.getInt("MaxFileSize_Queue"));
             serverSetting.setLogEmailID(objJSON.getBoolean("LogEmailID"));
             serverSetting.setMailServerEnableSSl(objJSON.getBoolean("MailServer_EnableSSL"));
@@ -235,6 +236,23 @@ public class AzureUtil {
         return serverSettingsInfo;
     }
 
+
+    public String getAzureStorageKey() {
+        // Set some common query options
+        FeedOptions queryOptions = new FeedOptions();
+        queryOptions.setPageSize(-1);
+        queryOptions.setEnableCrossPartitionQuery(true);
+         String collectionLink = String.format("/dbs/%s/colls/%s", COSMOS_DB_NAME, SERVER_SETTINGS_TABLE_NAME);
+        FeedResponse<Document> queryResults = this.documentClient.queryDocuments(collectionLink,
+                "SELECT * FROM "+ SERVER_SETTINGS_TABLE_NAME, queryOptions);
+        String strResult="";
+        for (Document doc : queryResults.getQueryIterable()) {
+            JSONObject objJSON=new JSONObject(doc.toJson());
+            strResult=objJSON.getString("AzureStoragekey");
+
+        }
+        return strResult ;
+    }
 
 
 
@@ -397,10 +415,12 @@ public class AzureUtil {
         COMMANDPROCESSOR_TABLE_NAME=configInfo.getString("CommandProcessor");
         PROCESSOR_TABLE_NAME=configInfo.getString("Processor");
         PROPERTIES_TABLE_NAME=configInfo.getString("Properties");
+        LOG_TABLE_NAME=configInfo.getString("LogTableName");
             this.documentClient = new DocumentClient(configInfo.getString("CosmosDbEndPoint"),
                     configInfo.getString("CosmoDbKey"),
                     new ConnectionPolicy(),
                    ConsistencyLevel.Session);
+        STORAGE_CONNECTION_STRING=getAzureStorageKey();
     }
 
     private String getCosMOSDBINFO() throws Exception

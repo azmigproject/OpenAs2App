@@ -133,6 +133,15 @@ public abstract class BaseStorageModule extends BaseProcessorModule implements S
         }
     }
 
+    protected void store(File msgFile,InputStream in, String blobContainer) throws IOException, OpenAS2Exception,Exception
+    {
+        String tempDirname = getParameter(PARAM_TEMPDIR, false);
+        byte[] bytes = IOUtils.toByteArray(in);
+        BlobHelper blobHelper=new BlobHelper();
+        blobHelper.UploadFileInBlob(blobContainer,msgFile.getName(),bytes);
+    }
+
+
 
     protected void store(File msgFile, InputStream in, String queueName,String blobContainer, int minByteLength) throws IOException, OpenAS2Exception, Exception
     {

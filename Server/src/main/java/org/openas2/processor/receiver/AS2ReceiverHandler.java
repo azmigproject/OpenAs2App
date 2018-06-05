@@ -249,7 +249,9 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 			                if (msg.isRequestingAsynchMDN() ) {
 			                	out.close();
 								out = null; // Prevent yet another error in finally block
-			                    getModule().getSession().getProcessor().handle(SenderModule.DO_SENDMDN, msg, null);
+								Map<Object,Object> optMap =new HashMap<Object,Object>();
+								optMap.put("blobContainer",msg.getPartnership().getAttribute("blobContainer"));
+			                    getModule().getSession().getProcessor().handle(SenderModule.DO_SENDMDN, msg, optMap);
 			                	if (logger.isDebugEnabled())
 				                	  logger.debug("Call to asynch MDN initiated");
 			                    return;
@@ -288,8 +290,9 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 							logger.error(msg, e);
 						}
 	                    try {
-
-							getModule().getSession().getProcessor().handle(SenderModule.DO_SENDMDN, msg, null);
+							Map<Object,Object> optMap =new HashMap<Object,Object>();
+							optMap.put("blobContainer",msg.getPartnership().getAttribute("blobContainer"));
+							getModule().getSession().getProcessor().handle(SenderModule.DO_SENDMDN, msg, optMap);
 		                	if (logger.isDebugEnabled())
 			                	  logger.debug("Call to asynch MDN sender initiated");
 						} catch (Exception e) {
@@ -527,7 +530,9 @@ public class AS2ReceiverHandler implements NetModuleHandler {
                 data.writeTo(out);
 				out.flush();
                 // Save sent MDN  for later examination
-				getModule().getSession().getProcessor().handle(StorageModule.DO_STOREMDN, msg, null);
+				Map<Object,Object> optMap =new HashMap<Object,Object>();
+				optMap.put("blobContainer",msg.getPartnership().getAttribute("blobContainer"));
+				getModule().getSession().getProcessor().handle(StorageModule.DO_STOREMDN, msg, optMap);
 				if (logger.isInfoEnabled()) 
 					logger.info("sent MDN [" + disposition.toString() + "]" + msg.getLogMsgID());
             } catch (Exception e) {
