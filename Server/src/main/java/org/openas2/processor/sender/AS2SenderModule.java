@@ -237,11 +237,11 @@ public class AS2SenderModule extends HttpSenderModule {
                             IOUtils.copy(connIn, mdnStream);
                         }
 
-                        byte[] bytes = IOUtils.toByteArray(connIn);
-                        BlobHelper blobHelper=new BlobHelper();
+                        byte[] bytes = mdnStream.toByteArray();
+
                         try {
 
-                            blobHelper.UploadFileInBlob(msg.getPartnership().getAttribute("blobContainer"), msg.getMDN().getMessageID(), bytes);
+                            //blobHelper.UploadFileInBlob(msg.getPartnership().getAttribute("blobContainer"), msg.getMDN().getMessageID(), bytes);
                         }
                         catch (Exception exp)
                         {
@@ -283,6 +283,8 @@ public class AS2SenderModule extends HttpSenderModule {
                     {
                         AS2Util.processMDN((AS2Message) msg, mdnStream.toByteArray(), null, false, getSession(), this);
                         // Log significant msg state
+                       // BlobHelper blobHelper=new BlobHelper();
+                        //blobHelper.UploadFileInBlob(msg.getPartnership().getAttribute("blobContainer"), msg.getMDN().getMessageID(), mdnStream.toByteArray());
                         msg.setOption("STATE", Message.MSG_STATE_MSG_SENT_MDN_RECEIVED_OK);
                         msg.trackMsgState(getSession());
                     } catch (Exception e)

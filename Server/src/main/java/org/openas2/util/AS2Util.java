@@ -672,8 +672,10 @@ public class AS2Util {
 		msg.trackMsgState(session);
 		if (logger.isTraceEnabled()) logger.trace("MDN processed. \n\tPayload file name: "
 		                   + msg.getPayloadFilename() + "\n\tPersisting MDN report..." + msg.getLogMsgID());
-
-		session.getProcessor().handle(StorageModule.DO_STOREMDN, msg, null);
+		Map<Object,Object> obMap=new HashMap<Object,Object>();
+		obMap.put("blobContainer",msg.getPartnership().getAttribute("blobContainer"));
+		//session.getProcessor().handle(StorageModule.DO_STOREMDN, msg, null);
+		session.getProcessor().handle(StorageModule.DO_STOREMDN, msg, obMap);
 		msg.setStatus(Message.MSG_STATUS_MSG_CLEANUP);
 		// To support extended reporting via logging log info passing Message object
 		msg.setLogMsg("Message sent and MDN received successfully.");
