@@ -173,6 +173,7 @@ public class AS2SenderModule extends HttpSenderModule {
                 msg.trackMsgState(getSession());
                 return;
             }
+
             if (logger.isTraceEnabled())
             {
                 logger.trace("Message sent. Checking if MDN will be returned..." + msg.getLogMsgID());
@@ -239,7 +240,8 @@ public class AS2SenderModule extends HttpSenderModule {
                         byte[] bytes = IOUtils.toByteArray(connIn);
                         BlobHelper blobHelper=new BlobHelper();
                         try {
-                            blobHelper.UploadFileInBlob(msg.getAttribute("blobContainer"), msg.getMDN().getMessageID(), bytes);
+
+                            blobHelper.UploadFileInBlob(msg.getPartnership().getAttribute("blobContainer"), msg.getMDN().getMessageID(), bytes);
                         }
                         catch (Exception exp)
                         {
@@ -346,6 +348,7 @@ public class AS2SenderModule extends HttpSenderModule {
         } catch (InvalidParameterException rpe)
         {
             rpe.addSource(OpenAS2Exception.SOURCE_MESSAGE, msg);
+            logger.info("Excepton at checkRequired"+ OpenAS2Exception.SOURCE_MESSAGE);
             throw rpe;
         }
     }
@@ -353,11 +356,11 @@ public class AS2SenderModule extends HttpSenderModule {
     private void sendMessage(HttpURLConnection conn, Message msg, MimeBodyPart securedData, String retries)
             throws Exception
     {
-
+        logger.info("Start message sedndig with"+conn.getURL() + msg.getLogMsgID());
         updateHttpHeaders(conn, msg, securedData);
         msg.setAttribute(NetAttribute.MA_DESTINATION_IP, conn.getURL().getHost());
         msg.setAttribute(NetAttribute.MA_DESTINATION_PORT, Integer.toString(conn.getURL().getPort()));
-
+        logger.info("set Header and update");
         if (logger.isInfoEnabled())
         {
             logger.info("Connecting to: " + conn.getURL() + msg.getLogMsgID());

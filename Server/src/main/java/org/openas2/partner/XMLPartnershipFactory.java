@@ -101,7 +101,7 @@ public class XMLPartnershipFactory extends BasePartnershipFactory{
         if(_partnerFromDB!=null)
         {
 
-            refresh(_partnerFromDB);
+             refresh(_partnerFromDB);
         }
         else {
             refresh();
@@ -159,7 +159,7 @@ public class XMLPartnershipFactory extends BasePartnershipFactory{
                 PartnerToServer.put("resend_max_retries",String.valueOf(Partner.getMaxAttempts()));
                 if(Partner.getISMDNSigned())
                 {
-                    PartnerToServer.put("as2_mdn_options","signed-receipt-protocol=optional, pkcs7-signature; signed-receipt-micalg=optional, SHA256");
+                    PartnerToServer.put("as2_mdn_options","signed-receipt-protocol=optional, pkcs7-signature; signed-receipt-micalg=optional, SHA1");
                 }
                 if(!Partner.getIsSyncronous())
                 {
@@ -171,6 +171,7 @@ public class XMLPartnershipFactory extends BasePartnershipFactory{
                 ServerToPartner.put("blobContainer",_serverSettings.getBlobContainerName());
                 ServerToPartner.put("MaxFileSize_Queue",String.valueOf( _serverSettings.getMaxFileSize()));
                 ServerToPartner.put("Inqueue",Partner.getIncomingQueue());
+                ServerToPartner.put("subject","AS2 Message From serverProfile to "+Partner.getPartnerName());
                 ServerToPartner.put("Outqueue",Partner.getOutgoingQueue());
                 ServerToPartner.put("SentQueue",Partner.getSentQueue());
                 ServerToPartner.put("InqueueError",Partner.getInErrorQueue());
@@ -187,7 +188,7 @@ public class XMLPartnershipFactory extends BasePartnershipFactory{
                 ServerToPartner.put("emove_cms_algorithm_protection_attrib","false");
                 if(Partner.getISMDNSigned())
                 {
-                    ServerToPartner.put("as2_mdn_options","signed-receipt-protocol=optional, pkcs7-signature; signed-receipt-micalg=optional, SHA256");
+                    ServerToPartner.put("as2_mdn_options","signed-receipt-protocol=optional, pkcs7-signature; signed-receipt-micalg=optional, SHA1");
                 }
                 if(!Partner.getIsSyncronous())
                 {

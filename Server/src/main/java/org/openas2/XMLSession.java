@@ -112,7 +112,7 @@ public class XMLSession extends BaseSession {
        loadCommandProcessors(azureUtil.getCommandProcessors());
        loadPartnerships(azureUtil.getPartnerList(),azureUtil.getProfile(),azureUtil.getServersSettings().get(0));
        loadCommands(azureUtil.getCommand());
-       loadLoggers();
+       //loadLoggers();
    }
 
     protected void load(InputStream in) throws ParserConfigurationException,

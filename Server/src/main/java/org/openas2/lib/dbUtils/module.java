@@ -141,7 +141,7 @@ public class  module {
         return _defaults;
     }
     public void setDefaults(String defaults) {
-        this._defaults = _defaults;
+        this._defaults = defaults;
     }
 
     public String getQueueName() {
