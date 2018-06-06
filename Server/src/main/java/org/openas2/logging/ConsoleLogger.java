@@ -11,6 +11,12 @@ public class ConsoleLogger extends BaseLogger {
         }
     }
 
+    public void doLog(Level level, String msgText, DBLogInfo as2Msg) {
+        if (System.out != null) {
+            getFormatter().format(level, msgText + (as2Msg == null?"":as2Msg.getLogMsgID()), System.out);
+        }
+    }
+
     protected String getShowDefaults() {
         return VALUE_SHOW_ALL;
     }

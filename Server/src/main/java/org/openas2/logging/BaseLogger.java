@@ -51,8 +51,8 @@ public abstract class BaseLogger extends BaseComponent implements Logger {
 	        ByteArrayOutputStream baos = new ByteArrayOutputStream();
 	        PrintStream ps = new PrintStream(baos);
 	        t.printStackTrace(ps);
-
-	        doLog(level, new String(baos.toByteArray()), null);
+			Message tempsg=null;
+	        doLog(level, new String(baos.toByteArray()), tempsg);
 
 	        try {
 	            ps.close();
@@ -70,6 +70,12 @@ public abstract class BaseLogger extends BaseComponent implements Logger {
 	 * message
 	 */
 	public void log(Level level, String msgText, Message message) {
+		if (isShowing(VALUE_SHOW_INFO)) {
+			doLog(level, msgText, message);
+		}
+	}
+
+	public void log(Level level, String msgText, DBLogInfo message) {
 		if (isShowing(VALUE_SHOW_INFO)) {
 			doLog(level, msgText, message);
 		}
@@ -121,4 +127,6 @@ public abstract class BaseLogger extends BaseComponent implements Logger {
 	protected abstract void doLog(Throwable throwable, boolean terminated);
 
 	protected abstract void doLog(Level level, String msgText, Message message);
+
+	protected abstract void doLog(Level level, String msgText, DBLogInfo dbLog);
 }

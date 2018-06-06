@@ -11,11 +11,13 @@ import java.util.UUID;
 import com.microsoft.azure.storage.*;
 import com.microsoft.azure.storage.table.*;
 import com.microsoft.azure.storage.table.TableQuery.*;
+import org.openas2.util.AzureUtil;
+
 public class DbLogger extends BaseLogger {
 
 
-    private static final String AZURE_TABLE_NAME = "DBLog";
-    private static final String  STORAGE_CONNECTION_STRING = "UseDevelopmentStorage=true";
+    private  String AZURE_TABLE_NAME = "DBLog";
+    private  String  STORAGE_CONNECTION_STRING = "UseDevelopmentStorage=true";
     private CloudTableClient client;
 
 
@@ -54,6 +56,19 @@ public class DbLogger extends BaseLogger {
         }
     }
 
+    public void doLog(Level level, String msgText, DBLogInfo as2Msg) {
+
+        try {
+
+            AddLogInTable(as2Msg);
+        }
+        catch (Exception e)
+        {
+            System.out.println("Error in Document ");
+            e.printStackTrace();
+        }
+    }
+
     protected String getShowDefaults() {
         return VALUE_SHOW_ALL;
     }
@@ -72,7 +87,10 @@ public class DbLogger extends BaseLogger {
 
     private void getLogDB() throws Exception {
 
-
+        AzureUtil objUtil=new AzureUtil();
+        objUtil.init();
+        AZURE_TABLE_NAME=objUtil.LOG_TABLE_NAME;
+        STORAGE_CONNECTION_STRING=objUtil.STORAGE_CONNECTION_STRING;
             CloudStorageAccount storageAccount =
                     CloudStorageAccount.parse(STORAGE_CONNECTION_STRING);
             this.client = storageAccount.createCloudTableClient();

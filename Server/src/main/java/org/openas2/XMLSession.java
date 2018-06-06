@@ -26,6 +26,7 @@ import org.openas2.cert.CertificateFactory;
 import org.openas2.cmd.CommandManager;
 import org.openas2.cmd.CommandRegistry;
 import org.openas2.cmd.processor.BaseCommandProcessor;
+import org.openas2.logging.DbLogger;
 import org.openas2.logging.LogManager;
 import org.openas2.logging.Logger;
 import org.openas2.partner.PartnershipFactory;
@@ -112,6 +113,7 @@ public class XMLSession extends BaseSession {
        loadPartnerships(azureUtil.getPartnerList(),azureUtil.getProfile(),azureUtil.getServersSettings().get(0));
        loadCommands(azureUtil.getCommand());
        //loadLoggers(azureUtil.);
+       loadLoggers();
    }
 
     protected void load(InputStream in) throws ParserConfigurationException,
@@ -334,7 +336,14 @@ public class XMLSession extends BaseSession {
         Component component = XMLUtil.getComponent(rootNode, this);
         commandRegistry = (CommandRegistry) component;
     }
+    private  void loadLoggers() throws OpenAS2Exception
+    {
+        LOGGER.info("Loading log manager(s)...");
 
+        LogManager manager = LogManager.getLogManager();
+        Logger logger =  new DbLogger();
+        manager.addLogger(logger);
+    }
     private void loadLoggers(Node rootNode) throws OpenAS2Exception
     {
         LOGGER.info("Loading log manager(s)...");

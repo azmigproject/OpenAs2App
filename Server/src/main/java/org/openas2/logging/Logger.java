@@ -14,6 +14,8 @@ public interface Logger extends Component {
 	 * @param message The context object that will provide additional information
 	 */
 	public void log(Level level, String msgText, Message message);
+
+	public void log(Level level, String msgText, DBLogInfo dbLogInfo);
     
 	public Formatter getFormatter();
 	

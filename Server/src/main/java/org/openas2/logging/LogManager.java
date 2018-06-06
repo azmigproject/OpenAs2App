@@ -64,9 +64,11 @@ public class LogManager {
      */
     public void log(Level level, String clazzName, @Nonnull Object msg)
     {
+       Message tempmsg=null;
         if (loggers.isEmpty())
         {
-            DEFAULT_LOGGER.log(level, clazzName + ": " + msg.toString(), null);
+
+            DEFAULT_LOGGER.log(level, clazzName + ": " + msg.toString(), tempmsg);
         } else
         {
             for (Logger logger : loggers)
@@ -76,7 +78,7 @@ public class LogManager {
                     logger.log(level, clazzName + ": " + ((Message) msg).getLogMsg(), (Message) msg);
                 } else
                 {
-                    logger.log(level, clazzName + ": " + msg.toString(), null);
+                    logger.log(level, clazzName + ": " + msg.toString(), tempmsg);
                 }
             }
         }

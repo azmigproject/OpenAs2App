@@ -61,7 +61,11 @@ public class DBLogInfo extends TableServiceEntity {
 
         private String messageID;
 
-
+       public String getLogMsgID()
+       {
+           return "ID="+id+"|As2SenderId="+As2SenderId+"|AS2RecieverId="+AS2RecieverId+
+                            "|messageText="+messageTxt+"|messageId"+messageID;
+       }
 
     }
 

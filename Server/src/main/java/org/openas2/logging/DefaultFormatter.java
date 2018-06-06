@@ -51,6 +51,23 @@ public class DefaultFormatter extends BaseFormatter {
 		writer.flush();
     }
 
+    public void format(Level level, DBLogInfo dbLogInfo, OutputStream out) {
+        PrintWriter writer = new PrintWriter(out);
+
+        // Write timestamp
+        writer.print(DateUtil.formatDate(dateFormat));
+
+        // Write log level
+        writer.print(" ");
+        writer.print(level.getName().toUpperCase());
+
+        // Write message
+        writer.print(" ");
+        writer.println(dbLogInfo.toString());
+        writer.flush();
+    }
+
+
     public void format(Throwable t, boolean terminated, OutputStream out) {
     	PrintWriter writer = new PrintWriter(out);
         writer.println(format(t, terminated));

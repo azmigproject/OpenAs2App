@@ -10,6 +10,8 @@ public interface Formatter {
 	public String format(Throwable t, boolean terminated);
 	
 	public void format(Level level, String msg, OutputStream out);
+
+	public void format(Level level, DBLogInfo dbInfo, OutputStream out);
 	
 	public void format(Throwable t, boolean terminated, OutputStream out);
 	

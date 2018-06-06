@@ -106,6 +106,27 @@ public class EmailLogger extends BaseLogger {
         }
     }
 
+    public void doLog(Level level, String msgText, DBLogInfo as2Msg) {
+
+        if (level != Level.ERROR)
+        {
+            return;
+        }
+        isDebugOn = "true".equalsIgnoreCase(System.getProperty("maillogger.debug.enabled", "false"));
+        try {
+            String subject = getParameter(PARAM_SUBJECT, false);
+
+            if (subject == null) {
+                subject = getSubject(null);
+            }
+            subject = parseText(null, false, subject);
+            sendMessage(subject, getFormatter().format(level, msgText + (as2Msg == null?"":as2Msg.getLogMsgID())));
+        } catch (Exception e) {
+            System.out.println("Failed to send email: " + org.openas2.logging.Log.getExceptionMsg(e));
+            e.printStackTrace();
+        }
+    }
+
     protected void doLog(Throwable t, boolean terminated) {
     	isDebugOn = "true".equalsIgnoreCase(System.getProperty("maillogger.debug.enabled", "false"));
     	try {

@@ -20,7 +20,7 @@ import java.net.URL;
 
 public class AzureUtil {
 
-    private static String LOG_TABLE_NAME = "DBLog";
+    public  String LOG_TABLE_NAME = "DBLog";
     private String PARTNER_TABLE_NAME = "Partner";
     private String PROFILE_TABLE_NAME = "Profile";
     private String PROPERTIES_TABLE_NAME="Properties";
@@ -38,9 +38,9 @@ public class AzureUtil {
     private static final String MULTICOMMAND_TABLE_NAME="Multicommand";
     private static final String SERVERMODULECLASS_TABLE_NAME="ServerModuleClasses";
     //ToDo  check and replace the following code
-    private String COSMOS_DB_NAME = "NPTYAS2DB";
+    public String COSMOS_DB_NAME = "NPTYAS2DB";
 
-    private static  String STORAGE_CONNECTION_STRING = "UseDevelopmentStorage=true";
+    public String STORAGE_CONNECTION_STRING = "UseDevelopmentStorage=true";
     //private static final String COSMOSDB_ENDPOINT = "https://localhost:8081/";
     //private static final String COSMOSDB_KEY = "C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==";
     private CloudTableClient tableClient;
