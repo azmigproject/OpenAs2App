@@ -4,9 +4,6 @@ import org.openas2.lib.dbUtils.*;
 import com.microsoft.azure.storage.*;
 import com.microsoft.azure.storage.table.*;
 import com.microsoft.azure.documentdb.*;
-import org.openas2.lib.dbUtils.Properties;
-import org.openas2.lib.dbUtils.partner;
-
 import java.util.ArrayList;
 import java.util.List;
 import org.json.JSONObject;
@@ -25,18 +22,18 @@ public class AzureUtil {
     private String PROFILE_TABLE_NAME = "Profile";
     private String PROPERTIES_TABLE_NAME="Properties";
     private String COMMANDS_TABLE_NAME="commands";
-    private String PARTNERSHIPS_TABLE_NAME="Partnerships";
+    //private String PARTNERSHIPS_TABLE_NAME="Partnerships";
     private String COMMANDPROCESSOR_TABLE_NAME="CommandProcessors";
     private String SERVER_SETTINGS_TABLE_NAME = "ServerSettings";
     private String PROCESSOR_TABLE_NAME="Processor";
     private String CERTIFICATE_TABLE_NAME="certificates";
     //ToDo  check and replace the following code
     //private static final String COMMAND_TABLE_NAME="Command";
-    private static final String CERTANDCOMMAND_TABLE_NAME="CertandCommandInfo";
-    private static final String DEFAULT_PROCESSOR_NAME="DefaultProcessor";
-    private static final String MODULE_TABLE_NAME="CommandProcessors";
-    private static final String MULTICOMMAND_TABLE_NAME="Multicommand";
-    private static final String SERVERMODULECLASS_TABLE_NAME="ServerModuleClasses";
+    //private static final String CERTANDCOMMAND_TABLE_NAME="CertandCommandInfo";
+    //private static final String DEFAULT_PROCESSOR_NAME="DefaultProcessor";
+    //private static final String MODULE_TABLE_NAME="CommandProcessors";
+    //private static final String MULTICOMMAND_TABLE_NAME="Multicommand";
+    //private static final String SERVERMODULECLASS_TABLE_NAME="ServerModuleClasses";
     //ToDo  check and replace the following code
     public String COSMOS_DB_NAME = "NPTYAS2DB";
 
@@ -167,7 +164,7 @@ public class AzureUtil {
         for (Document doc : queryResults.getQueryIterable()) {
 
             JSONObject objJSON=new JSONObject(doc.toJson());
-            //cmd= gson.fromJson(doc.toJson(),Command.class);
+
 
         }
         return cmd;
@@ -411,7 +408,7 @@ public class AzureUtil {
         PARTNER_TABLE_NAME=configInfo.getString("Partner");
         PROFILE_TABLE_NAME=configInfo.getString("Profile");
         CERTIFICATE_TABLE_NAME=configInfo.getString("Certificates");
-        PARTNERSHIPS_TABLE_NAME=configInfo.getString("Partnerships");
+        //PARTNERSHIPS_TABLE_NAME=configInfo.getString("Partnerships");
         COMMANDPROCESSOR_TABLE_NAME=configInfo.getString("CommandProcessor");
         PROCESSOR_TABLE_NAME=configInfo.getString("Processor");
         PROPERTIES_TABLE_NAME=configInfo.getString("Properties");
