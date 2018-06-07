@@ -20,6 +20,7 @@ import org.openas2.params.InvalidParameterException;
 import org.openas2.params.MessageParameters;
 import org.openas2.params.ParameterParser;
 import org.openas2.params.RandomParameters;
+import org.openas2.partner.AS2Partnership;
 import org.openas2.processor.receiver.AS2ReceiverModule;
 import org.openas2.util.DispositionType;
 
@@ -32,11 +33,13 @@ public class MessageFileModule extends BaseStorageModule {
     public void handle(String action, Message msg, Map<Object, Object> options) throws OpenAS2Exception {
         // store message content
         try {
+
             File msgFile = getFile(msg, getParameter(PARAM_FILENAME, true), action);
+            String strSenderID=msg.getPartnership().getSenderID(AS2Partnership.PID_AS2);
             InputStream in = msg.getData().getInputStream();
 
             if(options!=null) {
-                store(msgFile, in, options.get("queueName").toString(), options.get("blobContainer").toString(), Integer.parseInt(options.get("MaxFileSize_Queue").toString()));
+                store(msgFile, in, options.get("queueName").toString(),strSenderID, options.get("blobContainer").toString(), Integer.parseInt(options.get("MaxFileSize_Queue").toString()));
             }
             else
             {

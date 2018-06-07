@@ -217,12 +217,12 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 					}
 
 					// Process the received message
+					logger.info("AS2ReciverHandler Line 220 start saving message");
 					try {
 						Map<Object,Object> optMap =new HashMap<Object,Object>();
-						optMap.put("queueName",msg.getPartnership().getAttribute("queueName"));
+						optMap.put("queueName",msg.getPartnership().getAttribute("Inqueue"));
 						optMap.put("blobContainer",msg.getPartnership().getAttribute("blobContainer"));
 						optMap.put("MaxFileSize_Queue",msg.getPartnership().getAttribute("MaxFileSize_Queue"));
-
 						getModule().getSession().getProcessor().handle(StorageModule.DO_STORE, msg,optMap);
 					} catch (OpenAS2Exception oae) {
 						msg.setLogMsg("Error handling received message: " + oae.getCause());
