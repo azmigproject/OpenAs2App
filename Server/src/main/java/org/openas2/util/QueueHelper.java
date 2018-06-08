@@ -2,6 +2,7 @@ package org.openas2.util;
 
 import com.microsoft.azure.storage.*;
 import com.microsoft.azure.storage.queue.*;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.joda.time.DateTime;
@@ -10,6 +11,7 @@ import org.openas2.lib.dbUtils.ServersSettings;
 
 import java.io.File;
 import java.io.FileWriter;
+
 import java.util.List;
 
 public class QueueHelper {
@@ -107,7 +109,7 @@ public class QueueHelper {
                         BlobHelper blob = new BlobHelper();
                         //blob.UploadFileInBlob(serverSetting.getBlobContainerName(),"as10/outgoing/ship.xml","D:\\Sandeep_Work_2018\\data\\ServerFolder\\ship.xml");
 
-                        blob.DownloadBlobInFile(serverSetting.getBlobContainerName(), blobName, outDir,arr[0]);
+                        blob.DownloadBlobInFile(serverSetting.getBlobContainerName(), blobName, outDir,GetOriginalFileName(arr[0]));
                     }
 
                     // Do processing for all messages in less than 5 minutes,
@@ -123,6 +125,13 @@ public class QueueHelper {
             e.printStackTrace();
         }
         return true;
+    }
+
+    public String GetOriginalFileName(String fileName) {
+
+
+        String [] newFileName = fileName.split("-_-");
+        return newFileName[0]+"."+ FilenameUtils.getExtension(fileName);
     }
 
     public String GetBlobName(String as2Identifier, String fileName) {

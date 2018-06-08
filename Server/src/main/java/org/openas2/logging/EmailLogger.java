@@ -171,13 +171,13 @@ public class EmailLogger extends BaseLogger {
     	if (newlineNdx >= 1)
     		subj = msg.substring(0, newlineNdx);
     	else subj = msg;
-        StringBuffer subject = new StringBuffer("OpenAS2 Log (" + level.getName() + "): " + subj);
+        StringBuffer subject = new StringBuffer("NptyAS2 Log (" + level.getName() + "): " + subj);
 
         return subject.toString();
     }
 
     protected String getSubject(Throwable t) {
-        StringBuffer subject = new StringBuffer("OpenAS2 Exception: ");
+        StringBuffer subject = new StringBuffer("NptyAS2 Exception: ");
 
         if (t instanceof WrappedException) {
             subject.append(((WrappedException) t).getSource().getClass().getName());

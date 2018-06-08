@@ -34,6 +34,7 @@ public class OpenAS2Server {
 
     public static void main(String[] args) throws Exception
     {
+
         new OpenAS2Server.Builder()
                 .registerShutdownHook()
                 .run(args);
@@ -56,7 +57,7 @@ public class OpenAS2Server {
             same.terminate();
         }
 
-        LOGGER.info("OpenAS2 has shut down\r\n");
+        LOGGER.info("NPTYAS2 has shut down\r\n");
     }
 
     public static class Builder {

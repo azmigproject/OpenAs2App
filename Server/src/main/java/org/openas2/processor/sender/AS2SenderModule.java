@@ -237,9 +237,9 @@ public class AS2SenderModule extends HttpSenderModule {
                             IOUtils.copy(connIn, mdnStream);
                         }
 
-                        byte[] bytes = mdnStream.toByteArray();
+                        //byte[] bytes = mdnStream.toByteArray();
 
-                        try {
+                        /*try {
 
                             //blobHelper.UploadFileInBlob(msg.getPartnership().getAttribute("blobContainer"), msg.getMDN().getMessageID(), bytes);
                         }
@@ -250,7 +250,7 @@ public class AS2SenderModule extends HttpSenderModule {
                             logger.error(msg, exp);
                             // What to do???
                             resend(msg, new OpenAS2Exception(org.openas2.logging.Log.getExceptionMsg(exp)), retries);
-                        }
+                        }*/
                     } catch (IOException ioe)
                     {
                         msg.setLogMsg("IO exception receiving MDN: "
@@ -358,7 +358,7 @@ public class AS2SenderModule extends HttpSenderModule {
     private void sendMessage(HttpURLConnection conn, Message msg, MimeBodyPart securedData, String retries)
             throws Exception
     {
-        logger.info("Start message sedndig with"+conn.getURL() + msg.getLogMsgID());
+        logger.info("Start message sending with"+conn.getURL() + msg.getLogMsgID());
         updateHttpHeaders(conn, msg, securedData);
         msg.setAttribute(NetAttribute.MA_DESTINATION_IP, conn.getURL().getHost());
         msg.setAttribute(NetAttribute.MA_DESTINATION_PORT, Integer.toString(conn.getURL().getPort()));

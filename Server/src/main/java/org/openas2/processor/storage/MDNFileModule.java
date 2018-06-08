@@ -8,8 +8,7 @@ import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
 import org.openas2.OpenAS2Exception;
 import org.openas2.WrappedException;
 import org.openas2.message.Message;
@@ -23,7 +22,7 @@ import org.openas2.params.RandomParameters;
 
 public class MDNFileModule extends BaseStorageModule {
 
-    private Log logger = LogFactory.getLog(MessageFileModule.class.getSimpleName());
+
     public void handle(String action, Message msg, Map<Object, Object> options) throws OpenAS2Exception {
         // store mdn data
         if (msg.getMDN() == null) {
@@ -36,7 +35,7 @@ public class MDNFileModule extends BaseStorageModule {
             if(options!=null) {
 
                 try {
-                    logger.info("In MDNFileModule Line 39 - blobcontainer " + options.get("blobContainer").toString());
+
                     store(mdnFile, in, options.get("blobContainer").toString());
                 }
                 catch (Exception exp)

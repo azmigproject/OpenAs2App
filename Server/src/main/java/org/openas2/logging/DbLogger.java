@@ -11,6 +11,7 @@ import java.util.UUID;
 import com.microsoft.azure.storage.*;
 import com.microsoft.azure.storage.table.*;
 import com.microsoft.azure.storage.table.TableQuery.*;
+import org.openas2.partner.AS2Partnership;
 import org.openas2.util.AzureUtil;
 
 public class DbLogger extends BaseLogger {
@@ -21,12 +22,17 @@ public class DbLogger extends BaseLogger {
     private CloudTableClient client;
 
 
+    public DbLogger(String tableName,String conString) throws Exception {
+
+        setLogTableInfo(tableName, conString);
+
+    }
 
 
     public void init(Session session, Map<String, String> parameters) throws OpenAS2Exception {
         super.init(session, parameters);
         // check if log file can be created
-        try {
+        /*try {
             getLogDB();
         }
         catch (TableServiceException e)
@@ -39,33 +45,31 @@ public class DbLogger extends BaseLogger {
         {
             System.out.println("Error in Document ");
             e.printStackTrace();
-        }
+        }*/
 
     }
 
     public void doLog(Level level, String msgText, Message as2Msg) {
-
-        try {
-            DBLogInfo objInfo=GetDBLogInfo(level,msgText,as2Msg);
-            AddLogInTable(objInfo);
-        }
-        catch (Exception e)
-        {
-            System.out.println("Error in Document ");
-            e.printStackTrace();
+        if (level.getName() == "error" || level.getName() == "warning" || as2Msg != null) {
+            try {
+                DBLogInfo objInfo = GetDBLogInfo(level, msgText, as2Msg);
+                AddLogInTable(objInfo);
+            } catch (Exception e) {
+                System.out.println("Error in Document ");
+                e.printStackTrace();
+            }
         }
     }
 
     public void doLog(Level level, String msgText, DBLogInfo as2Msg) {
+        if (level.getName() == "error" || level.getName() == "warning" || as2Msg != null) {
+            try {
 
-        try {
-
-            AddLogInTable(as2Msg);
-        }
-        catch (Exception e)
-        {
-            System.out.println("Error in Document ");
-            e.printStackTrace();
+                AddLogInTable(as2Msg);
+            } catch (Exception e) {
+                System.out.println("Error in Document ");
+                e.printStackTrace();
+            }
         }
     }
 
@@ -85,20 +89,21 @@ public class DbLogger extends BaseLogger {
         }
     }
 
-    private void getLogDB() throws Exception {
 
-        AzureUtil objUtil=new AzureUtil();
-        objUtil.init();
-        AZURE_TABLE_NAME=objUtil.LOG_TABLE_NAME;
-        STORAGE_CONNECTION_STRING=objUtil.STORAGE_CONNECTION_STRING;
+
+    public void setLogTableInfo(String tableName,String conString) throws Exception {
+
+
+        AZURE_TABLE_NAME=tableName;
+        STORAGE_CONNECTION_STRING=conString;
             CloudStorageAccount storageAccount =
                     CloudStorageAccount.parse(STORAGE_CONNECTION_STRING);
             this.client = storageAccount.createCloudTableClient();
 
             // Create the table if it doesn't exist.
 
-            CloudTable cloudTable = this.client.getTableReference(AZURE_TABLE_NAME);
-            cloudTable.createIfNotExists();
+          //  CloudTable cloudTable = this.client.getTableReference(AZURE_TABLE_NAME);
+            //cloudTable.createIfNotExists();
 
 
     }
@@ -111,20 +116,39 @@ public class DbLogger extends BaseLogger {
        //ToDo Working on changes
         DBLogInfo objLog=new DBLogInfo();
         objLog.setId(UUID.randomUUID().toString());
+        objLog.setProcessLevel(level.getName());
+        objLog.setIsnptyAS2ServerLog(true);
+        objLog.setIsSuccessfull(true);
+        objLog.setIsErrorMailSend(false);
         if(as2Msg!=null) {
-            objLog.setAS2RecieverId(as2Msg.getPartnership().getSenderIDs().entrySet().iterator().next().getValue().toString());
+            objLog.setRecieverId(as2Msg.getPartnership().getReceiverID(AS2Partnership.PID_AS2));
+            objLog.setSenderId(as2Msg.getPartnership().getSenderID(AS2Partnership.PID_AS2));
+            objLog.setFileName(as2Msg.getPayloadFilename());
+            objLog.setMessageID(as2Msg.getMessageID());
+            objLog.setAs2logMsgID(as2Msg.getLogMsgID());
+            objLog.setMDNMessageID(as2Msg.getMDN().getMessageID());
+
         }
+
+            objLog.setLogMessage(msgText);
+
+
         return objLog;
     }
 
     private  DBLogInfo GetDBLogInfo(Throwable t, boolean terminated)
     {
         DBLogInfo objLog=new DBLogInfo();
+        objLog.setId(UUID.randomUUID().toString());
+        objLog.setProcessLevel(Level.ERROR.getName());
+        objLog.setIsnptyAS2ServerLog(true);
+        objLog.setExceptionOrErrorDetails(t.getMessage()+t.getStackTrace());
+        objLog.setIsSuccessfull(false);
         return objLog;
     }
 
 
-    private void  AddLogInTable   (DBLogInfo  objLog)
+    private void  AddLogInTable(DBLogInfo  objLog)
     {
         try {
             // Create an operation to add the new customer to the people table.

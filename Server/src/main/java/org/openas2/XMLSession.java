@@ -104,7 +104,7 @@ public class XMLSession extends BaseSession {
         comp.init(this, Collections.<String, String>emptyMap());
     }
 
-   protected  void load (AzureUtil azureUtil)  throws   OpenAS2Exception
+   protected  void load (AzureUtil azureUtil)  throws   OpenAS2Exception,Exception
    {
        loadProperties(azureUtil.getProperties());
        loadCertificates(azureUtil.getCertificates());
@@ -112,7 +112,7 @@ public class XMLSession extends BaseSession {
        loadCommandProcessors(azureUtil.getCommandProcessors());
        loadPartnerships(azureUtil.getPartnerList(),azureUtil.getProfile(),azureUtil.getServersSettings().get(0));
        loadCommands(azureUtil.getCommand());
-       //loadLoggers();
+       loadLoggers(azureUtil);
    }
 
     protected void load(InputStream in) throws ParserConfigurationException,
@@ -335,13 +335,13 @@ public class XMLSession extends BaseSession {
         Component component = XMLUtil.getComponent(rootNode, this);
         commandRegistry = (CommandRegistry) component;
     }
-    private  void loadLoggers() throws OpenAS2Exception
+    private  void loadLoggers(AzureUtil azureUtil) throws OpenAS2Exception,Exception
     {
         LOGGER.info("Loading log manager(s)...");
 
         LogManager manager = LogManager.getLogManager();
-        Logger logger =  new DbLogger();
-        manager.addLogger(logger);
+        Logger logger =  new DbLogger(azureUtil.LOG_TABLE_NAME,azureUtil.STORAGE_CONNECTION_STRING);
+         manager.addLogger(logger);
     }
     private void loadLoggers(Node rootNode) throws OpenAS2Exception
     {

@@ -53,7 +53,7 @@ public abstract class BaseMessage implements Message {
 
 	public String getAppTitle()
 	{
-		return Properties.getProperty(Properties.APP_TITLE_PROP, "OpenAS2 Server");
+		return Properties.getProperty(Properties.APP_TITLE_PROP, "NptyAS2 Server");
 	}
 
 	public Map<Object, Object> getOptions() {

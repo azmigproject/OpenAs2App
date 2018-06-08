@@ -16,14 +16,13 @@ import org.openas2.util.BlobHelper;
 import org.openas2.util.IOUtilOld;
 import org.openas2.util.Properties;
 import org.openas2.util.QueueHelper;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
 
 public abstract class BaseStorageModule extends BaseProcessorModule implements StorageModule {
     public static final String PARAM_FILENAME = "filename";
     public static final String PARAM_PROTOCOL = "protocol";
     public static final String PARAM_TEMPDIR = "tempdir";
-    private Log logger = LogFactory.getLog(BaseStorageModule.class.getSimpleName());
+
 
     public boolean canHandle(String action, Message msg, Map<Object, Object> options)
     {
@@ -119,7 +118,7 @@ public abstract class BaseStorageModule extends BaseProcessorModule implements S
     protected void store(File msgFile, InputStream in) throws IOException, OpenAS2Exception
     {
 
-        logger.info("BaseStorageModule Line 220 start saving message");
+
         String tempDirname = getParameter(PARAM_TEMPDIR, false);
         if (tempDirname != null)
         {
@@ -151,7 +150,7 @@ public abstract class BaseStorageModule extends BaseProcessorModule implements S
     protected void store(File msgFile, InputStream in, String queueName,String senderAS2Id, String blobContainer, int minByteLength) throws IOException, OpenAS2Exception, Exception
     {
 
-        logger.info("BaseStorageModule Line 156 start saving message SenderId"+senderAS2Id );
+
 
         String tempDirname = getParameter(PARAM_TEMPDIR, false);
         byte[] bytes = IOUtils.toByteArray(in);

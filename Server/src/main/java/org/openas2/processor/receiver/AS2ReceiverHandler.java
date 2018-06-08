@@ -217,7 +217,7 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 					}
 
 					// Process the received message
-					logger.info("AS2ReciverHandler Line 220 start saving message");
+
 					try {
 						Map<Object,Object> optMap =new HashMap<Object,Object>();
 						optMap.put("queueName",msg.getPartnership().getAttribute("Inqueue"));
