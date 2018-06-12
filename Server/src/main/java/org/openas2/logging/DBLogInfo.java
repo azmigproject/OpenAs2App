@@ -2,6 +2,7 @@ package org.openas2.logging;
 import com.microsoft.azure.storage.table.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
 import java.util.UUID;
 
 public class DBLogInfo extends TableServiceEntity {
@@ -17,8 +18,9 @@ public class DBLogInfo extends TableServiceEntity {
         Date Now = new Date();
         this.partitionKey = sdf.format(Now);
         sdf = new SimpleDateFormat("dd HH-mm-ss.SSS");
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
         UUID uuid = UUID.randomUUID();
-        this.rowKey =sdf.format(Now)+"-"+uuid.toString();
+        this.rowKey =sdf.format(Now).replace(" ","").replaceAll("-","").replace(".","")+"-"+uuid.toString();
         this.source="NptyAs2 Server";
         this.isErrorMailSend=false;
         this.isnptyAS2ServerLog=true;
@@ -39,11 +41,11 @@ public class DBLogInfo extends TableServiceEntity {
         public void setSenderId(String As2SenderId) {
             this.senderId = As2SenderId;
         }
-        public String getRecieverId() {
-            return recieverId;
+        public String getReceiverId() {
+            return receiverId;
         }
-        public void setRecieverId(String AS2RecieverId) {
-            this.recieverId = AS2RecieverId;
+        public void setReceiverId(String AS2ReceiverId) {
+            this.receiverId = AS2ReceiverId;
         }
         public String getProcessLevel() {
         return processLevel;
@@ -123,6 +125,62 @@ public class DBLogInfo extends TableServiceEntity {
     }
 
 
+    public String getAS2To() {
+        return aS2To;
+    }
+    public void setAS2To(String aS2To) {
+        this.aS2To = aS2To;
+    }
+
+    public String getAS2From() {
+        return aS2From;
+    }
+    public void setAS2From(String aS2From) {
+        this.aS2From = aS2From;
+    }
+
+    public String getMessageString() {
+        return msgString;
+    }
+    public void setMessageString(String msgString) {
+        this.msgString = msgString;
+    }
+
+    public boolean  getIsMsgSigned() {
+        return isMsgSigned;
+    }
+    public void setIsMsgSigned(boolean isMsgSigned) {
+        this.isMsgSigned = isMsgSigned;
+    }
+
+    public boolean  getIsMsgEncrypted() {
+        return isMsgEncrypted;
+    }
+    public void setIsMsgEncrypted(boolean isMsgEncrypted) {
+        this.isMsgEncrypted = isMsgEncrypted;
+    }
+
+    public boolean  getIsMDNRequired() {
+        return isMDNRequired;
+    }
+    public void setIsMDNRequired(boolean isMDNRequired) {
+        this.isMDNRequired = isMDNRequired;
+    }
+
+    public boolean  getIsConfiguredForMDN() {
+        return isConfiguredForMDN;
+    }
+    public void setIsConfiguredForMDN(boolean isConfiguredForMDN) {
+        this.isConfiguredForMDN = isConfiguredForMDN;
+    }
+
+    public boolean  getIsConfiguredForAsyncMDN() {
+        return isConfiguredForAsyncMDN;
+    }
+    public void setIsConfiguredForAsyncMDN(boolean isConfiguredForAsyncMDN) {
+        this.isConfiguredForAsyncMDN = isConfiguredForAsyncMDN;
+    }
+
     public String getMDNMessageID() {
         return mdnMessageID;
     }
@@ -130,9 +188,30 @@ public class DBLogInfo extends TableServiceEntity {
         this.mdnMessageID = mdnMessageID;
     }
 
+    public String getCompressionType() {
+        return compressionType;
+    }
+    public void setCompressionType(String compressionType) {
+        this.compressionType = compressionType;
+    }
+
+    public String getContentType() {
+        return contentType;
+    }
+    public void setContentType(String contentType) {
+        this.contentType = contentType;
+    }
+
+    public String getContentDisposition() {
+        return contentDisposition;
+    }
+    public void setContentDisposition(String contentDisposition) {
+        this.contentDisposition = contentDisposition;
+    }
+
     public String getLogMsgID()
     {
-        return "ID="+id+"|As2SenderId="+senderId+"|AS2RecieverId="+recieverId+
+        return "ID="+id+"|As2SenderId="+senderId+"|AS2ReceiverId="+receiverId+
                 "|messageText="+logMessage+"|messageId"+messageID;
     }
 
@@ -140,7 +219,7 @@ public class DBLogInfo extends TableServiceEntity {
     private String source;
     private String fileName;
     private String senderId;
-    private String recieverId;
+    private String receiverId;
     private String processLevel;
     private String logMessage;
     private String exceptionOrErrorDetails;
@@ -151,6 +230,18 @@ public class DBLogInfo extends TableServiceEntity {
     private String messageID;
     private String mdnMessageID;
     private String as2logMsgID;
+    private String aS2To;
+    private String aS2From;
+    private boolean isMsgSigned;
+    private boolean isMsgEncrypted;
+    private boolean isMDNRequired;
+    private boolean isConfiguredForMDN;
+    private boolean isConfiguredForAsyncMDN;
+    private String msgString;
+    private String compressionType;
+    private String contentType;
+    private String contentDisposition;
+
 
 
     }

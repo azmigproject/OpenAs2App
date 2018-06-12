@@ -121,13 +121,21 @@ public class DbLogger extends BaseLogger {
         objLog.setIsSuccessfull(true);
         objLog.setIsErrorMailSend(false);
         if(as2Msg!=null) {
-            objLog.setRecieverId(as2Msg.getPartnership().getReceiverID(AS2Partnership.PID_AS2));
+            objLog.setReceiverId(as2Msg.getPartnership().getReceiverID(AS2Partnership.PID_AS2));
             objLog.setSenderId(as2Msg.getPartnership().getSenderID(AS2Partnership.PID_AS2));
             objLog.setFileName(as2Msg.getPayloadFilename());
             objLog.setMessageID(as2Msg.getMessageID());
             objLog.setAs2logMsgID(as2Msg.getLogMsgID());
             objLog.setMDNMessageID(as2Msg.getMDN().getMessageID());
-
+            objLog.setAS2To(as2Msg.getHeader("As2-To"));
+            objLog.setAS2From(as2Msg.getHeader("As2-From"));
+            objLog.setIsConfiguredForMDN(as2Msg.isConfiguredForMDN());
+            objLog.setIsConfiguredForAsyncMDN(as2Msg.isConfiguredForAsynchMDN());
+            objLog.setIsMDNRequired(as2Msg.isRequestingMDN());
+            objLog.setMessageString(as2Msg.toString());
+            objLog.setCompressionType(as2Msg.getCompressionType());
+            objLog.setContentDisposition(as2Msg.getContentDisposition());
+            objLog.setContentType(as2Msg.getContentType());
         }
 
             objLog.setLogMessage(msgText);

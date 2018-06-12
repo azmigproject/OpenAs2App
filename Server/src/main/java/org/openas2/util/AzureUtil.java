@@ -371,7 +371,7 @@ public class AzureUtil {
 
             JSONObject objJSON=new JSONObject(doc.toJson());
             Profile profile=new Profile();
-            profile.setAS2Idenitfier(objJSON.getString("AS2Idenitfier"));
+            profile.setAS2Idenitfier(objJSON.getString("AS2Identifier"));
             profile.setEemailAddress(objJSON.getString("EmailAddress"));
             profile.setAsynchronousMDNURL(objJSON.getString("AsynchronousMDNURL"));
             profile.setPrivateCertificate(objJSON.getString("PrivateCertificate"));

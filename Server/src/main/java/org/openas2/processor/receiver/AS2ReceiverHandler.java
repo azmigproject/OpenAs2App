@@ -257,14 +257,20 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 			                    return;
 			                }
 							// Log significant msg state
-							msg.setOption("STATE", Message.MSG_STATE_MSG_SENT_MDN_RECEIVED_OK);
+							//msg.setOption("STATE", Message.MSG_STATE_MSG_SENT_MDN_RECEIVED_OK);
+							//msg.setOption("STATE", Message.MSG_STATE_MSG_RXD_MDN_SENT_OK);
+							msg.setStatus(Message.MSG_STATE_MSG_RXD_MDN_SENT_OK);
+			                msg.setLogMsg("Message received and MDN sent succesfully.");
 							msg.trackMsgState(getModule().getSession());
+
+							logger.info(msg);
 
 						} else {
 							HTTPUtil.sendHTTPResponse(out, HttpURLConnection.HTTP_OK, false);
 							out.flush();
 							logger.info("sent HTTP OK" + getClientInfo(s) + msg.getLogMsgID());
 						}
+
 					} catch (Exception e) {
 						msg.setLogMsg("Error processing MDN for received message: " + e.getCause());
 						logger.error(msg, e);
@@ -534,6 +540,8 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 				optMap.put("blobContainer",msg.getPartnership().getAttribute("blobContainer"));
 				getModule().getSession().getProcessor().handle(StorageModule.DO_STOREMDN, msg, optMap);
 				if (logger.isInfoEnabled()) 
+					//logger.info("sent MDN [" + disposition.toString() + "]" + msg.getLogMsgID());
+
 					logger.info("sent MDN [" + disposition.toString() + "]" + msg.getLogMsgID());
             } catch (Exception e) {
                 WrappedException we = new WrappedException("Error sending MDN", e);

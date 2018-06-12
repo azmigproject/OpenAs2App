@@ -34,7 +34,7 @@ public class OpenAS2Server {
 
     public static void main(String[] args) throws Exception
     {
-
+ 
         new OpenAS2Server.Builder()
                 .registerShutdownHook()
                 .run(args);
