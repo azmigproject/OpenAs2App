@@ -222,7 +222,8 @@ public class AzureUtil {
             serverSetting.setAzureStoragekey(objJSON.getString("AzureStoragekey"));
 
             serverSetting.setMaxFileSize(objJSON.getInt("MaxFileSize_Queue"));
-            serverSetting.setLogEmailID(objJSON.getBoolean("LogEmailID"));
+            serverSetting.setLogInEmail(objJSON.getBoolean("LogInEmail"));
+            serverSetting.setLogEmailID(objJSON.getString("LogEmailID"));
             serverSetting.setMailServerEnableSSl(objJSON.getBoolean("MailServer_EnableSSL"));
             serverSetting.setMailServerPassword(objJSON.getString("MailServer_Password"));
             serverSetting.setMailServerPort(objJSON.getInt("MailServer_Port"));

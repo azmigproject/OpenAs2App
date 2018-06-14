@@ -28,10 +28,10 @@ public class ServersSettings {
     public void setAllowHealthCheck(boolean allowHealthCheck) {
         this._allowHealthCheck = allowHealthCheck;
     }
-    public boolean getLogEmailID() {
+    public String getLogEmailID() {
         return _logEmailID;
     }
-    public void setLogEmailID(boolean logEmailID) {
+    public void setLogEmailID(String logEmailID) {
         this._logEmailID = logEmailID;
     }
     public boolean getMailServerEnableSSl() {
@@ -125,10 +125,10 @@ public class ServersSettings {
     public void setQueue_SentPrefix(String queue_SentPrefix) {
         this._queue_SentPrefix = queue_SentPrefix;
     }
-    public String getLogInEmail() {
+    public boolean getLogInEmail() {
         return _logInEmail;
     }
-    public void setLogInEmail(String logInEmail) {
+    public void setLogInEmail(boolean logInEmail) {
         this._logInEmail = logInEmail;
     }
     public String getQueue_OutPrefix() {
@@ -151,7 +151,7 @@ public class ServersSettings {
     private int _healthCheckPort;
     private int _maxFileSize_Queue;
     private int _mailServerPort;
-    private String _logInEmail;
+    private boolean _logInEmail;
     private String _mailServerSMTP;
     private String _mailServerUserName;
     private String _mailServerPassword;
@@ -166,6 +166,6 @@ public class ServersSettings {
     private DateTime _createdOn;
     private DateTime _updatedOn;
     private boolean _mailServerEnableSSl;
-    private boolean _logEmailID;
+    private String _logEmailID;
     private boolean _allowHealthCheck;
 }
