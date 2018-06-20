@@ -222,12 +222,12 @@ public class partner {
     public void setUpdatedBy(String updatedBy) {
         this._updatedBy = updatedBy;
     }
-    public String getOutErrorQueue() {
+    /*public String getOutErrorQueue() {
         return _outErrorQueue;
     }
     public void setOutErrorQueue(String outErrorQueue) {
         this._outErrorQueue = outErrorQueue;
-    }
+    }*/
     public DateTime getCreatedOn() {
         return _createdOn;
     }
@@ -277,7 +277,7 @@ public class partner {
     }
 
 
-    private String _outErrorQueue;
+    //private String _outErrorQueue;
     private DateTime _createdOn;
     private DateTime _updatedOn;
     private String _updatedBy;

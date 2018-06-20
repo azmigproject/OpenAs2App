@@ -83,12 +83,6 @@ public class ServersSettings {
     public void setOnPremDataFolder(String onPremDataFolder) {
         this._onPremDataFolder = onPremDataFolder;
     }
-    public String getAzureCosmosDBEndPointurl() {
-        return _azureCosmosDBEndPointurl;
-    }
-    public void setAzureCosmosDBEndPointurl(String azureCosmosDBEndPointurl) {
-        this._azureCosmosDBEndPointurl = azureCosmosDBEndPointurl;
-    }
     public String getQueue_InPrefix() {
         return _queue_InPrefix;
     }
@@ -106,12 +100,6 @@ public class ServersSettings {
     }
     public void setAzureStoragekey(String azureStoragekey) {
         this._azureStoragekey = azureStoragekey;
-    }
-    public String getAzureCosmosDBPrimaryKey() {
-        return _azureCosmosDBPrimaryKey;
-    }
-    public void setAzureCosmosDBPrimaryKey(String azureCosmosDBPrimaryKey) {
-        this._azureCosmosDBPrimaryKey = azureCosmosDBPrimaryKey;
     }
     public String getQueue_ErrPrefix() {
         return _queue_ErrPrefix;
@@ -157,8 +145,6 @@ public class ServersSettings {
     private String _mailServerPassword;
     private String _onPremHomeDirectory;
     private String _onPremDataFolder;
-    private String _azureCosmosDBEndPointurl;
-    private String _azureCosmosDBPrimaryKey;
     public String _azureStoragekey;
     private String _blobContainerName;
     private String _queue_InPrefix;

@@ -150,7 +150,7 @@ public class XMLPartnershipFactory extends BasePartnershipFactory{
                 PartnerToServer.put("Outqueue",Partner.getOutgoingQueue());
                 PartnerToServer.put("SentQueue",Partner.getSentQueue());
                 PartnerToServer.put("InqueueError",Partner.getInErrorQueue());
-                PartnerToServer.put("OutqueueError",Partner.getOutErrorQueue());
+                //PartnerToServer.put("OutqueueError",Partner.getOutErrorQueue());
                 PartnerToServer.put("sender",Partner.getPartnerName());
                 PartnerToServer.put("name",Partner.getPartnerName()+"-to-"+Profile.PROFILENAME);
                 PartnerToServer.put("subject","AS2 Message From "+ Partner.getPartnerName() +" to serverProfile");
@@ -175,7 +175,7 @@ public class XMLPartnershipFactory extends BasePartnershipFactory{
                 ServerToPartner.put("Outqueue",Partner.getOutgoingQueue());
                 ServerToPartner.put("SentQueue",Partner.getSentQueue());
                 ServerToPartner.put("InqueueError",Partner.getInErrorQueue());
-                ServerToPartner.put("OutqueueError",Partner.getOutErrorQueue());
+                //ServerToPartner.put("OutqueueError",Partner.getOutErrorQueue());
                 ServerToPartner.put("name",Profile.PROFILENAME+"-to-"+Partner.getPartnerName());
                 ServerToPartner.put("receiver",Partner.getPartnerName());
                 ServerToPartner.put("protocol","AS2");

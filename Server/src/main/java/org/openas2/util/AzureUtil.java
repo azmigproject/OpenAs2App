@@ -22,24 +22,12 @@ public class AzureUtil {
     private String PROFILE_TABLE_NAME = "Profile";
     private String PROPERTIES_TABLE_NAME="Properties";
     private String COMMANDS_TABLE_NAME="commands";
-    //private String PARTNERSHIPS_TABLE_NAME="Partnerships";
     private String COMMANDPROCESSOR_TABLE_NAME="CommandProcessors";
     private String SERVER_SETTINGS_TABLE_NAME = "ServerSettings";
     private String PROCESSOR_TABLE_NAME="Processor";
     private String CERTIFICATE_TABLE_NAME="certificates";
-    //ToDo  check and replace the following code
-    //private static final String COMMAND_TABLE_NAME="Command";
-    //private static final String CERTANDCOMMAND_TABLE_NAME="CertandCommandInfo";
-    //private static final String DEFAULT_PROCESSOR_NAME="DefaultProcessor";
-    //private static final String MODULE_TABLE_NAME="CommandProcessors";
-    //private static final String MULTICOMMAND_TABLE_NAME="Multicommand";
-    //private static final String SERVERMODULECLASS_TABLE_NAME="ServerModuleClasses";
-    //ToDo  check and replace the following code
     public String COSMOS_DB_NAME = "NPTYAS2DB";
-
     public String STORAGE_CONNECTION_STRING = "UseDevelopmentStorage=true";
-    //private static final String COSMOSDB_ENDPOINT = "https://localhost:8081/";
-    //private static final String COSMOSDB_KEY = "C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==";
     private CloudTableClient tableClient;
     private DocumentClient documentClient;
     private Gson gson=null;
@@ -217,10 +205,8 @@ public class AzureUtil {
             JSONObject objJSON=new JSONObject(doc.toJson());
             ServersSettings  serverSetting= new ServersSettings();
             serverSetting.setAllowHealthCheck(objJSON.getBoolean("AllowHealthCheck"));
-            serverSetting.setAzureStoragekey(objJSON.getString("AzureStoragekey"));
+            serverSetting.setAzureStoragekey(objJSON.getString("AzureStorageKey"));
             serverSetting.setBlobContainerName(objJSON.getString("BlobContainerName"));
-            serverSetting.setAzureStoragekey(objJSON.getString("AzureStoragekey"));
-
             serverSetting.setMaxFileSize(objJSON.getInt("MaxFileSize_Queue"));
             serverSetting.setLogInEmail(objJSON.getBoolean("LogInEmail"));
             serverSetting.setLogEmailID(objJSON.getString("LogEmailID"));
@@ -246,7 +232,7 @@ public class AzureUtil {
         String strResult="";
         for (Document doc : queryResults.getQueryIterable()) {
             JSONObject objJSON=new JSONObject(doc.toJson());
-            strResult=objJSON.getString("AzureStoragekey");
+            strResult=objJSON.getString("AzureStorageKey");
 
         }
         return strResult ;
@@ -331,8 +317,8 @@ public class AzureUtil {
             partnerInfp.setIncomingQueue(objJSON.getString("IncomingQueue"));
             partnerInfp.setOutgoingQueue(objJSON.getString("OutgoingQueue"));
             partnerInfp.setSentQueue(objJSON.getString("SentQueue"));
-            partnerInfp.setInErrorQueue(objJSON.getString("IncommingErrorQueue"));
-            partnerInfp.setOutErrorQueue(objJSON.getString("OutgoingErrorQueue"));
+            partnerInfp.setInErrorQueue(objJSON.getString("IncomingErrorQueue"));
+            //partnerInfp.setOutErrorQueue(objJSON.getString("OutgoingErrorQueue"));
             partnerInfp.setIsFolderCreated(objJSON.getBoolean("IsFolderCreated"));
             partnerInfp.setIsMDNRequested(objJSON.getBoolean("IsMDNRequested"));
             partnerInfp.setISMDNSigned(objJSON.getBoolean("ISMDNSigned"));
