@@ -34,11 +34,11 @@ public class ServersSettings {
     public void setLogEmailID(String logEmailID) {
         this._logEmailID = logEmailID;
     }
-    public boolean getMailServerEnableSSl() {
-        return _mailServerEnableSSl;
+    public boolean getMailServerEnableSSL() {
+        return _mailServerEnableSSL;
     }
-    public void setMailServerEnableSSl(boolean mailServerEnableSSl) {
-        this._mailServerEnableSSl = mailServerEnableSSl;
+    public void setMailServerEnableSSL(boolean mailServerEnableSSL) {
+        this._mailServerEnableSSL = mailServerEnableSSL;
     }
     public int getMailServerPort() {
         return _mailServerPort;
@@ -165,7 +165,7 @@ public class ServersSettings {
 
     private DateTime _createdOn;
     private DateTime _updatedOn;
-    private boolean _mailServerEnableSSl;
+    private boolean _mailServerEnableSSL;
     private String _logEmailID;
     private boolean _allowHealthCheck;
 }

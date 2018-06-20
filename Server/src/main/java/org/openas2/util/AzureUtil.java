@@ -224,11 +224,11 @@ public class AzureUtil {
             serverSetting.setMaxFileSize(objJSON.getInt("MaxFileSize_Queue"));
             serverSetting.setLogInEmail(objJSON.getBoolean("LogInEmail"));
             serverSetting.setLogEmailID(objJSON.getString("LogEmailID"));
-            serverSetting.setMailServerEnableSSl(objJSON.getBoolean("MailServer_EnableSSL"));
-            serverSetting.setMailServerPassword(objJSON.getString("MailServer_Password"));
-            serverSetting.setMailServerPort(objJSON.getInt("MailServer_Port"));
-            serverSetting.setMailServerSMTP(objJSON.getString("MailServer_MailServer"));
-            serverSetting.setMailServerUserName(objJSON.getString("MailServer_UserName"));
+            serverSetting.setMailServerEnableSSL(objJSON.getBoolean("MailServerEnableSSL"));
+            serverSetting.setMailServerPassword(objJSON.getString("MailServerPassword"));
+            serverSetting.setMailServerPort(objJSON.getInt("MailServerPort"));
+            serverSetting.setMailServerSMTP(objJSON.getString("MailServerSMTP"));
+            serverSetting.setMailServerUserName(objJSON.getString("MailServerUserName"));
             serverSettingsInfo.add(serverSetting);
         }
         return serverSettingsInfo;
