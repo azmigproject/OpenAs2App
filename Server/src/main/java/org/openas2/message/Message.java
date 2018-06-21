@@ -65,7 +65,7 @@ public interface Message extends Serializable {
 			put(MSG_STATE_MSG_SENT_MDN_RECEIVED_OK, "Message sent. Message MDN success response received.");
 			put(MSG_STATE_MSG_RXD_MDN_SENDING_FAIL,
 					"Message was received but failed to successfully send an MDN response to partner");
-			put(MSG_STATE_MSG_RXD_MDN_SENT_OK, "Message received and MDN sent succesfully.");
+			put(MSG_STATE_MSG_RXD_MDN_SENT_OK, "Message received and MDN sent successfully.");
 		}
 	};
 
