@@ -81,7 +81,24 @@ public class XMLSession extends BaseSession {
         addSchedulerComponent();
     }
 
+    public Runnable reloadConfig()
+    {
+        return new Runnable() {
+            @Override
+            public void run() {
+                try {
 
+                    azureUtil = new AzureUtil();
+                    azureUtil.init();
+                    loadReqData(azureUtil);
+                    LOGGER.error("Method has been scheduled and running ok");
+                } catch (Exception exp) {
+                    LOGGER.error(exp);
+                }
+            };
+        };
+
+    }
     public XMLSession(String configAbsPath) throws OpenAS2Exception,
             ParserConfigurationException, SAXException, IOException
     {
@@ -102,6 +119,7 @@ public class XMLSession extends BaseSession {
         SchedulerComponent comp = new SchedulerComponent();
         setComponent("scheduler", comp);
         comp.init(this, Collections.<String, String>emptyMap());
+        comp.setReloadSession(this.reloadConfig());
     }
 
    protected  void load (AzureUtil azureUtil)  throws   OpenAS2Exception,Exception
@@ -114,6 +132,16 @@ public class XMLSession extends BaseSession {
        loadCommands(azureUtil.getCommand());
        loadLoggers(azureUtil);
    }
+
+
+    public   void loadReqData (AzureUtil azureUtil)  throws   OpenAS2Exception,Exception
+    {
+
+        loadCertificates(azureUtil.getCertificates());
+        loadProcessor(azureUtil.getProcessor());
+        loadPartnerships(azureUtil.getPartnerList(),azureUtil.getProfile(),azureUtil.getServersSettings().get(0));
+
+    }
 
     protected void load(InputStream in) throws ParserConfigurationException,
             SAXException, IOException, OpenAS2Exception

@@ -8,10 +8,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.openas2.BaseComponent;
-import org.openas2.Component;
-import org.openas2.OpenAS2Exception;
-import org.openas2.Session;
+import org.openas2.*;
 import org.openas2.params.InvalidParameterException;
 
 /**
@@ -46,6 +43,10 @@ public class SchedulerComponent extends BaseComponent {
         logger.debug("Scheduler module is ready.");
     }
 
+    public void setReloadSession(Runnable runnable)
+    {
+        this.executorService.scheduleAtFixedRate(runnable,100, 100, TimeUnit.SECONDS);
+    }
     private void scheduleComponentsTasks(Session session) throws OpenAS2Exception
     {
         for (Component component : session.getComponents().values())
