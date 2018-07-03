@@ -126,7 +126,10 @@ public class DbLogger extends BaseLogger {
             objLog.setFileName(as2Msg.getPayloadFilename());
             objLog.setMessageID(as2Msg.getMessageID());
             objLog.setAs2logMsgID(as2Msg.getLogMsgID());
-            objLog.setMDNMessageID(as2Msg.getMDN().getMessageID());
+            objLog.setMDNMessageID("");
+            if(as2Msg.getMDN()!=null) {
+                objLog.setMDNMessageID(as2Msg.getMDN().getMessageID());
+            }
             objLog.setAS2To(as2Msg.getHeader("As2-To"));
             objLog.setAS2From(as2Msg.getHeader("As2-From"));
             objLog.setIsConfiguredForMDN(as2Msg.isConfiguredForMDN());
@@ -136,7 +139,10 @@ public class DbLogger extends BaseLogger {
             objLog.setCompressionType(as2Msg.getCompressionType());
             objLog.setContentDisposition(as2Msg.getContentDisposition());
             objLog.setContentType(as2Msg.getContentType());
-            objLog.setFileSize(Long.getLong(as2Msg.getHeader("Content-Length"))); //TO DO ADD OPTION FOR FILE SIZE
+            objLog.setFileSize(0);
+            if(as2Msg.getHeader("Content-Length")!=null) {
+                objLog.setFileSize(Long.getLong(as2Msg.getHeader("Content-Length")));
+            }//TO DO ADD OPTION FOR FILE SIZE
         }
 
             objLog.setLogMessage(msgText);

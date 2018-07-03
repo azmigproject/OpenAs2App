@@ -1,4 +1,5 @@
 package org.openas2.util;
+import org.openas2.Constants;
 import org.openas2.lib.dbUtils.*;
 
 import com.microsoft.azure.storage.*;
@@ -13,7 +14,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-
+import org.openas2.XMLSession;
 
 public class AzureUtil {
 
@@ -32,11 +33,14 @@ public class AzureUtil {
     private DocumentClient documentClient;
     private Gson gson=null;
     private JSONObject configInfo=null;
-    private  String CosmosDBAPI=null;
-    public void init(String apiURL) throws Exception
+    private  String CosmosDBAPI=Constants.APIURL;
+
+
+
+    public void init() throws Exception
     {
         //ToDO Call API to ACCESS  THE Azure Info
-        CosmosDBAPI=apiURL;
+        CosmosDBAPI=Constants.APIURL;
        getNptyAS2DB(CosmosDBAPI);
         getLogDB();
         gson=new Gson();

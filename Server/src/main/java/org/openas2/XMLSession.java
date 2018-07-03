@@ -74,13 +74,18 @@ public class XMLSession extends BaseSession {
 
     public XMLSession(String apiURL) throws OpenAS2Exception, IOException,Exception
     {
-        APIURL=apiURL;
+        Constants.APIURL=apiURL;
         azureUtil=new AzureUtil();
-        azureUtil.init(APIURL);
+        azureUtil.init();
         load(azureUtil);
 
         // scheduler should be initializer after all modules
         addSchedulerComponent();
+    }
+
+    public String getAPIURL()
+    {
+        return this.APIURL;
     }
 
     public Runnable reloadConfig()
@@ -91,7 +96,7 @@ public class XMLSession extends BaseSession {
                 try {
 
                     azureUtil = new AzureUtil();
-                    azureUtil.init(APIURL);
+                    azureUtil.init();
                     loadReqData(azureUtil);
                     LOGGER.error("Method has been scheduled and running ok");
                 } catch (Exception exp) {
