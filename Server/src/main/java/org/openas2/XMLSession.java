@@ -67,14 +67,16 @@ public class XMLSession extends BaseSession {
     private String VERSION;
     private String TITLE;
     private  AzureUtil azureUtil;
+    private  String APIURL;
     private static final Log LOGGER = LogFactory.getLog(XMLSession.class.getSimpleName());
     private org.openas2.lib.dbUtils.Properties prop;
 
 
-    public XMLSession() throws OpenAS2Exception, IOException,Exception
+    public XMLSession(String apiURL) throws OpenAS2Exception, IOException,Exception
     {
+        APIURL=apiURL;
         azureUtil=new AzureUtil();
-        azureUtil.init();
+        azureUtil.init(APIURL);
         load(azureUtil);
 
         // scheduler should be initializer after all modules
@@ -89,7 +91,7 @@ public class XMLSession extends BaseSession {
                 try {
 
                     azureUtil = new AzureUtil();
-                    azureUtil.init();
+                    azureUtil.init(APIURL);
                     loadReqData(azureUtil);
                     LOGGER.error("Method has been scheduled and running ok");
                 } catch (Exception exp) {
@@ -99,7 +101,7 @@ public class XMLSession extends BaseSession {
         };
 
     }
-    public XMLSession(String configAbsPath) throws OpenAS2Exception,
+   /* public XMLSession(String configAbsPath) throws OpenAS2Exception,
             ParserConfigurationException, SAXException, IOException
     {
         File configXml = new File(configAbsPath);
@@ -112,7 +114,7 @@ public class XMLSession extends BaseSession {
 
         // scheduler should be initializer after all modules
         addSchedulerComponent();
-    }
+    }*/
 
     private void addSchedulerComponent() throws OpenAS2Exception
     {

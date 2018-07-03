@@ -136,6 +136,7 @@ public class DbLogger extends BaseLogger {
             objLog.setCompressionType(as2Msg.getCompressionType());
             objLog.setContentDisposition(as2Msg.getContentDisposition());
             objLog.setContentType(as2Msg.getContentType());
+            objLog.setFileSize(Long.getLong(as2Msg.getHeader("Content-Length"))); //TO DO ADD OPTION FOR FILE SIZE
         }
 
             objLog.setLogMessage(msgText);

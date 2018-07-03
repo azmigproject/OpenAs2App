@@ -32,10 +32,12 @@ public class AzureUtil {
     private DocumentClient documentClient;
     private Gson gson=null;
     private JSONObject configInfo=null;
-    public void init() throws Exception
+    private  String CosmosDBAPI=null;
+    public void init(String apiURL) throws Exception
     {
         //ToDO Call API to ACCESS  THE Azure Info
-       getNptyAS2DB();
+        CosmosDBAPI=apiURL;
+       getNptyAS2DB(CosmosDBAPI);
         getLogDB();
         gson=new Gson();
     }
@@ -383,9 +385,9 @@ public class AzureUtil {
         cloudTable.createIfNotExists();
     }
 
-    private void getNptyAS2DB() throws Exception {
+    private void getNptyAS2DB(String strURL) throws Exception {
 
-        String dbInfo=getCosMOSDBINFO();
+        String dbInfo=getCosMOSDBINFO(strURL);
         JSONArray jsonArray=  new JSONArray(dbInfo);
         configInfo=jsonArray.getJSONObject(0);
         COSMOS_DB_NAME=configInfo.getString("CosmosDB");
@@ -407,10 +409,10 @@ public class AzureUtil {
         STORAGE_CONNECTION_STRING=getAzureStorageKey();
     }
 
-    private String getCosMOSDBINFO() throws Exception
+    private String getCosMOSDBINFO(String strURL) throws Exception
     {
         String returnString="";
-        URL url = new URL("http://nptyas2.westus.cloudapp.azure.com/api/partnerapi");//your url i.e fetch data from .
+        URL url = new URL(strURL);//your url i.e fetch data from .
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");
         conn.setRequestProperty("Accept", "application/json");

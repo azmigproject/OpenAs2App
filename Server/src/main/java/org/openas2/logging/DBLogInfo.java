@@ -195,6 +195,13 @@ public class DBLogInfo extends TableServiceEntity {
         this.compressionType = compressionType;
     }
 
+    public long getFileSize() {
+        return fileSize;
+    }
+    public void setFileSize(long fileSize) {
+        this.fileSize = fileSize;
+    }
+
     public String getContentType() {
         return contentType;
     }
@@ -218,6 +225,7 @@ public class DBLogInfo extends TableServiceEntity {
     private String id;
     private String source;
     private String fileName;
+    private long fileSize;
     private String senderId;
     private String receiverId;
     private String processLevel;

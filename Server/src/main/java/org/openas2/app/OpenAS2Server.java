@@ -93,7 +93,7 @@ public class OpenAS2Server {
             }
 
             //XMLSession session = new XMLSession(findConfig(args).getAbsolutePath());
-            XMLSession session = new XMLSession();
+            XMLSession session = new XMLSession(args[0]);
             final OpenAS2Server server = new OpenAS2Server(session);
 
             registerShutdownHookIfNeeded(server);
