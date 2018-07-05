@@ -23,6 +23,7 @@ public class AzureUtil {
     private String PROFILE_TABLE_NAME = "Profile";
     private String PROPERTIES_TABLE_NAME="Properties";
     private String COMMANDS_TABLE_NAME="commands";
+    private String NPTYAS2DEFAULTSETTINGS_TABLE_NAME="NPTYAS2DefaultSettings";
     private String COMMANDPROCESSOR_TABLE_NAME="CommandProcessors";
     private String SERVER_SETTINGS_TABLE_NAME = "ServerSettings";
     private String PROCESSOR_TABLE_NAME="Processor";
@@ -53,9 +54,9 @@ public class AzureUtil {
         queryOptions.setEnableCrossPartitionQuery(true);
         org.openas2.lib.dbUtils.Properties propertiesInfo=new org.openas2.lib.dbUtils.Properties();
 
-        String collectionLink = String.format("/dbs/%s/colls/%s", COSMOS_DB_NAME, PROPERTIES_TABLE_NAME);
+        String collectionLink = String.format("/dbs/%s/colls/%s", COSMOS_DB_NAME, NPTYAS2DEFAULTSETTINGS_TABLE_NAME);
         FeedResponse<Document> queryResults = this.documentClient.queryDocuments(collectionLink,
-                "SELECT * FROM "+ PROPERTIES_TABLE_NAME, queryOptions);
+                "SELECT * FROM "+ NPTYAS2DEFAULTSETTINGS_TABLE_NAME+" WHERE "+NPTYAS2DEFAULTSETTINGS_TABLE_NAME+".id='"+PROPERTIES_TABLE_NAME+"'", queryOptions);
         for (Document doc : queryResults.getQueryIterable()) {
 
            JSONObject objJSON=new JSONObject(doc.toJson());
@@ -76,9 +77,9 @@ public class AzureUtil {
         queryOptions.setEnableCrossPartitionQuery(true);
         Certificates certificate=new Certificates() ;
 
-        String collectionLink = String.format("/dbs/%s/colls/%s", COSMOS_DB_NAME, CERTIFICATE_TABLE_NAME);
+        String collectionLink = String.format("/dbs/%s/colls/%s", COSMOS_DB_NAME, NPTYAS2DEFAULTSETTINGS_TABLE_NAME);
         FeedResponse<Document> queryResults = this.documentClient.queryDocuments(collectionLink,
-                "SELECT * FROM "+ CERTIFICATE_TABLE_NAME, queryOptions);
+                "SELECT * FROM "+ NPTYAS2DEFAULTSETTINGS_TABLE_NAME+" WHERE "+NPTYAS2DEFAULTSETTINGS_TABLE_NAME+".id='"+CERTIFICATE_TABLE_NAME+"'" , queryOptions);
         for (Document doc : queryResults.getQueryIterable()) {
 
             JSONObject objJSON=new JSONObject(doc.toJson());
@@ -100,9 +101,9 @@ public class AzureUtil {
         queryOptions.setEnableCrossPartitionQuery(true);
         Processor processor=new Processor() ;
 
-        String collectionLink = String.format("/dbs/%s/colls/%s", COSMOS_DB_NAME, PROCESSOR_TABLE_NAME);
+        String collectionLink = String.format("/dbs/%s/colls/%s", COSMOS_DB_NAME, NPTYAS2DEFAULTSETTINGS_TABLE_NAME);
         FeedResponse<Document> queryResults = this.documentClient.queryDocuments(collectionLink,
-                "SELECT * FROM "+ PROCESSOR_TABLE_NAME, queryOptions);
+                "SELECT * FROM "+NPTYAS2DEFAULTSETTINGS_TABLE_NAME+" WHERE "+NPTYAS2DEFAULTSETTINGS_TABLE_NAME+".id='"+ PROCESSOR_TABLE_NAME+"'", queryOptions);
         for (Document doc : queryResults.getQueryIterable()) {
 
 
@@ -145,16 +146,16 @@ public class AzureUtil {
         return processor;
     }
 
-    public Command getCommands() {
+   /* public Command getCommands() {
         // Set some common query options
         FeedOptions queryOptions = new FeedOptions();
         queryOptions.setPageSize(-1);
         queryOptions.setEnableCrossPartitionQuery(true);
         Command cmd=new Command() ;
 
-        String collectionLink = String.format("/dbs/%s/colls/%s", COSMOS_DB_NAME, COMMANDS_TABLE_NAME);
+        String collectionLink = String.format("/dbs/%s/colls/%s", COSMOS_DB_NAME, NPTYAS2DEFAULTSETTINGS_TABLE_NAME);
         FeedResponse<Document> queryResults = this.documentClient.queryDocuments(collectionLink,
-                "SELECT * FROM "+ COMMANDS_TABLE_NAME, queryOptions);
+                "SELECT * FROM "+NPTYAS2DEFAULTSETTINGS_TABLE_NAME+" WHERE c.id='"+ COMMANDS_TABLE_NAME+"'", queryOptions);
         for (Document doc : queryResults.getQueryIterable()) {
 
             JSONObject objJSON=new JSONObject(doc.toJson());
@@ -162,7 +163,7 @@ public class AzureUtil {
 
         }
         return cmd;
-    }
+    }*/
 
 
 
@@ -179,18 +180,22 @@ public class AzureUtil {
         queryOptions.setEnableCrossPartitionQuery(true);
         List<CommandProcessors> commandProcessorInfo=new ArrayList<CommandProcessors>();
 
-        String collectionLink = String.format("/dbs/%s/colls/%s", COSMOS_DB_NAME, COMMANDPROCESSOR_TABLE_NAME);
+        String collectionLink = String.format("/dbs/%s/colls/%s", COSMOS_DB_NAME, NPTYAS2DEFAULTSETTINGS_TABLE_NAME);
         FeedResponse<Document> queryResults = this.documentClient.queryDocuments(collectionLink,
-                "SELECT * FROM "+ COMMANDPROCESSOR_TABLE_NAME, queryOptions);
+                "SELECT * FROM "+NPTYAS2DEFAULTSETTINGS_TABLE_NAME+" WHERE "+NPTYAS2DEFAULTSETTINGS_TABLE_NAME+".id='"+ COMMANDPROCESSOR_TABLE_NAME+"'", queryOptions);
         for (Document doc : queryResults.getQueryIterable()) {
 
-            JSONObject objJSON=new JSONObject(doc.toJson());
-            CommandProcessors  commandProcessor= new CommandProcessors();
-            commandProcessor.setClassName(objJSON.getString("classname"));
-            commandProcessor.setPassword(objJSON.getString("password"));
-            commandProcessor.setPort(objJSON.getString("portId"));
-            commandProcessor.setUserName(objJSON.getString("userId"));
-            commandProcessorInfo.add(commandProcessor);
+            JSONObject objTemp=new JSONObject(doc.toJson());
+            JSONArray objarr= objTemp.optJSONArray("Processor");
+            for (int i=0;i<objarr.length();i++) {
+                JSONObject objJSON=objarr.getJSONObject(i);
+                CommandProcessors commandProcessor = new CommandProcessors();
+                commandProcessor.setClassName(objJSON.getString("classname"));
+                commandProcessor.setPassword(objJSON.getString("password"));
+                commandProcessor.setPort(objJSON.getString("portId"));
+                commandProcessor.setUserName(objJSON.getString("userId"));
+                commandProcessorInfo.add(commandProcessor);
+            }
         }
         return commandProcessorInfo;
     }
@@ -204,9 +209,9 @@ public class AzureUtil {
         queryOptions.setEnableCrossPartitionQuery(true);
         List<ServersSettings> serverSettingsInfo=new ArrayList<ServersSettings>();
 
-        String collectionLink = String.format("/dbs/%s/colls/%s", COSMOS_DB_NAME, SERVER_SETTINGS_TABLE_NAME);
+        String collectionLink = String.format("/dbs/%s/colls/%s", COSMOS_DB_NAME, NPTYAS2DEFAULTSETTINGS_TABLE_NAME);
         FeedResponse<Document> queryResults = this.documentClient.queryDocuments(collectionLink,
-                "SELECT * FROM "+ SERVER_SETTINGS_TABLE_NAME, queryOptions);
+                "SELECT * FROM "+NPTYAS2DEFAULTSETTINGS_TABLE_NAME+" WHERE "+NPTYAS2DEFAULTSETTINGS_TABLE_NAME+".id='"+  SERVER_SETTINGS_TABLE_NAME+"'", queryOptions);
         for (Document doc : queryResults.getQueryIterable()) {
             JSONObject objJSON=new JSONObject(doc.toJson());
             ServersSettings  serverSetting= new ServersSettings();
@@ -254,9 +259,10 @@ public class AzureUtil {
         queryOptions.setEnableCrossPartitionQuery(true);
         Commands commands=new Commands();
 
-        String collectionLink = String.format("/dbs/%s/colls/%s", COSMOS_DB_NAME, COMMANDS_TABLE_NAME);
+        String collectionLink = String.format("/dbs/%s/colls/%s", COSMOS_DB_NAME, NPTYAS2DEFAULTSETTINGS_TABLE_NAME);
         FeedResponse<Document> queryResults = this.documentClient.queryDocuments(collectionLink,
-                "SELECT * FROM "+ COMMANDS_TABLE_NAME, queryOptions);
+                "SELECT * FROM "+NPTYAS2DEFAULTSETTINGS_TABLE_NAME+" WHERE "+NPTYAS2DEFAULTSETTINGS_TABLE_NAME+".id='"+COMMANDS_TABLE_NAME+"'", queryOptions);
+
         for (Document doc : queryResults.getQueryIterable()) {
 
 
@@ -356,9 +362,9 @@ public class AzureUtil {
         queryOptions.setPageSize(-1);
         queryOptions.setEnableCrossPartitionQuery(true);
         List<Profile> profileInfo=new ArrayList<Profile>();
-        String collectionLink = String.format("/dbs/%s/colls/%s", COSMOS_DB_NAME, PROFILE_TABLE_NAME);
+        String collectionLink = String.format("/dbs/%s/colls/%s", COSMOS_DB_NAME, NPTYAS2DEFAULTSETTINGS_TABLE_NAME);
         FeedResponse<Document> queryResults = this.documentClient.queryDocuments(collectionLink,
-                "SELECT * FROM "+ PROFILE_TABLE_NAME, queryOptions);
+                "SELECT * FROM "+NPTYAS2DEFAULTSETTINGS_TABLE_NAME+" WHERE "+NPTYAS2DEFAULTSETTINGS_TABLE_NAME+".id='"+ PROFILE_TABLE_NAME+"'", queryOptions);
 
         for (Document doc : queryResults.getQueryIterable()) {
 
@@ -397,6 +403,7 @@ public class AzureUtil {
         COSMOS_DB_NAME=configInfo.getString("CosmosDB");
         COMMANDS_TABLE_NAME=configInfo.getString("Commands");
         PROFILE_TABLE_NAME=configInfo.getString("Profile");
+        NPTYAS2DEFAULTSETTINGS_TABLE_NAME=configInfo.getString("NPTYAS2DefaultSettings");
         SERVER_SETTINGS_TABLE_NAME=configInfo.getString("ServerSetting");
         PARTNER_TABLE_NAME=configInfo.getString("Partner");
         PROFILE_TABLE_NAME=configInfo.getString("Profile");

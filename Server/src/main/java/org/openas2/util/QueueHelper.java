@@ -30,9 +30,11 @@ public class QueueHelper {
             CloudQueueClient queueClient = storageAccount.createCloudQueueClient();
             // Retrieve a reference to a queue.
             CloudQueue queue = queueClient.getQueueReference(queueName);
-            // Peek at the next message.
-            CloudQueueMessage message=new CloudQueueMessage(Msg);
-            queue.addMessage(message);
+            if(queue.exists()) {
+                // Peek at the next message.
+                CloudQueueMessage message = new CloudQueueMessage(Msg);
+                queue.addMessage(message);
+            }
 
 
         } catch (Exception e) {
@@ -86,38 +88,39 @@ public class QueueHelper {
             CloudQueueClient queueClient = storageAccount.createCloudQueueClient();
             // Retrieve a reference to a queue.
             CloudQueue queue = queueClient.getQueueReference(queueName);
-            queue.downloadAttributes();
-            if(queue.getApproximateMessageCount() > 0)
-            {
-                for (CloudQueueMessage message : queue.retrieveMessages(4, 300, null, null)) {
+            if(queue.exists()) {
+                queue.downloadAttributes();
+                if (queue.getApproximateMessageCount() > 0) {
+                    for (CloudQueueMessage message : queue.retrieveMessages(4, 300, null, null)) {
 
-                    String queueMessage = message.getMessageContentAsString();
+                        String queueMessage = message.getMessageContentAsString();
 
-                    if (queueMessage.contains("|__|")) {
-                        String[] arr = queueMessage.split("\\|__\\|");
-                        File file = new File(outDir + "\\" + arr[0]);
-                        file.createNewFile();
-                        FileWriter writer = new FileWriter(file);
-                        writer.write(arr[1]);
-                        writer.flush();
-                        writer.close();
+                        if (queueMessage.contains("|__|")) {
+                            String[] arr = queueMessage.split("\\|__\\|");
+                            File file = new File(outDir + "\\" + arr[0]);
+                            file.createNewFile();
+                            FileWriter writer = new FileWriter(file);
+                            writer.write(arr[1]);
+                            writer.flush();
+                            writer.close();
+                        }
+                        if (queueMessage.contains("|_B_|")) {
+                            String[] arr = queueMessage.split("\\|_B_\\|");
+                            //BlobHelper blob = new BlobHelper();
+                            String blobName = GetBlobName(as2NewIdentifier, arr[0]);
+                            BlobHelper blob = new BlobHelper();
+                            //blob.UploadFileInBlob(serverSetting.getBlobContainerName(),"as10/outgoing/ship.xml","D:\\Sandeep_Work_2018\\data\\ServerFolder\\ship.xml");
+
+                            blob.DownloadBlobInFile(serverSetting.getBlobContainerName(), blobName, outDir, GetOriginalFileName(arr[0]));
+                        }
+
+                        // Do processing for all messages in less than 5 minutes,
+                        // deleting each message after processing.
+                        queue.deleteMessage(message);
                     }
-                    if (queueMessage.contains("|_B_|")) {
-                        String[] arr = queueMessage.split("\\|_B_\\|");
-                        //BlobHelper blob = new BlobHelper();
-                        String blobName = GetBlobName(as2NewIdentifier, arr[0]);
-                        BlobHelper blob = new BlobHelper();
-                        //blob.UploadFileInBlob(serverSetting.getBlobContainerName(),"as10/outgoing/ship.xml","D:\\Sandeep_Work_2018\\data\\ServerFolder\\ship.xml");
-
-                        blob.DownloadBlobInFile(serverSetting.getBlobContainerName(), blobName, outDir,GetOriginalFileName(arr[0]));
-                    }
-
-                    // Do processing for all messages in less than 5 minutes,
-                    // deleting each message after processing.
-                    queue.deleteMessage(message);
                 }
+                // Peek at the next message.
             }
-            // Peek at the next message.
 
 
         } catch (Exception e) {
