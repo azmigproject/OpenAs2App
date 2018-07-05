@@ -111,7 +111,7 @@ public class DbLogger extends BaseLogger {
 
 
 
-    private  DBLogInfo GetDBLogInfo(Level level, String msgText, Message as2Msg)
+    private  DBLogInfo GetDBLogInfo(Level level, String msgText, Message as2Msg) throws Exception
     {
        //ToDo Working on changes
         DBLogInfo objLog=new DBLogInfo();
@@ -140,8 +140,8 @@ public class DbLogger extends BaseLogger {
             objLog.setContentDisposition(as2Msg.getContentDisposition());
             objLog.setContentType(as2Msg.getContentType());
             objLog.setFileSize(0);
-            if(as2Msg.getHeader("Content-Length")!=null) {
-                objLog.setFileSize(Long.getLong(as2Msg.getHeader("Content-Length")));
+            if(as2Msg.getData()!=null) {
+                objLog.setFileSize(as2Msg.getData().getSize());
             }//TO DO ADD OPTION FOR FILE SIZE
         }
 
