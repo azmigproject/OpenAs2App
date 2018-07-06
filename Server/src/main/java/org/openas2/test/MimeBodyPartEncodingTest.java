@@ -69,7 +69,8 @@ public class MimeBodyPartEncodingTest {
                 throw new Exception("Missing configuration file");
             }
             //session = new XMLSession(configFile);
-            session=new XMLSession(args[0]);
+            //session=new XMLSession(args[0]);
+            session=new XMLSession("http://nptyas2.westus.cloudapp.azure.com/api/partnerapi");
             // Do the deed...
             write("Entering test phase...." + System.getProperty("line.separator"));
             Message msg = new AS2Message();

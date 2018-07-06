@@ -237,9 +237,9 @@ public class AzureUtil {
         FeedOptions queryOptions = new FeedOptions();
         queryOptions.setPageSize(-1);
         queryOptions.setEnableCrossPartitionQuery(true);
-         String collectionLink = String.format("/dbs/%s/colls/%s", COSMOS_DB_NAME, SERVER_SETTINGS_TABLE_NAME);
+         String collectionLink = String.format("/dbs/%s/colls/%s", COSMOS_DB_NAME, NPTYAS2DEFAULTSETTINGS_TABLE_NAME);
         FeedResponse<Document> queryResults = this.documentClient.queryDocuments(collectionLink,
-                "SELECT * FROM "+ SERVER_SETTINGS_TABLE_NAME, queryOptions);
+                "SELECT * FROM "+NPTYAS2DEFAULTSETTINGS_TABLE_NAME+" WHERE "+NPTYAS2DEFAULTSETTINGS_TABLE_NAME+".id='"+ SERVER_SETTINGS_TABLE_NAME+"'", queryOptions);
         String strResult="";
         for (Document doc : queryResults.getQueryIterable()) {
             JSONObject objJSON=new JSONObject(doc.toJson());
