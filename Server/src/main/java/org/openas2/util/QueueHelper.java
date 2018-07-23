@@ -153,7 +153,7 @@ public class QueueHelper {
     public String GetQueueName(String as2Identifier)
     {
 
-        String queueName = as2Identifier+"-"+"out";
+        String queueName = as2Identifier.toLowerCase()+"-"+"out";
         return queueName;
     }
 }
