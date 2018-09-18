@@ -98,7 +98,7 @@ public class XMLSession extends BaseSession {
                     azureUtil = new AzureUtil();
                     azureUtil.init();
                     loadReqData(azureUtil);
-                    LOGGER.error("Method has been scheduled and running ok");
+                    //LOGGER.error("Method has been scheduled and running ok");
                 } catch (Exception exp) {
                     LOGGER.error(exp);
                 }

@@ -55,7 +55,7 @@ public class HealthCheckHandler implements NetModuleHandler {
 				// For now just return OK
 			    HTTPUtil.sendHTTPResponse(s.getOutputStream(), HttpURLConnection.HTTP_OK, false);
 			if (logger.isTraceEnabled())
-				logger.trace("Healthcheck executed succesfully: " + " [" + getClientInfo(s) + "]");
+				logger.trace("Healthcheck executed successfully: " + " [" + getClientInfo(s) + "]");
 			else
 			{
 				// TODO: Implement mechanism to use a param to indicate if should return messages

@@ -260,7 +260,7 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 							//msg.setOption("STATE", Message.MSG_STATE_MSG_SENT_MDN_RECEIVED_OK);
 							//msg.setOption("STATE", Message.MSG_STATE_MSG_RXD_MDN_SENT_OK);
 							msg.setStatus(Message.MSG_STATE_MSG_RXD_MDN_SENT_OK);
-			                msg.setLogMsg("Message received and MDN sent succesfully.");
+			                msg.setLogMsg("Message received and MDN sent successfully.");
 							msg.trackMsgState(getModule().getSession());
 
 							logger.info(msg);

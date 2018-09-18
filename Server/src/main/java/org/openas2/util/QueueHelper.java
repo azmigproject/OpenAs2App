@@ -29,7 +29,7 @@ public class QueueHelper {
             // Create the queue client.
             CloudQueueClient queueClient = storageAccount.createCloudQueueClient();
             // Retrieve a reference to a queue.
-            CloudQueue queue = queueClient.getQueueReference(queueName);
+            CloudQueue queue = queueClient.getQueueReference(ConvertToCompatibleAzureName(queueName));
             if(queue.exists()) {
                 // Peek at the next message.
                 CloudQueueMessage message = new CloudQueueMessage(Msg);
@@ -73,7 +73,7 @@ public class QueueHelper {
     }
 
     public boolean GetMsgFromQueue(String outDir) {
-
+        String queueMessage="";
         try {
             AzureUtil azureUtil = new AzureUtil();
             azureUtil.init();
@@ -93,7 +93,7 @@ public class QueueHelper {
                 if (queue.getApproximateMessageCount() > 0) {
                     for (CloudQueueMessage message : queue.retrieveMessages(4, 300, null, null)) {
 
-                        String queueMessage = message.getMessageContentAsString();
+                        queueMessage= message.getMessageContentAsString();
 
                         if (queueMessage.contains("|__|")) {
                             String[] arr = queueMessage.split("\\|__\\|");
@@ -126,6 +126,10 @@ public class QueueHelper {
         } catch (Exception e) {
             // Output the stack trace.
             e.printStackTrace();
+            if(!queueMessage.isEmpty()) {
+                System.console().writer().write ("FileName:" + queueMessage);
+            }
+            logger.error(e);
         }
         return true;
     }
@@ -140,7 +144,7 @@ public class QueueHelper {
     public String GetBlobName(String as2Identifier, String fileName) {
 
 
-        String blobName = as2Identifier+File.separator+"outgoing"+File.separator+fileName;
+        String blobName = ConvertToCompatibleAzureName(as2Identifier)+File.separator+"outgoing"+File.separator+fileName;
         return blobName;
     }
    public String GetAS2Identifier(String outDir)
@@ -153,7 +157,11 @@ public class QueueHelper {
     public String GetQueueName(String as2Identifier)
     {
 
-        String queueName = as2Identifier.toLowerCase()+"-"+"out";
+        String queueName = ConvertToCompatibleAzureName(as2Identifier.toLowerCase())+"-"+"out";
         return queueName;
+    }
+    public String ConvertToCompatibleAzureName(String strName)
+    {
+       return  strName.replaceAll("[^a-zA-Z0-9-]" , "-");
     }
 }
