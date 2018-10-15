@@ -19,10 +19,12 @@ public abstract class PollingModule extends MessageBuilderModule {
     {
         super.init(session, options);
         getParameter(PARAM_POLLING_INTERVAL, true);
+
     }
 
     private int getInterval() throws InvalidParameterException
     {
+       //System.out.println("PARAM_POLLING_INTERVAL"+getParameterInt(PARAM_POLLING_INTERVAL, true));
         return getParameterInt(PARAM_POLLING_INTERVAL, true);
     }
 
@@ -30,7 +32,7 @@ public abstract class PollingModule extends MessageBuilderModule {
 
     public void doStart() throws OpenAS2Exception
     {
-        timer = new Timer(getName(), false);
+        timer = new Timer(getName(), true);
         timer.scheduleAtFixedRate(new PollTask(), 0, getInterval() * 1000);
     }
 

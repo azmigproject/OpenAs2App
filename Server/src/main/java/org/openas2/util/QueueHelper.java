@@ -6,7 +6,10 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.joda.time.DateTime;
+import org.openas2.Constants;
 import org.openas2.lib.dbUtils.ServersSettings;
+import org.openas2.lib.dbUtils.partner;
+import org.openas2.partner.Partnership;
 
 
 import java.io.File;
@@ -16,20 +19,21 @@ import java.util.List;
 
 public class QueueHelper {
     private Log logger = LogFactory.getLog("QueueHelper Class Process");
+
+    ////Used in BaseStorageModule
     public boolean AddMsgToQueue(String queueName, String Msg) {
 
+        CloudStorageAccount storageAccount=null;
+        CloudQueueClient queueClient=null;
+        CloudQueue queue=null;
         try {
-            AzureUtil azureUtil = new AzureUtil();
-            azureUtil.init();
-            List<ServersSettings> serverSettings = azureUtil.getServersSettings();
-            ServersSettings serverSetting = serverSettings.get(0);
-            // Retrieve storage account from connection-string.
-            CloudStorageAccount storageAccount =
-                    CloudStorageAccount.parse(serverSetting.getAzureStoragekey());
+
+            storageAccount =
+                    CloudStorageAccount.parse(Constants.STORAGEACCOUNTKEY);
             // Create the queue client.
-            CloudQueueClient queueClient = storageAccount.createCloudQueueClient();
+             queueClient = storageAccount.createCloudQueueClient();
             // Retrieve a reference to a queue.
-            CloudQueue queue = queueClient.getQueueReference(ConvertToCompatibleAzureName(queueName));
+             queue = queueClient.getQueueReference(ConvertToCompatibleAzureName(queueName));
             if(queue.exists()) {
                 // Peek at the next message.
                 CloudQueueMessage message = new CloudQueueMessage(Msg);
@@ -42,58 +46,53 @@ public class QueueHelper {
             e.printStackTrace();
             logger.error(e);
         }
-        return true;
-    }
+        finally {
 
-    public boolean GetMsgFromQueue() {
+            if(storageAccount!=null) storageAccount=null;
+            if(queueClient!=null)queueClient=null;
+            if(queue!=null) queue=null;
 
-        try {
-            AzureUtil azureUtil = new AzureUtil();
-            azureUtil.init();
-            List<ServersSettings> serverSettings = azureUtil.getServersSettings();
-            ServersSettings serverSetting = serverSettings.get(0);
-            // Retrieve storage account from connection-string.
-            CloudStorageAccount storageAccount =
-                    CloudStorageAccount.parse(serverSetting.getAzureStoragekey());
-            // Create the queue client.
-            CloudQueueClient queueClient = storageAccount.createCloudQueueClient();
-            // Retrieve a reference to a queue.
-            CloudQueue queue = queueClient.getQueueReference("myqueue");
-            // Peek at the next message.
-            CloudQueueMessage peekedMessage = queue.retrieveMessage();
-            // Output the message value.
-            if (peekedMessage != null) {
-                String message = peekedMessage.getMessageContentAsString();
-            }
-        } catch (Exception e) {
-            // Output the stack trace.
-            e.printStackTrace();
+
+
+
         }
         return true;
     }
 
-    public boolean GetMsgFromQueue(String outDir) {
+
+    public boolean GetMsgFromQueue(String outDir,int NoOffiledownload) {
+
         String queueMessage="";
+        String as2NewIdentifier="";
+        AzureUtil azureUtil =null;
+        CloudStorageAccount storageAccount=null;
+        CloudQueueClient queueClient=null;
+        CloudQueue queue=null;
         try {
-            AzureUtil azureUtil = new AzureUtil();
-            azureUtil.init();
-            String as2NewIdentifier = this.GetAS2Identifier(outDir);
+            azureUtil = new AzureUtil();
+            as2NewIdentifier = this.GetAS2Identifier(outDir);
             String queueName = this.GetQueueName(as2NewIdentifier);
+            partner Partners=azureUtil.getActivePartnerBasedOnAs2Identifier(as2NewIdentifier);
+            //System.out.println (as2NewIdentifier);
+            if(Partners==null)
+            {
+               Exception e=new Exception("Partner Found Null for"+ as2NewIdentifier+"query:" + "SELECT * FROM PARTNER WHERE LOWER(PARTNER.AS2Identifier)=\""+as2NewIdentifier.toLowerCase()+"\"");
+                logger.error(e);
+            }
+            if( Partners!=null && Partners.getIsActive()) {
 
-            List<ServersSettings> serverSettings = azureUtil.getServersSettings();
-            ServersSettings serverSetting = serverSettings.get(0);
-            // Retrieve storage account from connection-string.
-            CloudStorageAccount storageAccount = CloudStorageAccount.parse(serverSetting.getAzureStoragekey());
-            // Create the queue client.
-            CloudQueueClient queueClient = storageAccount.createCloudQueueClient();
-            // Retrieve a reference to a queue.
-            CloudQueue queue = queueClient.getQueueReference(queueName);
-            if(queue.exists()) {
-                queue.downloadAttributes();
-                if (queue.getApproximateMessageCount() > 0) {
-                    for (CloudQueueMessage message : queue.retrieveMessages(4, 300, null, null)) {
+                //// Retrieve storage account from connection-string.
+                storageAccount = CloudStorageAccount.parse(Constants.STORAGEACCOUNTKEY);
+                //storageAccount = CloudStorageAccount.parse("DefaultEndpointsProtocol=https;AccountName=gcommas2;AccountKey=ClsrqmybITBi4/SB4bu81cFzNsJ61N1wCcLViv24AuxmUBmx1QYaQjjNbgkIhdDIF1tnjT8THfYPYdkQld42dA==;EndpointSuffix=core.windows.net");
+                // Create the queue client.
+                queueClient = storageAccount.createCloudQueueClient();
+                // Retrieve a reference to a queue.
+                queue = queueClient.getQueueReference(queueName);
+                if (queue.exists()) {
+                      int queueCounter=0;
+                    for (CloudQueueMessage message : queue.retrieveMessages(NoOffiledownload, 600, null, null)) {
 
-                        queueMessage= message.getMessageContentAsString();
+                        queueMessage = message.getMessageContentAsString();
 
                         if (queueMessage.contains("|__|")) {
                             String[] arr = queueMessage.split("\\|__\\|");
@@ -103,21 +102,25 @@ public class QueueHelper {
                             writer.write(arr[1]);
                             writer.flush();
                             writer.close();
-                        }
-                        if (queueMessage.contains("|_B_|")) {
+                        } else { //if (queueMessage.contains("|_B_|"))
                             String[] arr = queueMessage.split("\\|_B_\\|");
                             //BlobHelper blob = new BlobHelper();
                             String blobName = GetBlobName(as2NewIdentifier, arr[0]);
                             BlobHelper blob = new BlobHelper();
-                            //blob.UploadFileInBlob(serverSetting.getBlobContainerName(),"as10/outgoing/ship.xml","D:\\Sandeep_Work_2018\\data\\ServerFolder\\ship.xml");
+                            ////blob.UploadFileInBlob(serverSetting.getBlobContainerName(),"as10/outgoing/ship.xml","D:\\Sandeep_Work_2018\\data\\ServerFolder\\ship.xml");
 
-                            blob.DownloadBlobInFile(serverSetting.getBlobContainerName(), blobName, outDir, GetOriginalFileName(arr[0]));
+                            if(blob.DownloadBlobInFile(Constants.BLOBCONTAINER, blobName, outDir, GetOriginalFileName(arr[0])))
+                            {
+                                blob.DeleteBlob(Constants.BLOBCONTAINER, blobName);
+                            }
                         }
 
                         // Do processing for all messages in less than 5 minutes,
                         // deleting each message after processing.
                         queue.deleteMessage(message);
+                        ++queueCounter;
                     }
+                   // System.out.println( queueCounter+ " Queue mesage processed" );
                 }
                 // Peek at the next message.
             }
@@ -125,12 +128,26 @@ public class QueueHelper {
 
         } catch (Exception e) {
             // Output the stack trace.
+            System.out.println( "Error occured"+ e.getMessage() );
             e.printStackTrace();
             if(!queueMessage.isEmpty()) {
                 System.console().writer().write ("FileName:" + queueMessage);
             }
             logger.error(e);
         }
+        finally {
+            if(storageAccount!=null) storageAccount=null;
+            if(queueClient!=null)queueClient=null;
+            if(queue!=null) queue=null;
+            if(azureUtil!=null)
+            {
+                azureUtil.freeResources();
+                azureUtil=null;
+
+            }
+
+        }
+
         return true;
     }
 
@@ -144,7 +161,7 @@ public class QueueHelper {
     public String GetBlobName(String as2Identifier, String fileName) {
 
 
-        String blobName = ConvertToCompatibleAzureName(as2Identifier)+File.separator+"outgoing"+File.separator+fileName;
+        String blobName = ConvertToCompatibleAzureName(as2Identifier.toLowerCase())+"/outgoing/"+fileName;
         return blobName;
     }
    public String GetAS2Identifier(String outDir)

@@ -1,22 +1,23 @@
 package org.openas2.processor.receiver;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openas2.OpenAS2Exception;
 import org.openas2.Session;
 import org.openas2.message.Message;
 import org.openas2.params.InvalidParameterException;
+import org.openas2.util.DateUtil;
 import org.openas2.util.IOUtilOld;
 import org.openas2.util.QueueHelper;
+import org.openas2.Constants;
+import sun.util.calendar.BaseCalendar;
 
 public abstract class DirectoryPollingModule extends PollingModule
 {
@@ -71,16 +72,29 @@ public abstract class DirectoryPollingModule extends PollingModule
 	{
 		try
 		{
+
 			// update tracking info. if a file is ready, process it
+			//System.out.println("Directry polled at"+(new Date()).toString());
 
 			updateTracking();
 
+		/*	Thread thread = new Thread(){
+				public void run(){
+
+					updateTracking();
+				}
+			};
+
+			thread.start();*/
+
 			// scan the directory for new files
 			scanDirectory(outboxDir);
-		} catch (OpenAS2Exception oae)
+		}
+		/*catch (OpenAS2Exception oae)
 		{
 			oae.terminate();
-		} catch (Exception e)
+		}*/
+		catch (Exception e)
 		{
 			logger.error("Unexpected error occurred polling directory for files to send: " + outboxDir, e);
 		}
@@ -93,7 +107,11 @@ public abstract class DirectoryPollingModule extends PollingModule
 
 		String extensionFilter = getParameter(PARAM_FILE_EXTENSION_FILTER, "");
 		QueueHelper queueHelper = new QueueHelper();
-		queueHelper.GetMsgFromQueue(directory);
+		if(dir.listFiles().length < Constants.DOWNLLOADFILETHRESHOLD) {
+            int noOfFilesAllowedToDownload = Math.min(Math.abs(Constants.DOWNLLOADFILETHRESHOLD - dir.listFiles().length ), 32);
+            queueHelper.GetMsgFromQueue(directory, noOfFilesAllowedToDownload);
+        }
+
 		// get a list of entries in the directory
 		File[] files = extensionFilter.length() > 0 ? IOUtilOld.getFiles(dir, extensionFilter) : dir.listFiles();
 		if (files == null)
@@ -163,11 +181,19 @@ public abstract class DirectoryPollingModule extends PollingModule
 		// clone the trackedFiles map, iterator through the clone and modify the
 		// original to avoid iterator exceptions
 		// is there a better way to do this?
-		Map<String, Long> trackedFiles = getTrackedFiles();
+		final Map<String, Long> trackedFiles = getTrackedFiles();
 		Map<String, Long> trackedFilesClone = new HashMap<String, Long>(trackedFiles);
-
-        for (Map.Entry<String, Long> fileEntry : trackedFilesClone.entrySet())
+		for (final Map.Entry<String, Long> fileEntry : trackedFilesClone.entrySet())
         {
+			/*Thread thread = new Thread(){
+				public void run(){
+                    System.out.println("processFileInthread"+fileEntry.getKey());
+					processFileInthread(fileEntry, trackedFiles);
+				}
+			};
+			thread.start();*/
+
+
             // get the file and it's stored length
             File file = new File(fileEntry.getKey());
             long fileLength = fileEntry.getValue().longValue();
@@ -189,8 +215,9 @@ public abstract class DirectoryPollingModule extends PollingModule
 					// and stop tracking it
                     try
                     {
-                        processFile(file);
-                    } catch (OpenAS2Exception e)
+                    	processFile(file);
+                    }
+                    catch (OpenAS2Exception e)
                     {
                         e.terminate();
                         try
@@ -208,7 +235,57 @@ public abstract class DirectoryPollingModule extends PollingModule
 					}
 				}
 			}
+
 		}
+
+	}
+
+
+	protected void processFileInthread(Map.Entry<String, Long> fileEntry, Map<String, Long> trackedFiles)
+	{
+		File file = new File(fileEntry.getKey());
+		long fileLength = fileEntry.getValue().longValue();
+
+		// if the file no longer exists, remove it from the tracker
+		if (!checkFile(file))
+		{
+			trackedFiles.remove(fileEntry.getKey());
+		} else
+		{
+			// if the file length has changed, update the tracker
+			long newLength = file.length();
+			if (newLength != fileLength)
+			{
+				trackedFiles.put(fileEntry.getKey(), new Long(newLength));
+			} else
+			{
+				// if the file length has stayed the same, process the file
+				// and stop tracking it
+				try
+				{
+					 processFile(file);
+
+				}
+				catch (OpenAS2Exception e)
+				{
+					System.out.println(e.getMessage());
+				    e.terminate();
+					try
+					{
+						IOUtilOld.handleError(file, errorDir);
+					} catch (OpenAS2Exception e1)
+					{
+						logger.error("Error handling file error for file: " + file.getAbsolutePath(), e1);
+						forceStop(e1);
+						return;
+					}
+				} finally
+				{
+					trackedFiles.remove(fileEntry.getKey());
+				}
+			}
+		}
+
 	}
 
 	protected void processFile(File file) throws OpenAS2Exception
@@ -232,6 +309,22 @@ public abstract class DirectoryPollingModule extends PollingModule
 			throw new OpenAS2Exception("Failed to process file:" + file.getAbsolutePath(), e);
 		}
 	}
+
+    protected void processFile(InputStream fileStream, String fileName ) throws OpenAS2Exception
+    {
+
+        if (logger.isInfoEnabled())
+            logger.info("processing " + fileName);
+
+        try
+        {
+            processDocument(fileStream, fileName);
+
+        } catch (FileNotFoundException e)
+        {
+            throw new OpenAS2Exception("Failed to process file:" + fileName, e);
+        }
+    }
 
 	protected abstract Message createMessage();
 

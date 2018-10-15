@@ -6,6 +6,7 @@ import com.microsoft.azure.storage.*;
 import com.microsoft.azure.storage.table.*;
 import com.microsoft.azure.documentdb.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.json.JSONObject;
 import org.json.JSONArray;
@@ -14,6 +15,8 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+
+
 import org.openas2.XMLSession;
 
 public class AzureUtil {
@@ -32,7 +35,6 @@ public class AzureUtil {
     public String STORAGE_CONNECTION_STRING = "UseDevelopmentStorage=true";
     private CloudTableClient tableClient;
     private DocumentClient documentClient;
-    private Gson gson=null;
     private JSONObject configInfo=null;
     private  String CosmosDBAPI=Constants.APIURL;
 
@@ -44,7 +46,38 @@ public class AzureUtil {
         CosmosDBAPI=Constants.APIURL;
        getNptyAS2DB(CosmosDBAPI);
         getLogDB();
-        gson=new Gson();
+
+    }
+
+    public void freeResources()
+    {
+        //ToDO Call API to ACCESS  THE Azure Info
+      if(documentClient!=null) {
+          documentClient.close();
+          documentClient = null;
+      }
+       if(tableClient!=null){   tableClient = null;}
+
+
+    }
+
+
+    public void init(boolean loadFromSavedValue) throws Exception
+    {
+        //ToDO Call API to ACCESS  THE Azure Info
+        CosmosDBAPI=Constants.APIURL;
+        if(loadFromSavedValue)
+
+        {
+            getNptyAS2DB(Constants.APIDataInJASON  );
+        }
+        else
+
+        {
+            getNptyAS2DB(CosmosDBAPI);
+        }
+        getLogDB();
+        //gson=new Gson();
     }
 
     public org.openas2.lib.dbUtils.Properties getProperties() {
@@ -217,7 +250,9 @@ public class AzureUtil {
             ServersSettings  serverSetting= new ServersSettings();
             serverSetting.setAllowHealthCheck(objJSON.getBoolean("AllowHealthCheck"));
             serverSetting.setAzureStoragekey(objJSON.getString("AzureStorageKey"));
+            Constants.STORAGEACCOUNTKEY=serverSetting.getAzureStoragekey();
             serverSetting.setBlobContainerName(objJSON.getString("BlobContainerName"));
+            Constants.BLOBCONTAINER=serverSetting.getBlobContainerName();
             serverSetting.setMaxFileSize(objJSON.getInt("MaxFileSize_Queue"));
             serverSetting.setLogInEmail(objJSON.getBoolean("LogInEmail"));
             serverSetting.setLogEmailID(objJSON.getString("LogEmailID"));
@@ -309,52 +344,93 @@ public class AzureUtil {
                 "SELECT * FROM "+ PARTNER_TABLE_NAME, queryOptions);
         for (Document doc : queryResults.getQueryIterable()) {
 
-            JSONObject objJSON=new JSONObject(doc.toJson());
-            partner partnerInfp=new partner();
-            partnerInfp.setPublicCertificate(objJSON.getString("PublicCertificate"));
-            partnerInfp.setPartnerUrl(objJSON.getString("PartnerUrl"));
-            partnerInfp.setAS2Identifier(objJSON.getString("AS2Identifier"));
-            partnerInfp.setEmailAddress(objJSON.getString("EmailAddress"));
-            partnerInfp.setPartnerName(objJSON.getString("PartnerName"));
-            //partnerInfp.setBlobFoldername(objJSON.getString("BlobFoldername"));
-            partnerInfp.setConnectionTimeOutInSec(objJSON.getInt("ConnectionTimeOutInSec"));
-            partnerInfp.setEnableAutomation(objJSON.getBoolean("EnableAutomation"));
-            //partnerInfp.setCreatedBy(objJSON.getString("CreatedBy"));
-            //partnerInfp.setCreatedOn(objJSON.getString("CreatedOn"));
-            partnerInfp.setEncryptionAlgorithm(objJSON.getString("EncryptionAlgorithm"));
-            partnerInfp.setSignatureAlgorithm(objJSON.getString("SignatureAlgorithm"));
-            partnerInfp.setIncomingMessageRequireEncryption(objJSON.getBoolean("IncomingMessageRequireEncryption"));
-            partnerInfp.setIncomingMessageRequireSignature(objJSON.getBoolean("IncomingMessageRequireSignature"));
-            partnerInfp.setSignOutgoingMessage(objJSON.getBoolean("SignOutgoingMessage"));
-            partnerInfp.setIncomingQueue(objJSON.getString("IncomingQueue"));
-            partnerInfp.setOutgoingQueue(objJSON.getString("OutgoingQueue"));
-            partnerInfp.setSentQueue(objJSON.getString("SentQueue"));
-            partnerInfp.setInErrorQueue(objJSON.getString("IncomingErrorQueue"));
-            //partnerInfp.setOutErrorQueue(objJSON.getString("OutgoingErrorQueue"));
-            partnerInfp.setIsFolderCreated(objJSON.getBoolean("IsFolderCreated"));
-            partnerInfp.setIsMDNRequested(objJSON.getBoolean("IsMDNRequested"));
-            partnerInfp.setISMDNSigned(objJSON.getBoolean("ISMDNSigned"));
-            partnerInfp.setISMDNSigned(objJSON.getBoolean("IsSyncronous"));
-            partnerInfp.setMaxAttempts(objJSON.getInt("MaxAttempts"));
-            partnerInfp.setResendInterval(objJSON.getInt("ResendInterval"));
-            partnerInfp.setRetryInterval(objJSON.getInt("RetryInterval"));
-            partnerInfp.setIsMessageCompressed(objJSON.getBoolean("ISMessageCompressed"));
-            partnerInfp.setSendFileNameInContentType(objJSON.getBoolean("SendFileNameInContentType"));
-            partnerInfp.setOnPremIncomingDirName(objJSON.getString("OnPremIncomingDirName"));
-            partnerInfp.setOnPremOutgoingDirName(objJSON.getString("OnPremOutgoingDirName"));
-            partnerInfp.setOnPremSentDirName(objJSON.getString("OnPremSentDirName"));
-            partnerInfp.setOnPremErrDirName(objJSON.getString("OnPremErrDirName"));
-            partnerInfp.SetSSLEnabledProtocolsSSLv2(objJSON.getBoolean("SSLEnabledProtocolsSSLv2"));
-            partnerInfp.SetSSLEnabledProtocolsSSLv3(objJSON.getBoolean("SSLEnabledProtocolsSSLv3"));
-            partnerInfp.SetSSLEnabledProtocolsTLSv1(objJSON.getBoolean("SSLEnabledProtocolsTLSv1"));
-            partnerInfp.SetSSLEnabledProtocolsTLSv11(objJSON.getBoolean("SSLEnabledProtocolsTLSv11"));
-            partnerInfp.SetSSLEnabledProtocolsTLSv12(objJSON.getBoolean("SSLEnabledProtocolsTLSv12"));
+            partner partnerInfp=GetPartnerFromDocument(doc);
 
 
             partnerlist.add(partnerInfp);
         }
+        Constants.CURRENTPARTNERLIST=partnerlist;
         return partnerlist;
     }
+
+
+    public partner getActivePartnerBasedOnAs2Identifier(String strAs2Identifier) {
+        // Set some common query options
+
+        partner partnerInfp=null;
+
+        for(partner d : Constants.CURRENTPARTNERLIST){
+            if(d.getAS2Identifier().toLowerCase().trim().equalsIgnoreCase(strAs2Identifier.toLowerCase().trim()))
+            {
+                partnerInfp=d;
+                break;
+            }
+            else {
+                //System.out.println ("No Partner matched" + strAs2Identifier.toLowerCase().trim()+" "+ d.getAS2Identifier().toLowerCase().trim()+"="+ Constants.CURRENTPARTNERLIST.size()  );
+
+            }
+            //something here
+        }
+
+        if(partnerInfp==null)
+        {
+            System.out.println ("No Partner Found" + strAs2Identifier+ Constants.CURRENTPARTNERLIST.size()  );
+        }
+        return partnerInfp;
+    }
+
+private partner GetPartnerFromDocument(Document doc)
+{
+    JSONObject objJSON=new JSONObject(doc.toJson());
+    partner partnerInfp=new partner();
+    if(objJSON.has("IsActive")) {
+        partnerInfp.setIsActive(objJSON.getBoolean("IsActive"));
+    }
+    else
+    {
+        partnerInfp.setIsActive(false);
+    }
+    partnerInfp.setPublicCertificate(objJSON.getString("PublicCertificate"));
+    partnerInfp.setPartnerUrl(objJSON.getString("PartnerUrl"));
+    partnerInfp.setAS2Identifier(objJSON.getString("AS2Identifier"));
+    partnerInfp.setEmailAddress(objJSON.getString("EmailAddress"));
+    partnerInfp.setPartnerName(objJSON.getString("PartnerName"));
+    //partnerInfp.setBlobFoldername(objJSON.getString("BlobFoldername"));
+    partnerInfp.setConnectionTimeOutInSec(objJSON.getInt("ConnectionTimeOutInSec"));
+    partnerInfp.setEnableAutomation(objJSON.getBoolean("EnableAutomation"));
+    //partnerInfp.setCreatedBy(objJSON.getString("CreatedBy"));
+    //partnerInfp.setCreatedOn(objJSON.getString("CreatedOn"));
+    partnerInfp.setEncryptionAlgorithm(objJSON.getString("EncryptionAlgorithm"));
+    partnerInfp.setSignatureAlgorithm(objJSON.getString("SignatureAlgorithm"));
+    partnerInfp.setIncomingMessageRequireEncryption(objJSON.getBoolean("IncomingMessageRequireEncryption"));
+    partnerInfp.setIncomingMessageRequireSignature(objJSON.getBoolean("IncomingMessageRequireSignature"));
+    partnerInfp.setSignOutgoingMessage(objJSON.getBoolean("SignOutgoingMessage"));
+    partnerInfp.setIncomingQueue(objJSON.getString("IncomingQueue"));
+    partnerInfp.setOutgoingQueue(objJSON.getString("OutgoingQueue"));
+    partnerInfp.setSentQueue(objJSON.getString("SentQueue"));
+    partnerInfp.setInErrorQueue(objJSON.getString("IncomingErrorQueue"));
+    //partnerInfp.setOutErrorQueue(objJSON.getString("OutgoingErrorQueue"));
+    partnerInfp.setIsFolderCreated(objJSON.getBoolean("IsFolderCreated"));
+    partnerInfp.setIsMDNRequested(objJSON.getBoolean("IsMDNRequested"));
+    partnerInfp.setISMDNSigned(objJSON.getBoolean("ISMDNSigned"));
+    partnerInfp.setISMDNSigned(objJSON.getBoolean("IsSyncronous"));
+    partnerInfp.setMaxAttempts(objJSON.getInt("MaxAttempts"));
+    partnerInfp.setResendInterval(objJSON.getInt("ResendInterval"));
+    partnerInfp.setRetryInterval(objJSON.getInt("RetryInterval"));
+    partnerInfp.setIsMessageCompressed(objJSON.getBoolean("ISMessageCompressed"));
+    partnerInfp.setSendFileNameInContentType(objJSON.getBoolean("SendFileNameInContentType"));
+    partnerInfp.setOnPremIncomingDirName(objJSON.getString("OnPremIncomingDirName"));
+    partnerInfp.setOnPremOutgoingDirName(objJSON.getString("OnPremOutgoingDirName"));
+    partnerInfp.setOnPremSentDirName(objJSON.getString("OnPremSentDirName"));
+    partnerInfp.setOnPremErrDirName(objJSON.getString("OnPremErrDirName"));
+    partnerInfp.SetSSLEnabledProtocolsSSLv2(objJSON.getBoolean("SSLEnabledProtocolsSSLv2"));
+    partnerInfp.SetSSLEnabledProtocolsSSLv3(objJSON.getBoolean("SSLEnabledProtocolsSSLv3"));
+    partnerInfp.SetSSLEnabledProtocolsTLSv1(objJSON.getBoolean("SSLEnabledProtocolsTLSv1"));
+    partnerInfp.SetSSLEnabledProtocolsTLSv11(objJSON.getBoolean("SSLEnabledProtocolsTLSv11"));
+    partnerInfp.SetSSLEnabledProtocolsTLSv12(objJSON.getBoolean("SSLEnabledProtocolsTLSv12"));
+    return partnerInfp;
+
+}
 
     public Profile getProfile() {
         // Set some common query options
@@ -374,10 +450,13 @@ public class AzureUtil {
             profile.setEemailAddress(objJSON.getString("EmailAddress"));
             profile.setAsynchronousMDNURL(objJSON.getString("AsynchronousMDNURL"));
             profile.setPrivateCertificate(objJSON.getString("PrivateCertificate"));
+
             profile.setPublicCertificate(objJSON.getString("PublicCertificate"));
             profile.setCertificatePassword(objJSON.getString("CertificatePassword"));
             profileInfo.add(profile);
         }
+        //System.out.println("PublicCertificate"+profileInfo.get(0).getPublicCertificate());
+        //System.out.println("PrivateCertificate"+profileInfo.get(0).getPrivateCertificate());
         return profileInfo.get(0);
 
     }
@@ -399,6 +478,13 @@ public class AzureUtil {
 
         String dbInfo=getCosMOSDBINFO(strURL);
         JSONArray jsonArray=  new JSONArray(dbInfo);
+        Constants.APIDataInJASON=jsonArray;
+        getNptyAS2DB(Constants.APIDataInJASON);
+    }
+
+    private  void getNptyAS2DB(JSONArray jsonArray) throws Exception {
+
+
         configInfo=jsonArray.getJSONObject(0);
         COSMOS_DB_NAME=configInfo.getString("CosmosDB");
         COMMANDS_TABLE_NAME=configInfo.getString("Commands");
@@ -413,10 +499,10 @@ public class AzureUtil {
         PROCESSOR_TABLE_NAME=configInfo.getString("Processor");
         PROPERTIES_TABLE_NAME=configInfo.getString("Properties");
         LOG_TABLE_NAME=configInfo.getString("LogTableName");
-            this.documentClient = new DocumentClient(configInfo.getString("CosmosDbEndPoint"),
-                    configInfo.getString("CosmoDbKey"),
-                    new ConnectionPolicy(),
-                   ConsistencyLevel.Session);
+        this.documentClient = new DocumentClient(configInfo.getString("CosmosDbEndPoint"),
+                configInfo.getString("CosmoDbKey"),
+                new ConnectionPolicy(),
+                ConsistencyLevel.Session);
         STORAGE_CONNECTION_STRING=getAzureStorageKey();
     }
 

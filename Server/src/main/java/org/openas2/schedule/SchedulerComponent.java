@@ -45,7 +45,7 @@ public class SchedulerComponent extends BaseComponent {
 
     public void setReloadSession(Runnable runnable)
     {
-        this.executorService.scheduleAtFixedRate(runnable,100, 100, TimeUnit.SECONDS);
+        this.executorService.scheduleAtFixedRate(runnable,300, 300, TimeUnit.SECONDS);
     }
     private void scheduleComponentsTasks(Session session) throws OpenAS2Exception
     {

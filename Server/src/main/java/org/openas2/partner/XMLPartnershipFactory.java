@@ -118,7 +118,9 @@ public class XMLPartnershipFactory extends BasePartnershipFactory{
             companyPartner.setEmailAddress(_companyProfile.getEmailAddress());
             companyPartner.setPartnerName(Profile.PROFILENAME);
             companyPartner.setAS2Identifier(_companyProfile.getAS2Idenitfier());
-            companyPartner.setPublicCertificate(_companyProfile.getPublicCertificate());
+            //companyPartner.setPublicCertificate(_companyProfile.getPublicCertificate());
+            companyPartner.setPublicCertificate(_companyProfile.getPrivateCertificate());
+
             loadPartner(newPartners, companyPartner);
 
             Map<String ,String> PartnerToServer=new HashMap<String, String>();

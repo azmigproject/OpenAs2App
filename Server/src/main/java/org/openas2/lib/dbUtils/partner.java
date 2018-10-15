@@ -276,8 +276,16 @@ public class partner {
         this._sslEnabledProtocolsTLSv12 = sslEnabledProtocolsTLSv12;
     }
 
+    public boolean getIsActive() {
+        return _isActive;
+    }
+    public void setIsActive(boolean isActive) {
+        this._isActive = isActive;
+    }
+
 
     //private String _outErrorQueue;
+    private boolean _isActive;
     private DateTime _createdOn;
     private DateTime _updatedOn;
     private String _updatedBy;
