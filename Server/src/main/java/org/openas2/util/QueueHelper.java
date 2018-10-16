@@ -83,7 +83,7 @@ public class QueueHelper {
 
                 //// Retrieve storage account from connection-string.
                 storageAccount = CloudStorageAccount.parse(Constants.STORAGEACCOUNTKEY);
-                //storageAccount = CloudStorageAccount.parse("DefaultEndpointsProtocol=https;AccountName=gcommas2;AccountKey=ClsrqmybITBi4/SB4bu81cFzNsJ61N1wCcLViv24AuxmUBmx1QYaQjjNbgkIhdDIF1tnjT8THfYPYdkQld42dA==;EndpointSuffix=core.windows.net");
+                
                 // Create the queue client.
                 queueClient = storageAccount.createCloudQueueClient();
                 // Retrieve a reference to a queue.
