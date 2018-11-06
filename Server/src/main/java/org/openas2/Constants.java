@@ -13,5 +13,6 @@ public class Constants {
     public static  String BLOBCONTAINER="";
     public static List<partner> CURRENTPARTNERLIST=new ArrayList<partner>();
     public  static JSONArray APIDataInJASON=null;
-    public static  int DOWNLLOADFILETHRESHOLD=128;
+    public static String LastUpdateTimeStamp="";
+    public static  int DOWNLLOADFILETHRESHOLD=100;
 }

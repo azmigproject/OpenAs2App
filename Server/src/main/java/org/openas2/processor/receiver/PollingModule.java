@@ -15,6 +15,7 @@ public abstract class PollingModule extends MessageBuilderModule {
     private Timer timer;
     private boolean busy;
 
+
     public void init(Session session, Map<String, String> options) throws OpenAS2Exception
     {
         super.init(session, options);
@@ -30,14 +31,19 @@ public abstract class PollingModule extends MessageBuilderModule {
 
     public abstract void poll();
 
+
     public void doStart() throws OpenAS2Exception
     {
-        timer = new Timer(getName(), true);
-        timer.scheduleAtFixedRate(new PollTask(), 0, getInterval() * 1000);
+        timer = new Timer(getName(), false);
+
+        //timer.scheduleAtFixedRate(new PollTask(), 0, getInterval() * 1000);
+        timer.scheduleAtFixedRate(new PollTask(), 0, 1000);
+
     }
 
     public void doStop() throws OpenAS2Exception
     {
+
         if (timer != null)
         {
             timer.cancel();
@@ -63,11 +69,14 @@ public abstract class PollingModule extends MessageBuilderModule {
                 setBusy(true);
                 poll();
                 setBusy(false);
+
             } else
             {
                 System.out.println("Miss tick");
             }
         }
     }
+
+
 
 }

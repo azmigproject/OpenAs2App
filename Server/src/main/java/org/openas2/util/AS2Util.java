@@ -823,6 +823,7 @@ public class AS2Util {
 			if (isError)
 			{
 				tgtDir = msg.getAttribute(FileAttribute.MA_ERROR_DIR);
+
 			}
 			else
 			{
@@ -835,7 +836,22 @@ public class AS2Util {
 
 				try
 				{
-					tgtFile = new File(tgtDir + "/" + fPendingFile.getName());
+					if (isError) {
+						if( msg.getAttribute(FileAttribute.MA_FILENAME)!=null && msg.getAttribute(FileAttribute.MA_FILENAME).length()>0) {
+							tgtFile = new File(tgtDir + "/" +  msg.getAttribute(FileAttribute.MA_FILENAME));
+						}
+						else if(msg.getPayloadFilename()!=null && msg.getPayloadFilename().length()>0) {
+							tgtFile = new File(tgtDir + "/" + msg.getPayloadFilename());
+						}
+						else
+						{
+							tgtFile = new File(tgtDir + "/" + fPendingFile.getName());
+						}
+					}
+					else
+					{
+						tgtFile = new File(tgtDir + "/" + fPendingFile.getName());
+					}
 					tgtFile = IOUtilOld.moveFile(fPendingFile, tgtFile, false, true);
 					isMoved = true;
 

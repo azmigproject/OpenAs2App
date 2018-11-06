@@ -89,4 +89,7 @@ public interface Session {
 
     String getAppTitle();
 
+    int getMaxDirectoryPoolingThread();
+    int getMaxQueuePoolingThread();
+
 }

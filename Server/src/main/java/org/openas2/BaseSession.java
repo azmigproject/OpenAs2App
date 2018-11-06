@@ -14,6 +14,9 @@ import org.openas2.processor.Processor;
 public abstract class BaseSession implements Session {
     private Map<String, Component> components = new HashMap<String, Component>();
     private String baseDirectory;
+    private  int MaxDirectoryThreadPool;
+    private  int MaxQueueThreadPool;
+
 
     /**
      * Creates a <code>BaseSession</code> object, then calls the <code>init()</code> method.
@@ -120,6 +123,26 @@ public abstract class BaseSession implements Session {
     void setBaseDirectory(String dir)
     {
         baseDirectory = dir;
+    }
+
+    public int getMaxDirectoryPoolingThread()
+    {
+        return MaxDirectoryThreadPool;
+    }
+
+    void setMaxDirectoryThreadPool(int threadPool)
+    {
+        MaxDirectoryThreadPool = threadPool;
+    }
+
+    public int getMaxQueuePoolingThread()
+    {
+        return MaxQueueThreadPool;
+    }
+
+    void setMaxQueueThreadPool(int threadPool)
+    {
+        MaxQueueThreadPool = threadPool;
     }
 
 }

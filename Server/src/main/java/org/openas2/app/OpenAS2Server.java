@@ -5,6 +5,7 @@ import java.io.File;
 import javax.annotation.Nonnull;
 import javax.crypto.Cipher;
 
+import javafx.util.converter.IntegerStringConverter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openas2.OpenAS2Exception;
@@ -34,10 +35,13 @@ public class OpenAS2Server {
 
     public static void main(String[] args) throws Exception
     {
- 
+        //String[] argtmp=new String[1];
+        //argtmp[0]="http://localhost:64418/api/partnerapi";
         new OpenAS2Server.Builder()
                 .registerShutdownHook()
                 .run(args);
+                //.run(argtmp);
+
     }
 
     private void start() throws Exception
@@ -84,7 +88,7 @@ public class OpenAS2Server {
             return cfg;
         }
 
-        public OpenAS2Server run(String... args) throws Exception
+        public OpenAS2Server run(String[] args) throws Exception
         {
             // an error if the JCE is limited
             if (Cipher.getMaxAllowedKeyLength(ICryptoHelper.DIGEST_MD5) <= ICryptoHelper.JCE_LIMITED_MAX_LENGTH) {
@@ -93,7 +97,8 @@ public class OpenAS2Server {
             }
 
             //XMLSession session = new XMLSession(findConfig(args).getAbsolutePath());
-            XMLSession session = new XMLSession(args[0]);
+
+            XMLSession session = new XMLSession(args[0],Integer.parseInt(args[1]),Integer.parseInt(args[2]));
             final OpenAS2Server server = new OpenAS2Server(session);
 
             registerShutdownHookIfNeeded(server);

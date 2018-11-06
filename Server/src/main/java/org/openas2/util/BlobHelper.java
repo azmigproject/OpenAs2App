@@ -14,7 +14,7 @@ public class BlobHelper {
 
 
     public boolean UploadFileInBlob(String blobContainer,String blobName, byte[] byteContent) throws Exception {
-        final String storageConnectionString = "DefaultEndpointsProtocol=http;" + "AccountName=your_storage_account;" + "AccountKey=your_storage_account_key";
+
 
         try {
 
@@ -62,6 +62,7 @@ public class BlobHelper {
             String fileDownloadPath = filePath + File.separator + fileName;
             blockBlob.downloadToFile(fileDownloadPath);
             File fl=new File(fileDownloadPath);
+            org.h2.store.fs.FileUtils.move(fileDownloadPath,fileDownloadPath+".downloaded");
             if(fl.exists() && fl.length()>0) {
 
                 blockBlob.deleteIfExists();
@@ -80,7 +81,6 @@ public class BlobHelper {
     }
 
     public boolean DeleteBlob(String blobContainer,String blobName) throws Exception {
-        //final String storageConnectionString = "DefaultEndpointsProtocol=http;" + "AccountName=your_storage_account;" + "AccountKey=your_storage_account_key";
 
         try {
 
@@ -110,7 +110,7 @@ public class BlobHelper {
     }
 
     public OutputStream DownloadBlobOutStream(String blobContainer, String blobName, String filePath, String fileName) throws Exception {
-        //final String storageConnectionString = "DefaultEndpointsProtocol=http;" + "AccountName=your_storage_account;" + "AccountKey=your_storage_account_key";
+
         OutputStream outStream=null;
         try {
 

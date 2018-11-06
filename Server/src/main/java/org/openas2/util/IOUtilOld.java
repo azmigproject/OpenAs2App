@@ -108,7 +108,7 @@ public class IOUtilOld {
         {
             File errorDir = IOUtilOld.getDirectoryFile(errorDirectory);
 
-            destFile = new File(errorDir, file.getName());
+            destFile = new File(errorDir, file.getName().replace(".downloaded","").replace( ".processing",""));
 
             // move the file
             destFile = IOUtilOld.moveFile(file, destFile, false, true);

@@ -5,27 +5,28 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
-import  java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
+import javafx.util.converter.IntegerStringConverter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormatter;
 import org.openas2.app.OpenAS2Server;
 import org.openas2.cert.CertificateFactory;
 import org.openas2.cmd.CommandManager;
 import org.openas2.cmd.CommandRegistry;
 import org.openas2.cmd.processor.BaseCommandProcessor;
+import org.openas2.lib.dbUtils.Properties;
 import org.openas2.logging.DbLogger;
 import org.openas2.logging.LogManager;
 import org.openas2.logging.Logger;
@@ -34,7 +35,6 @@ import org.openas2.partner.XMLPartnershipFactory;
 import org.openas2.processor.Processor;
 import org.openas2.processor.ProcessorModule;
 import org.openas2.schedule.SchedulerComponent;
-import org.openas2.util.Properties;
 import org.openas2.util.XMLUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -63,7 +63,6 @@ public class XMLSession extends BaseSession {
 	private static final String EL_AZURE = "azdetails";
     private CommandRegistry commandRegistry;
     private CommandManager cmdManager = new CommandManager();
-
     private String VERSION;
     private String TITLE;
     private  AzureUtil azureUtil;
@@ -72,12 +71,14 @@ public class XMLSession extends BaseSession {
     private org.openas2.lib.dbUtils.Properties prop;
 
 
-    public XMLSession(String apiURL) throws OpenAS2Exception, IOException,Exception
+    public XMLSession(String apiURL,int MaxPoolingThread,int MaxQueuePoolThread) throws OpenAS2Exception, IOException,Exception
     {
        try {
 
 
            Constants.APIURL = apiURL;
+           setMaxDirectoryThreadPool(MaxPoolingThread);
+           setMaxQueueThreadPool(MaxQueuePoolThread);
            azureUtil = new AzureUtil();
            azureUtil.init();
            load(azureUtil);
@@ -88,6 +89,7 @@ public class XMLSession extends BaseSession {
                  }
        catch (Exception e)
        {
+           System.out.println(e.getMessage());
            LOGGER.error(e);
            throw  e;
        }
@@ -106,6 +108,7 @@ public class XMLSession extends BaseSession {
         return this.APIURL;
     }
 
+
     public Runnable reloadConfig()
     {
         return new Runnable() {
@@ -115,9 +118,15 @@ public class XMLSession extends BaseSession {
 
                     azureUtil = new AzureUtil();
                     azureUtil.init(true);
-                    loadReqData(azureUtil);
+                    String tempLastUpdatedDateTime=azureUtil.getLastUpdatedTimeStamp();
+                    if(!DateTime.parse(tempLastUpdatedDateTime).isEqual(DateTime.parse(Constants.LastUpdateTimeStamp).toInstant()))
+                    {
+                        loadReqData(azureUtil);
+                        Constants.LastUpdateTimeStamp=tempLastUpdatedDateTime;
+                    }
                     //LOGGER.error("Method has been scheduled and running ok");
                 } catch (Exception exp) {
+                    System.out.println(exp.getMessage());
                     LOGGER.error(exp);
                 }
                 finally {
@@ -275,9 +284,10 @@ public class XMLSession extends BaseSession {
         properties.put("as2_message_id_format", azProperties.As2MessageIdFormat());
         properties.put("log_date_format", azProperties.As2MessageIdFormat());
         properties.put("sql_timestamp_format", azProperties.SqlTimestampFormat());
-        properties.put(Properties.APP_TITLE_PROP, getAppTitle());
-        properties.put(Properties.APP_VERSION_PROP, getAppVersion());
-        Properties.setProperties(properties);
+
+        properties.put(org.openas2.util.Properties. APP_TITLE_PROP, getAppTitle());
+        properties.put(org.openas2.util.Properties.APP_VERSION_PROP, getAppVersion());
+        org.openas2.util.Properties.setProperties(properties);
     }
 
     private void loadCertificates(org.openas2.lib.dbUtils.Certificates certificates) throws OpenAS2Exception
@@ -381,9 +391,9 @@ public class XMLSession extends BaseSession {
 
         Map<String, String> properties = XMLUtil.mapAttributes(propNode, false);
         // Make key things accessible via static object for things that do not have accesss to session object
-        properties.put(Properties.APP_TITLE_PROP, getAppTitle());
-        properties.put(Properties.APP_VERSION_PROP, getAppVersion());
-        Properties.setProperties(properties);
+        properties.put(org.openas2.util.Properties.APP_TITLE_PROP, getAppTitle());
+        properties.put(org.openas2.util.Properties.APP_VERSION_PROP, getAppVersion());
+        org.openas2.util.Properties.setProperties(properties);
     }
 
     private void loadCertificates(Node rootNode) throws OpenAS2Exception

@@ -24,6 +24,7 @@ public class AzureUtil {
     public  String LOG_TABLE_NAME = "DBLog";
     private String PARTNER_TABLE_NAME = "Partner";
     private String PROFILE_TABLE_NAME = "Profile";
+    private String LAST_UPDATED_TIME_STAMP = "LastUpdatedTimeStamp";
     private String PROPERTIES_TABLE_NAME="Properties";
     private String COMMANDS_TABLE_NAME="commands";
     private String NPTYAS2DEFAULTSETTINGS_TABLE_NAME="NPTYAS2DefaultSettings";
@@ -70,6 +71,9 @@ public class AzureUtil {
 
         {
             getNptyAS2DB(Constants.APIDataInJASON  );
+            if(Constants.LastUpdateTimeStamp=="") {
+            Constants.LastUpdateTimeStamp=getLastUpdatedTimeStamp();
+            }
         }
         else
 
@@ -169,6 +173,8 @@ public class AzureUtil {
                 tempModule[i].setFormat(objTemp.getString("format"));
                 tempModule[i].setDefaults(objTemp.getString("defaults"));
                 tempModule[i].setQueueName(objTemp.getString("queuename"));
+                tempModule[i].setConnectionTimeout(objTemp.optInt("connectiontimeout",6000));
+                tempModule[i].setReadTimeout(objTemp.optInt("readtimeout",3000));
 
 
             }
@@ -284,7 +290,28 @@ public class AzureUtil {
         return strResult ;
     }
 
+    public String getLastUpdatedTimeStamp()
+    {
+        FeedOptions queryOptions = new FeedOptions();
+        queryOptions.setPageSize(-1);
+        queryOptions.setEnableCrossPartitionQuery(true);
+        String LastUpdatedTimeStamp="";
 
+        String collectionLink = String.format("/dbs/%s/colls/%s", COSMOS_DB_NAME, NPTYAS2DEFAULTSETTINGS_TABLE_NAME);
+        FeedResponse<Document> queryResults = this.documentClient.queryDocuments(collectionLink,
+                "SELECT * FROM "+NPTYAS2DEFAULTSETTINGS_TABLE_NAME+" WHERE "+NPTYAS2DEFAULTSETTINGS_TABLE_NAME+".id='"+LAST_UPDATED_TIME_STAMP+"'", queryOptions);
+
+        for (Document doc : queryResults.getQueryIterable()) {
+
+
+
+            JSONObject objJSON=new JSONObject(doc.toJson());
+            LastUpdatedTimeStamp=objJSON.getString("LastUpdatedDate");
+
+
+        }
+        return LastUpdatedTimeStamp;
+    }
 
 
     public Commands getCommand() {
@@ -491,6 +518,7 @@ private partner GetPartnerFromDocument(Document doc)
         PROFILE_TABLE_NAME=configInfo.getString("Profile");
         NPTYAS2DEFAULTSETTINGS_TABLE_NAME=configInfo.getString("NPTYAS2DefaultSettings");
         SERVER_SETTINGS_TABLE_NAME=configInfo.getString("ServerSetting");
+        LAST_UPDATED_TIME_STAMP=configInfo.getString("LastUpdatedTimeStamp");
         PARTNER_TABLE_NAME=configInfo.getString("Partner");
         PROFILE_TABLE_NAME=configInfo.getString("Profile");
         CERTIFICATE_TABLE_NAME=configInfo.getString("Certificates");

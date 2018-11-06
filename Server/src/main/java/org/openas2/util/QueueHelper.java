@@ -16,25 +16,38 @@ import java.io.File;
 import java.io.FileWriter;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class QueueHelper {
     private Log logger = LogFactory.getLog("QueueHelper Class Process");
+    private boolean busy;
+
 
     ////Used in BaseStorageModule
+    public boolean isQueueProcessing()
+    {
+        return busy;
+    }
+
+    public void setQueueProcessing(boolean b)
+    {
+        busy = b;
+    }
     public boolean AddMsgToQueue(String queueName, String Msg) {
 
-        CloudStorageAccount storageAccount=null;
-        CloudQueueClient queueClient=null;
-        CloudQueue queue=null;
+        CloudStorageAccount storageAccount = null;
+        CloudQueueClient queueClient = null;
+        CloudQueue queue = null;
         try {
 
             storageAccount =
                     CloudStorageAccount.parse(Constants.STORAGEACCOUNTKEY);
             // Create the queue client.
-             queueClient = storageAccount.createCloudQueueClient();
+            queueClient = storageAccount.createCloudQueueClient();
             // Retrieve a reference to a queue.
-             queue = queueClient.getQueueReference(ConvertToCompatibleAzureName(queueName));
-            if(queue.exists()) {
+            queue = queueClient.getQueueReference(ConvertToCompatibleAzureName(queueName));
+            if (queue.exists()) {
                 // Peek at the next message.
                 CloudQueueMessage message = new CloudQueueMessage(Msg);
                 queue.addMessage(message);
@@ -45,14 +58,11 @@ public class QueueHelper {
             // Output the stack trace.
             e.printStackTrace();
             logger.error(e);
-        }
-        finally {
+        } finally {
 
-            if(storageAccount!=null) storageAccount=null;
-            if(queueClient!=null)queueClient=null;
-            if(queue!=null) queue=null;
-
-
+            if (storageAccount != null) storageAccount = null;
+            if (queueClient != null) queueClient = null;
+            if (queue != null) queue = null;
 
 
         }
@@ -60,26 +70,25 @@ public class QueueHelper {
     }
 
 
-    public boolean GetMsgFromQueue(String outDir,int NoOffiledownload) {
+    public boolean GetMsgFromQueue(String outDir, int NoOffiledownload,int MaxQueueThread) {
 
-        String queueMessage="";
-        String as2NewIdentifier="";
-        AzureUtil azureUtil =null;
-        CloudStorageAccount storageAccount=null;
-        CloudQueueClient queueClient=null;
-        CloudQueue queue=null;
+        String queueMessage = "";
+        String as2NewIdentifier = "";
+        AzureUtil azureUtil = null;
+        CloudStorageAccount storageAccount = null;
+        CloudQueueClient queueClient = null;
+        CloudQueue queue = null;
         try {
             azureUtil = new AzureUtil();
             as2NewIdentifier = this.GetAS2Identifier(outDir);
             String queueName = this.GetQueueName(as2NewIdentifier);
-            partner Partners=azureUtil.getActivePartnerBasedOnAs2Identifier(as2NewIdentifier);
+            partner Partners = azureUtil.getActivePartnerBasedOnAs2Identifier(as2NewIdentifier);
             //System.out.println (as2NewIdentifier);
-            if(Partners==null)
-            {
-               Exception e=new Exception("Partner Found Null for"+ as2NewIdentifier+"query:" + "SELECT * FROM PARTNER WHERE LOWER(PARTNER.AS2Identifier)=\""+as2NewIdentifier.toLowerCase()+"\"");
+            if (Partners == null) {
+                Exception e = new Exception("Partner Found Null for" + as2NewIdentifier + "query:" + "SELECT * FROM PARTNER WHERE LOWER(PARTNER.AS2Identifier)=\"" + as2NewIdentifier.toLowerCase() + "/TotalThread"+MaxQueueThread);
                 logger.error(e);
             }
-            if( Partners!=null && Partners.getIsActive()) {
+            if (Partners != null && Partners.getIsActive()) {
 
                 //// Retrieve storage account from connection-string.
                 storageAccount = CloudStorageAccount.parse(Constants.STORAGEACCOUNTKEY);
@@ -88,38 +97,29 @@ public class QueueHelper {
                 // Retrieve a reference to a queue.
                 queue = queueClient.getQueueReference(queueName);
                 if (queue.exists()) {
-                      int queueCounter=0;
-                    for (CloudQueueMessage message : queue.retrieveMessages(NoOffiledownload, 600, null, null)) {
+                    //int queueCounter=0;
+                    // System.out.println( "Approx msg in queue"+queue.getApproximateMessageCount() );
 
-                        queueMessage = message.getMessageContentAsString();
+                    ExecutorService queuepool = Executors.newFixedThreadPool(MaxQueueThread);
 
-                        if (queueMessage.contains("|__|")) {
-                            String[] arr = queueMessage.split("\\|__\\|");
-                            File file = new File(outDir + "\\" + arr[0]);
-                            file.createNewFile();
-                            FileWriter writer = new FileWriter(file);
-                            writer.write(arr[1]);
-                            writer.flush();
-                            writer.close();
-                        } else { //if (queueMessage.contains("|_B_|"))
-                            String[] arr = queueMessage.split("\\|_B_\\|");
-                            //BlobHelper blob = new BlobHelper();
-                            String blobName = GetBlobName(as2NewIdentifier, arr[0]);
-                            BlobHelper blob = new BlobHelper();
-                            ////blob.UploadFileInBlob(serverSetting.getBlobContainerName(),"as10/outgoing/ship.xml","D:\\Sandeep_Work_2018\\data\\ServerFolder\\ship.xml");
+                        for (CloudQueueMessage message : queue.retrieveMessages(NoOffiledownload, 600, null, null)) {
 
-                            if(blob.DownloadBlobInFile(Constants.BLOBCONTAINER, blobName, outDir, GetOriginalFileName(arr[0])))
-                            {
-                                blob.DeleteBlob(Constants.BLOBCONTAINER, blobName);
-                            }
+                            setQueueProcessing(true);
+                            // Do processing for all messages in less than 5 minutes,
+                            // deleting each message after processing.
+                            Runnable r1 = new GetMsgFromQueueTask(message, outDir, as2NewIdentifier, queue);
+
+                            queuepool.execute(r1);
+                           
+
+                            //++queueCounter;
+                            // System.out.println( queueCounter+ " Queue mesage processed" );
                         }
 
-                        // Do processing for all messages in less than 5 minutes,
-                        // deleting each message after processing.
-                        queue.deleteMessage(message);
-                        ++queueCounter;
-                    }
-                   // System.out.println( queueCounter+ " Queue mesage processed" );
+                    queuepool.shutdown();
+
+
+                    // System.out.println( queueCounter+ " Queue mesage processed" );
                 }
                 // Peek at the next message.
             }
@@ -127,21 +127,19 @@ public class QueueHelper {
 
         } catch (Exception e) {
             // Output the stack trace.
-            System.out.println( "Error occured"+ e.getMessage() );
+            System.out.println("Error occured" + e.getMessage());
             e.printStackTrace();
-            if(!queueMessage.isEmpty()) {
-                System.console().writer().write ("FileName:" + queueMessage);
+            if (!queueMessage.isEmpty()) {
+                System.console().writer().write("FileName:" + queueMessage);
             }
             logger.error(e);
-        }
-        finally {
-            if(storageAccount!=null) storageAccount=null;
-            if(queueClient!=null)queueClient=null;
-            if(queue!=null) queue=null;
-            if(azureUtil!=null)
-            {
+        } finally {
+            if (storageAccount != null) storageAccount = null;
+            if (queueClient != null) queueClient = null;
+            if (queue != null) queue = null;
+            if (azureUtil != null) {
                 azureUtil.freeResources();
-                azureUtil=null;
+                azureUtil = null;
 
             }
 
@@ -149,6 +147,81 @@ public class QueueHelper {
 
         return true;
     }
+
+
+    class GetMsgFromQueueTask implements Runnable {
+        CloudQueueMessage message;
+        String outDir;
+        String as2NewIdentifier;
+        CloudQueue queue = null;
+        String queueMessage;
+
+        public GetMsgFromQueueTask(CloudQueueMessage message, String outDir, String as2NewIdentifier, CloudQueue queue) {
+            System.out.println("In GetMsgFromQueueTask");
+            try {
+                this.message = message;
+                this.outDir = outDir;
+                this.as2NewIdentifier = as2NewIdentifier;
+                this.queue = queue;
+                this.queueMessage = message.getMessageContentAsString();
+            } catch (Exception e) {
+                // Output the stack trace.
+                System.out.println("Error occured in GetMsgFromQueueTask" + e.getMessage());
+                e.printStackTrace();
+                if (!queueMessage.isEmpty()) {
+                    System.console().writer().write("FileName:" + queueMessage);
+                }
+                logger.error(e);
+            }
+
+        }
+
+        @Override
+        public void run() {
+
+            try {
+                System.out.println("In GetMsgFromQueueTask" + queueMessage);
+                if (queueMessage.contains("|__|")) {
+                    String[] arr = queueMessage.split("\\|__\\|");
+                    File file = new File(outDir + "\\" + arr[0]);
+                    file.createNewFile();
+                    FileWriter writer = new FileWriter(file);
+                    writer.write(arr[1]);
+                    writer.flush();
+                    writer.close();
+                    org.h2.store.fs.FileUtils.move(outDir + "\\" + arr[0],outDir + "\\" + arr[0]+".downloaded");
+
+                } else { //if (queueMessage.contains("|_B_|"))
+                    String[] arr = queueMessage.split("\\|_B_\\|");
+                    //BlobHelper blob = new BlobHelper();
+                    String blobName = GetBlobName(as2NewIdentifier, arr[0]);
+                    BlobHelper blob = new BlobHelper();
+                    ////blob.UploadFileInBlob(serverSetting.getBlobContainerName(),"as10/outgoing/ship.xml","D:\\Sandeep_Work_2018\\data\\ServerFolder\\ship.xml");
+
+                    if (blob.DownloadBlobInFile(Constants.BLOBCONTAINER, blobName, outDir, GetOriginalFileName(arr[0]))) {
+                        blob.DeleteBlob(Constants.BLOBCONTAINER, blobName);
+                    }
+                }
+
+            } catch (Exception e) {
+                // Output the stack trace.
+                System.out.println("Error occured" + e.getMessage());
+                e.printStackTrace();
+                if (!queueMessage.isEmpty()) {
+                    System.console().writer().write("FileName:" + queueMessage);
+                }
+                logger.error(e);
+            } finally {
+                try {
+                    queue.deleteMessage(message);
+                } catch (Exception exp) {
+                    logger.error(exp);
+                }
+            }
+        }
+    }
+
+
 
     public String GetOriginalFileName(String fileName) {
 
