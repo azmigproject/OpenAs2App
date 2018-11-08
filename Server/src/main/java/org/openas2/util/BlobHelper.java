@@ -63,6 +63,7 @@ public class BlobHelper {
             blockBlob.downloadToFile(fileDownloadPath);
             File fl=new File(fileDownloadPath);
             org.h2.store.fs.FileUtils.move(fileDownloadPath,fileDownloadPath+".downloaded");
+            IOUtilOld.moveFile(fl,new File(fileDownloadPath+".downloaded"),false, true);
             if(fl.exists() && fl.length()>0) {
 
                 blockBlob.deleteIfExists();

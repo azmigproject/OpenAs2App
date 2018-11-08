@@ -56,7 +56,7 @@ public abstract class PollingModule extends MessageBuilderModule {
         return busy;
     }
 
-    private void setBusy(boolean b)
+    protected void setBusy(boolean b)
     {
         busy = b;
     }
