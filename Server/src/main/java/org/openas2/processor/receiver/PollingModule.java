@@ -80,7 +80,7 @@ public abstract class PollingModule extends MessageBuilderModule {
 
                 poll();
                 setBusy(false);
-               
+
 
             } else
             {

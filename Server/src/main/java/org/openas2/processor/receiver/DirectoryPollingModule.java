@@ -140,7 +140,7 @@ public abstract class DirectoryPollingModule extends PollingModule
 									while (dirFileLength > 0) {
 										scanDirectory(Files);
 
-										//Thread.currentThread().wait(1000);
+										Thread.sleep(10);
 
 										System.out.println(" Scan Directry  for" + dirFileLength + "  Files" + "in dir" + outboxDir);
 										dirFileCounter++;
