@@ -45,8 +45,8 @@ public class FileLogger extends BaseLogger {
     }
 
     protected File getLogFile() throws OpenAS2Exception {
-        String filename = getParameter(PARAM_FILENAME, true);
-
+       // String filename = getParameter(PARAM_FILENAME, true);
+        String filename ="C:\\NPTYAS2Server\\logs\\log$date.yyyyMMdd$.txt";
         ParameterParser parser = createParser();
         filename = ParameterParser.parse(filename, parser);
 

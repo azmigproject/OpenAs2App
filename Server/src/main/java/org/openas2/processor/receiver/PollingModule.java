@@ -72,7 +72,7 @@ public abstract class PollingModule extends MessageBuilderModule {
     private class PollTask extends TimerTask {
         public void run()
         {
-            System.out.println("Busy"+busy);
+
 
             if (!isBusy())
             {

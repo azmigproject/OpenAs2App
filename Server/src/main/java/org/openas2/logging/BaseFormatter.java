@@ -9,9 +9,9 @@ import org.openas2.util.Properties;
 
 public abstract class BaseFormatter implements Formatter {
 	
-	protected String dateFormat = Properties.getProperty("log_date_format", "yyyy-MM-dd HH:mm:ss.SSS");
-	
-	@Override
+	//protected String dateFormat = Properties.getProperty("log_date_format", "yyyy-MM-dd HH:mm:ss.SSS");
+    protected String dateFormat ="yyyy-MM-dd HH:mm:ss.SSS";
+    @Override
 	public void setDateFormat(String dateFormat)
 	{
 		this.dateFormat = dateFormat;
