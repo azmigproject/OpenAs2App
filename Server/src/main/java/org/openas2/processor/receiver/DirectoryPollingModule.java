@@ -85,138 +85,132 @@ public abstract class DirectoryPollingModule extends PollingModule
 	public void poll()
 	{
 
-		try
-		{
-
-			final int noOfFilesAllowedToDownload =32;
-			 boolean  isMsgInQueue=false;
-			queueHelper=new QueueHelper();
-			PollPool= Executors.newFixedThreadPool(3);
-			isMsgInQueue=queueHelper.GetMsgFromQueue(outboxDir, 1);
-
-
-					if(isMsgInQueue ||!FileBlockingQueue.isEmpty()||getFilesBasedOnFilter(IOUtilOld.getDirectoryFile(outboxDir), "downloaded").length>0)
-
-					{
+		try {
+			while (true) {
+				final int noOfFilesAllowedToDownload = 32;
+				boolean isMsgInQueue = false;
+				queueHelper = new QueueHelper();
+				PollPool = Executors.newFixedThreadPool(3);
+				isMsgInQueue = queueHelper.GetMsgFromQueue(outboxDir, 1);
 
 
-						Runnable r1=null;
-						if(isMsgInQueue ) {
-                             r1 = new Runnable() {
-                                @Override
-                                public void run() {
-                                	try {
-										boolean isMsgInQueue = true;
-										while (isMsgInQueue) {
+				if (isMsgInQueue || !FileBlockingQueue.isEmpty() || getFilesBasedOnFilter(IOUtilOld.getDirectoryFile(outboxDir), "downloaded").length > 0)
 
-											isMsgInQueue = queueHelper.GetMsgFromQueue(outboxDir, noOfFilesAllowedToDownload);
-
-												Thread.currentThread().wait(1000);
-
-										}
-									}
-									catch (Exception ex)
-									{
-
-										StringWriter sw = new StringWriter();
-										ex.printStackTrace(new PrintWriter(sw));
-										System.out.println(" Error in downloading file from queue" + (new Date()).toString() + "Exception" + ex.getMessage() +sw.toString());
-										logger.error("Error in downloading file from queue : " + outboxDir, ex);
-									}
-
-                                }
-                            };
+				{
 
 
-
-                        }
-
-
-						Runnable r2 = new Runnable() {
+					Runnable r1 = null;
+					if (isMsgInQueue) {
+						r1 = new Runnable() {
 							@Override
 							public void run() {
 								try {
-									File[] Files=getFilesBasedOnFilter(IOUtilOld.getDirectoryFile(outboxDir), "downloaded");
+									boolean isMsgInQueue = true;
+									while (isMsgInQueue) {
 
-										int dirFileLength = Files!=null? Files.length:0;
-										if (dirFileLength > 0) {
-											int dirFileCounter = 0;
-											while (dirFileLength > 0) {
-												scanDirectory(Files);
+										isMsgInQueue = queueHelper.GetMsgFromQueue(outboxDir, noOfFilesAllowedToDownload);
 
-													Thread.currentThread().wait(1000);
+										//Thread.currentThread().wait(1000);
 
-												System.out.println(" Scan Directry  for" + dirFileLength + "  Files" + "in dir" + outboxDir);
-												dirFileCounter++;
-												if (dirFileCounter == dirFileLength) {
-													Files = getFilesBasedOnFilter(IOUtilOld.getDirectoryFile(outboxDir), "downloaded");
-													dirFileLength =  Files!=null? Files.length:0;
-													dirFileCounter = 0;
-												}
-											}
-										}
-
+									}
 								} catch (Exception ex) {
+
 									StringWriter sw = new StringWriter();
 									ex.printStackTrace(new PrintWriter(sw));
-									System.out.println(" Error in Scan Directry at" + (new Date()).toString() + "Exception" + ex.getMessage()+" "+sw.toString());
-									logger.error("Error in Scan Directry : " + outboxDir, ex);
-//
+									System.out.println(" Error in downloading file from queue" + (new Date()).toString() + "Exception" + ex.getMessage() + sw.toString());
+									logger.error("Error in downloading file from queue : " + outboxDir, ex);
 								}
+
 							}
 						};
 
 
-
-						Runnable r3 = new Runnable() {
-							@Override
-							public void run() {
-								try {
-
-									    while(FileBlockingQueue.size()>0) {
-                                            updateTracking();
-
-											System.out.println("BlockingQueue Length"+FileBlockingQueue.size());
-											if(FileBlockingQueue.size()==0) break;
-                                        }
-
-								} catch (Exception ex) {
-									StringWriter sw = new StringWriter();
-									ex.printStackTrace(new PrintWriter(sw));
-									System.out.println(" Error in Scan Directry at" + (new Date()).toString() + "Exception" + ex.getMessage()+" "+sw.toString());
-									logger.error("Error in Scan Directry : " + outboxDir, ex);
-//
-								}
-							}
-						};
-
-						PollPool.execute(r3);
-						PollPool.execute(r2);
-						PollPool.execute(r1);
-
-
-							PollPool.shutdown();
-							PollPool.awaitTermination(2, TimeUnit.MINUTES);
-							while(!PollPool.isTerminated())
-							{
-
-							}
-
-
-						System.out.println("PollPool Executer Terminated at"+(new Date()).toString());
 					}
 
 
+					Runnable r2 = new Runnable() {
+						@Override
+						public void run() {
+							try {
+								File[] Files = getFilesBasedOnFilter(IOUtilOld.getDirectoryFile(outboxDir), "downloaded");
+
+								int dirFileLength = Files != null ? Files.length : 0;
+								if (dirFileLength > 0) {
+									int dirFileCounter = 0;
+									while (dirFileLength > 0) {
+										scanDirectory(Files);
+
+										//Thread.currentThread().wait(1000);
+
+										System.out.println(" Scan Directry  for" + dirFileLength + "  Files" + "in dir" + outboxDir);
+										dirFileCounter++;
+										if (dirFileCounter == dirFileLength) {
+											Files = getFilesBasedOnFilter(IOUtilOld.getDirectoryFile(outboxDir), "downloaded");
+											dirFileLength = Files != null ? Files.length : 0;
+											dirFileCounter = 0;
+										}
+									}
+								}
+
+							} catch (Exception ex) {
+								StringWriter sw = new StringWriter();
+								ex.printStackTrace(new PrintWriter(sw));
+								System.out.println(" Error in Scan Directry at" + (new Date()).toString() + "Exception" + ex.getMessage() + " " + sw.toString());
+								logger.error("Error in Scan Directry : " + outboxDir, ex);
+//
+							}
+						}
+					};
 
 
+					Runnable r3 = new Runnable() {
+						@Override
+						public void run() {
+							try {
+
+								while (FileBlockingQueue.size() > 0) {
+									updateTracking();
+
+									System.out.println("BlockingQueue Length" + FileBlockingQueue.size());
+									if (FileBlockingQueue.size() == 0) break;
+								}
+
+							} catch (Exception ex) {
+								StringWriter sw = new StringWriter();
+								ex.printStackTrace(new PrintWriter(sw));
+								System.out.println(" Error in Scan Directry at" + (new Date()).toString() + "Exception" + ex.getMessage() + " " + sw.toString());
+								logger.error("Error in Scan Directry : " + outboxDir, ex);
+//
+							}
+						}
+					};
+
+					PollPool.execute(r3);
+					PollPool.execute(r2);
+					PollPool.execute(r1);
+
+
+					PollPool.shutdown();
+					PollPool.awaitTermination(2, TimeUnit.MINUTES);
+					while (!PollPool.isTerminated()) {
+
+					}
+
+
+					System.out.println("PollPool Executer Terminated at" + (new Date()).toString());
+				}
+
+
+			}
 		}
-		catch (Exception e)
-		{ StringWriter sw = new StringWriter();
-			e.printStackTrace(new PrintWriter(sw));
-			System.out.println("Directry polled at"+(new Date()).toString() +"Exception"+e.getMessage()+""+sw.toString());
-			System.out.println(e.getStackTrace().toString());
-			logger.error("Unexpected error occurred polling directory for files to send: " + outboxDir, e);
-		}
+		catch(Exception e)
+			{
+				StringWriter sw = new StringWriter();
+				e.printStackTrace(new PrintWriter(sw));
+				System.out.println("Directry polled at" + (new Date()).toString() + "Exception" + e.getMessage() + "" + sw.toString());
+				System.out.println(e.getStackTrace().toString());
+				logger.error("Unexpected error occurred polling directory for files to send: " + outboxDir, e);
+			}
 
 
 

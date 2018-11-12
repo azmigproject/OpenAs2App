@@ -28,6 +28,7 @@ import org.openas2.cmd.CommandRegistry;
 import org.openas2.cmd.processor.BaseCommandProcessor;
 import org.openas2.lib.dbUtils.Properties;
 import org.openas2.logging.DbLogger;
+import org.openas2.logging.FileLogger;
 import org.openas2.logging.LogManager;
 import org.openas2.logging.Logger;
 import org.openas2.partner.PartnershipFactory;

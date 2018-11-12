@@ -83,28 +83,6 @@ public abstract class PollingModule extends MessageBuilderModule {
                 System.out.println("In busy reset"+busy);
                 System.out.println("start thread cleaning process"+busy);
 
-                Thread th=new ThreadCleanUP();
-                Runnable r3 = new Runnable() {
-                    @Override
-                    public void run() {
-                       new ThreadCleanUP().run();
-                    }
-                };
-
-                ExecutorService executor = Executors.newSingleThreadExecutor();
-                executor.execute(r3);
-                executor.shutdown();
-                try {
-                    executor.awaitTermination(1, TimeUnit.MINUTES);
-                }
-                catch (Exception exp)
-                {
-
-                }
-                finally {
-                    executor.shutdownNow();
-
-                }
                 System.out.println("Reset setBusy");
 
             } else
