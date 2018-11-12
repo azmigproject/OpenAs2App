@@ -77,13 +77,10 @@ public abstract class PollingModule extends MessageBuilderModule {
             if (!isBusy())
             {
                 setBusy(true);
-                System.out.println("In busy If condition"+busy);
+
                 poll();
                 setBusy(false);
-                System.out.println("In busy reset"+busy);
-                System.out.println("start thread cleaning process"+busy);
-
-                System.out.println("Reset setBusy");
+               
 
             } else
             {
