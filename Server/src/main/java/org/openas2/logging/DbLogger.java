@@ -1,11 +1,19 @@
 package org.openas2.logging;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.openas2.OpenAS2Exception;
 import org.openas2.Session;
 import org.openas2.message.Message;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.lang.instrument.ClassDefinition;
+import java.lang.instrument.ClassFileTransformer;
+import java.lang.instrument.Instrumentation;
+import java.lang.instrument.UnmodifiableClassException;
 import java.util.Map;
 import java.util.UUID;
+import java.util.jar.JarFile;
 
 // Include the following imports to use table APIs
 import com.microsoft.azure.storage.*;
@@ -121,8 +129,10 @@ public class DbLogger extends BaseLogger {
         objLog.setIsSuccessfull(true);
         objLog.setIsErrorMailSend(false);
         if(as2Msg!=null) {
-            objLog.setReceiverId(as2Msg.getPartnership().getReceiverID(AS2Partnership.PID_AS2));
-            objLog.setSenderId(as2Msg.getPartnership().getSenderID(AS2Partnership.PID_AS2));
+            if(as2Msg.getPartnership()!=null) {
+                objLog.setReceiverId(as2Msg.getPartnership().getReceiverID(AS2Partnership.PID_AS2));
+                objLog.setSenderId(as2Msg.getPartnership().getSenderID(AS2Partnership.PID_AS2));
+            }
             objLog.setFileName(as2Msg.getPayloadFilename());
             objLog.setMessageID(as2Msg.getMessageID());
             objLog.setAs2logMsgID(as2Msg.getLogMsgID());
@@ -157,7 +167,9 @@ public class DbLogger extends BaseLogger {
         objLog.setId(UUID.randomUUID().toString());
         objLog.setProcessLevel(Level.ERROR.getName());
         objLog.setIsnptyAS2ServerLog(true);
-        objLog.setExceptionOrErrorDetails(t.getMessage()+t.getStackTrace());
+        StringWriter sw = new StringWriter();
+        t.printStackTrace(new PrintWriter(sw));
+        objLog.setExceptionOrErrorDetails(t.getMessage()+"|Details:"+sw.toString());
         objLog.setIsSuccessfull(false);
         return objLog;
     }
@@ -170,10 +182,30 @@ public class DbLogger extends BaseLogger {
             // Create a cloud table object for the table.
             CloudTable cloudTable = this.client.getTableReference(AZURE_TABLE_NAME);
 
-            TableOperation insertLog = TableOperation.insertOrReplace(objLog);
+            if(cloudTable!=null) {
+                if(objLog!=null ) {
+                    if ( objLog.getExceptionOrErrorDetails()!=null && objLog.getExceptionOrErrorDetails().length() > 1000) {
+                        objLog.setExceptionOrErrorDetails(objLog.getExceptionOrErrorDetails().trim().substring(0, 999));
+                    }
 
-            // Submit the operation to the table service.
-            cloudTable.execute(insertLog);
+                    TableOperation insertLog = TableOperation.insertOrReplace(objLog);
+                    if(insertLog!=null) {
+                        // Submit the operation to the table service.
+                        cloudTable.execute(insertLog);
+                    }
+                    else
+                    {
+                        System.out.println("Unable to log message as TableOperation object null. ObjLog Info="+objLog.getLogMessage());
+                    }
+                }
+                else
+                {
+                    System.out.println("Unable to log message as DBLogInfo object null");
+                }
+            }else
+            {
+                System.out.println("Unable to log message as cloudTable object null");
+            }
         }
         catch (Exception e)
         {
