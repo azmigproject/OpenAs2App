@@ -21,6 +21,9 @@ import sun.util.calendar.BaseCalendar;
 
 import javax.security.auth.callback.Callback;
 
+import static java.lang.Thread.MAX_PRIORITY;
+import static java.lang.Thread.NORM_PRIORITY;
+
 public abstract class DirectoryPollingModule extends PollingModule
 {
     public static final String PARAM_OUTBOX_DIRECTORY = "outboxdir";
@@ -119,34 +122,7 @@ public abstract class DirectoryPollingModule extends PollingModule
                                         }
 
                                     }
-                                    if(FileBlockingQueue.isEmpty()) {
-                                        File[] Files = getFilesBasedOnFilter(IOUtilOld.getDirectoryFile(outboxDir), "downloaded");
 
-                                        int dirFileLength = Files != null ? Files.length : 0;
-                                        if (dirFileLength > 0) {
-                                            int dirFileCounter = 0;
-                                            while (dirFileLength > 0) {
-                                                scanDirectory(Files);
-                                                synchronized (this) {
-                                                    try {
-                                                        Thread.currentThread().wait(100);
-                                                    }
-                                                    catch (InterruptedException e) {
-                                                        e.printStackTrace();
-                                                    }
-                                                }
-
-                                                System.out.println(" Scan Directry  for" + dirFileLength + "  Files" + "in dir" + outboxDir);
-                                                logger.info(" Scan Directry  for" + dirFileLength + "  Files" + "in dir" + outboxDir);
-                                                dirFileCounter++;
-                                                if (dirFileCounter == dirFileLength) {
-                                                    Files = getFilesBasedOnFilter(IOUtilOld.getDirectoryFile(outboxDir), "downloaded");
-                                                    dirFileLength = Files != null ? Files.length : 0;
-                                                    dirFileCounter = 0;
-                                                }
-                                            }
-                                        }
-                                    }
 
                                 } catch (Exception ex) {
 
@@ -160,7 +136,52 @@ public abstract class DirectoryPollingModule extends PollingModule
                         };
 
 
+                    Runnable directoryWatcher=new Runnable() {
+                        @Override
+                        public void run() {
+                          try
+                          {
 
+                              if((FileBlockingQueue.isEmpty() ||FileBlockingQueue.size()==0)) {
+                                  File[] Files = getFilesBasedOnFilter(IOUtilOld.getDirectoryFile(outboxDir), "downloaded");
+                                  int dirFileLength = Files != null ? Files.length : 0;
+                                  if (dirFileLength > 0) {
+
+
+                                      if (dirFileLength > 0) {
+                                          int dirFileCounter = 0;
+                                          while (dirFileLength > 0) {
+                                              scanDirectory(Files);
+                                              synchronized (this) {
+                                                  try {
+                                                      Thread.currentThread().wait(100);
+                                                  } catch (InterruptedException e) {
+                                                      e.printStackTrace();
+                                                  }
+                                              }
+
+                                              System.out.println(" Scan Directry  for" + dirFileLength + "  Files" + "in dir" + outboxDir);
+                                              logger.info(" Scan Directry  for" + dirFileLength + "  Files" + "in dir" + outboxDir);
+                                              dirFileCounter++;
+                                              if (dirFileCounter == dirFileLength) {
+                                                  Files = getFilesBasedOnFilter(IOUtilOld.getDirectoryFile(outboxDir), "downloaded");
+                                                  dirFileLength = Files != null ? Files.length : 0;
+                                                  dirFileCounter = 0;
+                                              }
+                                          }
+                                      }
+                                  }
+                              }
+                          }
+                          catch (Exception ex)
+                          {
+                              StringWriter sw = new StringWriter();
+                              ex.printStackTrace(new PrintWriter(sw));
+                              System.out.println(" Error in downloading file from queue" + (new Date()).toString() + "Exception" + ex.getMessage() + sw.toString());
+                              logger.error("Error in downloading file from queue : " + outboxDir, ex);
+                          }
+                        }
+                    };
 
 
                     Runnable consumer = new Runnable() {
@@ -198,9 +219,14 @@ public abstract class DirectoryPollingModule extends PollingModule
                     };
 
                     Thread producerThread = new Thread(producer, "ProducerThread");
+                    Thread dirWatcherThread = new Thread(directoryWatcher, "DirWatcherThread");
                     Thread consumerThread = new Thread(consumer, "ConsumerThread");
+                    producerThread.setPriority(MAX_PRIORITY);
+                    consumerThread.setPriority(MAX_PRIORITY);
+                    dirWatcherThread.setPriority(NORM_PRIORITY);
                     producerThread.start();
                     consumerThread.start();
+                    dirWatcherThread.start();
 
 
 
