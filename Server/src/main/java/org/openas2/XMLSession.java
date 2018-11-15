@@ -119,11 +119,18 @@ public class XMLSession extends BaseSession {
 
                     azureUtil = new AzureUtil();
                     azureUtil.init(true);
+                    LOGGER.info("Inside reload config at "+ DateTime.now().toString() );
                     String tempLastUpdatedDateTime=azureUtil.getLastUpdatedTimeStamp();
                     if(!DateTime.parse(tempLastUpdatedDateTime).isEqual(DateTime.parse(Constants.LastUpdateTimeStamp).toInstant()))
                     {
+                        LOGGER.info("in loadReqData function" );
                         loadReqData(azureUtil);
+                        LOGGER.info("out loadReqData function" );
                         Constants.LastUpdateTimeStamp=tempLastUpdatedDateTime;
+                    }
+                    else
+                    {
+                        //LOGGER.info("No Diff in dates Temp1="+tempLastUpdatedDateTime+"Lastmodified="+Constants.LastUpdateTimeStamp );
                     }
                     //LOGGER.error("Method has been scheduled and running ok");
                 } catch (Exception exp) {
@@ -181,10 +188,19 @@ public class XMLSession extends BaseSession {
 
     public   void loadReqData (AzureUtil azureUtil)  throws   OpenAS2Exception,Exception
     {
-
+        LOGGER.info("start loadReqData function" );
+        this.stop();
+        LOGGER.info("start loading certificates function" );
         loadCertificates(azureUtil.getCertificates());
+        LOGGER.info("end loading certificates function" );
+        LOGGER.info("start loading Processor function" );
         loadProcessor(azureUtil.getProcessor());
+        LOGGER.info("end loading Processor function" );
+        LOGGER.info("start loading Partnership function" );
         loadPartnerships(azureUtil.getPartnerList(),azureUtil.getProfile(),azureUtil.getServersSettings().get(0));
+        LOGGER.info("end loading Partnership function" );
+        this.start();
+        LOGGER.info("stop loadReqData function" );
 
     }
 

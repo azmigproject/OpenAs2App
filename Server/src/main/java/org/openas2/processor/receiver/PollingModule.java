@@ -11,8 +11,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import org.joda.time.DateTime;
 import org.openas2.OpenAS2Exception;
 import org.openas2.Session;
+import org.openas2.logging.Logger;
 import org.openas2.params.InvalidParameterException;
 import org.openas2.util.ThreadCleanUP;
 
@@ -77,8 +79,9 @@ public abstract class PollingModule extends MessageBuilderModule {
             if (!isBusy())
             {
                 setBusy(true);
-
+                //System.out.println("polled called @" +DateTime.now().toString());
                 poll();
+
                 setBusy(false);
 
 

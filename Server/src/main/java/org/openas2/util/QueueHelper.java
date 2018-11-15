@@ -95,19 +95,33 @@ public class QueueHelper {
             if (Partners != null && Partners.getIsActive()) {
 
                 //// Retrieve storage account from connection-string.
-                storageAccount = CloudStorageAccount.parse(Constants.STORAGEACCOUNTKEY);
+                storageAccount= CloudStorageAccount.parse(Constants.STORAGEACCOUNTKEY);
                 // Create the queue client.
                 queueClient = storageAccount.createCloudQueueClient();
-                // Retrieve a reference to a queue.
+                // Retrieve a reference to a queue. storageAccount = CloudStorageAccount.parse(Constants.STORAGEACCOUNTKEY);
                 queue = queueClient.getQueueReference(queueName);
                 if (queue.exists()) {
                     //int queueCounter=0;
                     // System.out.println( "Approx msg in queue"+queue.getApproximateMessageCount() );
+                    QueueRequestOptions queueReqOpt=new QueueRequestOptions();
+                    queueReqOpt.setLocationMode(LocationMode.PRIMARY_THEN_SECONDARY);
 
-                    Iterable<CloudQueueMessage> cloudMsgs = queue.retrieveMessages(NoOffiledownload, 600, null, null);
+                    Iterable<CloudQueueMessage> cloudMsgs = queue.retrieveMessages(NoOffiledownload, 600,queueReqOpt, null);
+                    int intAccessCount=1;
+                    //System.out.println("Try to Get Data Fromm Queue " + intAccessCount+" times");
+                    //logger.info("Try to Get Data Fromm Queue " + intAccessCount+" times");
+                    while(!((Iterable) cloudMsgs).iterator().hasNext() && intAccessCount>=3)
+                    {
+                        intAccessCount++;
+                        cloudMsgs = queue.retrieveMessages(NoOffiledownload, 30,queueReqOpt, null);
+                        //System.out.println("Try to Get Data Fromm Queue " + intAccessCount+" times");
+                        //logger.info("Try to Get Data Fromm Queue " + intAccessCount+" times");
+                    }
+
+                    int msgCounter=0;
 
                     for (CloudQueueMessage message : cloudMsgs) {
-
+                        msgCounter++;
                         result = true;
                         // Do processing for all messages in less than 5 minutes,
                         // deleting each message after processing.
@@ -153,13 +167,24 @@ public class QueueHelper {
                             try {
                                 queue.deleteMessage(message);
                             } catch (Exception exp) {
+                                System.out.println("Error occured in deleting queue mesage" + exp.getMessage());
                                 logger.error(exp);
                             }
                         }
 
                     }
+                    /*if(msgCounter==0)
+                    {
+                        System.out.println("message not found in queue " + queueName +"after "+intAccessCount+"tries");
+                        logger.info("message not found in queue " + queueName +"after "+intAccessCount+"tries");
+                    }*/
 
                 }
+                /*else
+                {
+                    System.out.println("queue not found " + queueName);
+                    logger.info("queue not found " + queueName);
+                }*/
                 // Peek at the next message.
             }
             return result;

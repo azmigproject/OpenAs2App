@@ -93,7 +93,7 @@ public abstract class DirectoryPollingModule extends PollingModule
                 final int noOfFilesAllowedToDownload = 32;
                 boolean isMsgInQueue = false;
                 queueHelper = new QueueHelper();
-
+                //System.out.println( "Polling started at" +outboxDir);
                 isMsgInQueue = queueHelper.GetMsgFromQueue(outboxDir, 1,FileBlockingQueue);
 
 
@@ -101,7 +101,7 @@ public abstract class DirectoryPollingModule extends PollingModule
 
                 {
 
-
+                   // System.out.println( "Threading condition validate");
 
 
                     Runnable   producer = new Runnable() {
@@ -117,7 +117,8 @@ public abstract class DirectoryPollingModule extends PollingModule
                                                 Thread.currentThread().wait(100);
                                             }
                                             catch (InterruptedException e) {
-                                                e.printStackTrace();
+                                               // e.printStackTrace();
+
                                             }
                                         }
 
@@ -156,7 +157,7 @@ public abstract class DirectoryPollingModule extends PollingModule
                                                   try {
                                                       Thread.currentThread().wait(100);
                                                   } catch (InterruptedException e) {
-                                                      e.printStackTrace();
+                                                     // e.printStackTrace();
                                                   }
                                               }
 
@@ -200,7 +201,8 @@ public abstract class DirectoryPollingModule extends PollingModule
                                                 Thread.currentThread().wait(100);
                                             }
                                             catch (InterruptedException e) {
-                                                e.printStackTrace();
+                                               // e.printStackTrace();
+
                                             }
                                         }
 
@@ -232,6 +234,10 @@ public abstract class DirectoryPollingModule extends PollingModule
 
                     System.out.println("PollPool Executer Terminated at" + (new Date()).toString());
                     logger.info("PollPool Executer Terminated at" + (new Date()).toString());
+                }
+                else
+                {
+                    //System.out.println( "Threading condition invalidate in this poll");
                 }
 
 
@@ -442,7 +448,7 @@ public abstract class DirectoryPollingModule extends PollingModule
                         logger.error("Error handling file error for file: " + file.getAbsolutePath(), e1);
                         System.out.println("Error occured in UpdateTrackingTask" + e.getMessage());
                         System.out.println("Error occured in UpdateTrackingTask" + e.getMessage());
-                        forceStop(e1);
+                        //forceStop(e1);
                         return;
                     }
                 }
