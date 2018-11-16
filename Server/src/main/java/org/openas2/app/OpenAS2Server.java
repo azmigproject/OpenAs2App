@@ -12,6 +12,7 @@ import org.openas2.OpenAS2Exception;
 import org.openas2.Session;
 import org.openas2.XMLSession;
 import org.openas2.lib.helper.ICryptoHelper;
+import org.openas2.util.ThreadCleanUP;
 
 
 /**
@@ -37,6 +38,7 @@ public class OpenAS2Server {
     {
         //String[] argtmp=new String[1];
         //argtmp[0]="http://localhost:64418/api/partnerapi";
+        
         new OpenAS2Server.Builder()
                 .registerShutdownHook()
                 .run(args);
@@ -98,7 +100,7 @@ public class OpenAS2Server {
 
             //XMLSession session = new XMLSession(findConfig(args).getAbsolutePath());
 
-            XMLSession session = new XMLSession(args[0],Integer.parseInt(args[1]),Integer.parseInt(args[2]));
+            XMLSession session = new XMLSession(args[0],Integer.parseInt(args[1]),Integer.parseInt(args[2]),Integer.parseInt(args[3]));
             final OpenAS2Server server = new OpenAS2Server(session);
 
             registerShutdownHookIfNeeded(server);

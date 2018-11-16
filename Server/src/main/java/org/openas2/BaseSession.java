@@ -14,8 +14,9 @@ import org.openas2.processor.Processor;
 public abstract class BaseSession implements Session {
     private Map<String, Component> components = new HashMap<String, Component>();
     private String baseDirectory;
-    private  int MaxDirectoryThreadPool;
-    private  int MaxQueueThreadPool;
+    private  int MaxQueueDownloaderThread;
+    private  int MaxFileProcessorThread;
+    private  int MaxDirWatcherThread;
 
 
     /**
@@ -125,24 +126,34 @@ public abstract class BaseSession implements Session {
         baseDirectory = dir;
     }
 
-    public int getMaxDirectoryPoolingThread()
+    public int getMaxQueueDownloaderThread()
     {
-        return MaxDirectoryThreadPool;
+        return MaxQueueDownloaderThread;
     }
 
-    void setMaxDirectoryThreadPool(int threadPool)
+    void setMaxQueueDownloaderThread(int threadPool)
     {
-        MaxDirectoryThreadPool = threadPool;
+        MaxQueueDownloaderThread = threadPool;
     }
 
-    public int getMaxQueuePoolingThread()
+    public int getMaxFileProcessorThread()
     {
-        return MaxQueueThreadPool;
+        return MaxFileProcessorThread;
     }
 
-    void setMaxQueueThreadPool(int threadPool)
+    void setMaxFileProcessorThread(int threadPool)
     {
-        MaxQueueThreadPool = threadPool;
+        MaxFileProcessorThread = threadPool;
+    }
+
+    public int getMaxDirWatcherThread()
+    {
+        return MaxDirWatcherThread;
+    }
+
+    void setMaxDirWatcherThread(int threadPool)
+    {
+        MaxDirWatcherThread = threadPool;
     }
 
 }

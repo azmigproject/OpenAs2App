@@ -33,8 +33,9 @@ public abstract class DirectoryPollingModule extends PollingModule
     private String outboxDir;
     private String errorDir;
     private String sentDir = null;
-    static  int MAX_T = 15;
+    static  int MAX_FileThread = 15;
     static int MAX_QueueThread=15;
+    static int MAX_DirectoryThread=1;
     private QueueHelper queueHelper;
     BlockingQueue FileBlockingQueue;
     BlockingQueue FileProcessingBlockingQueue;
@@ -48,9 +49,9 @@ public abstract class DirectoryPollingModule extends PollingModule
         try
         {
 
-            MAX_T=session.getMaxDirectoryPoolingThread();
-            MAX_QueueThread=session.getMaxQueuePoolingThread();
-
+            MAX_QueueThread=session.getMaxQueueDownloaderThread();
+            MAX_FileThread=session.getMaxFileProcessorThread();
+            MAX_DirectoryThread=session.getMaxDirWatcherThread();
             FileBlockingQueue=new ArrayBlockingQueue(1000);
             FileProcessingBlockingQueue=new ArrayBlockingQueue(1000);
             outboxDir = getParameter(PARAM_OUTBOX_DIRECTORY, true);
@@ -220,18 +221,27 @@ public abstract class DirectoryPollingModule extends PollingModule
                         }
                     };
 
-                    Thread producerThread = new Thread(producer, "ProducerThread");
-                    Thread dirWatcherThread = new Thread(directoryWatcher, "DirWatcherThread");
-                    Thread consumerThread = new Thread(consumer, "ConsumerThread");
-                    producerThread.setPriority(MAX_PRIORITY);
-                    consumerThread.setPriority(MAX_PRIORITY);
-                    dirWatcherThread.setPriority(NORM_PRIORITY);
-                    producerThread.start();
-                    consumerThread.start();
-                    dirWatcherThread.start();
 
+                    for(int threadCounter=0; threadCounter<MAX_QueueThread;threadCounter++)
+                    {
+                        Thread producerThread = new Thread(producer, "ProducerThread");
+                        producerThread.setPriority(NORM_PRIORITY+2); //QueueDownloader Max Thread
+                        producerThread.start();
+                    }
 
+                    for(int threadCounter=0; threadCounter<MAX_FileThread;threadCounter++)
+                    {
+                        Thread consumerThread = new Thread(consumer, "ConsumerThread");
+                        consumerThread.setPriority(NORM_PRIORITY+1); //FileProcessor Max Thread
+                        consumerThread.start();
+                    }
 
+                    for(int threadCounter=0; threadCounter<MAX_DirectoryThread;threadCounter++)
+                    {
+                        Thread dirWatcherThread = new Thread(directoryWatcher, "DirWatcherThread");
+                        dirWatcherThread.setPriority(NORM_PRIORITY);  //DirWatcher Max Thread
+                        dirWatcherThread.start();
+                    }
                     System.out.println("PollPool Executer Terminated at" + (new Date()).toString());
                     logger.info("PollPool Executer Terminated at" + (new Date()).toString());
                 }
@@ -447,8 +457,7 @@ public abstract class DirectoryPollingModule extends PollingModule
                     } catch (OpenAS2Exception e1) {
                         logger.error("Error handling file error for file: " + file.getAbsolutePath(), e1);
                         System.out.println("Error occured in UpdateTrackingTask" + e.getMessage());
-                        System.out.println("Error occured in UpdateTrackingTask" + e.getMessage());
-                        //forceStop(e1);
+                       //forceStop(e1);
                         return;
                     }
                 }
