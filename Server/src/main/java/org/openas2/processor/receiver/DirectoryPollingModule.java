@@ -33,9 +33,12 @@ public abstract class DirectoryPollingModule extends PollingModule
     private String outboxDir;
     private String errorDir;
     private String sentDir = null;
-    static  int MAX_FileThread = 15;
-    static int MAX_QueueThread=15;
-    static int MAX_DirectoryThread=1;
+    private  int MAX_FileThread = 15;
+    private int MAX_QueueThread=15;
+    private int MAX_DirectoryThread=1;
+    private int FileThreadCounter=0;
+    private int QueueThreadCounter=0;
+    private int DirWatcherTheadCounter=0;
     private QueueHelper queueHelper;
     BlockingQueue FileBlockingQueue;
     BlockingQueue FileProcessingBlockingQueue;
@@ -133,6 +136,10 @@ public abstract class DirectoryPollingModule extends PollingModule
                                     System.out.println(" Error in downloading file from queue" + (new Date()).toString() + "Exception" + ex.getMessage() + sw.toString());
                                     logger.error("Error in downloading file from queue : " + outboxDir, ex);
                                 }
+                                finally
+                                {
+                                    QueueThreadCounter--;
+                                }
 
                             }
                         };
@@ -182,6 +189,10 @@ public abstract class DirectoryPollingModule extends PollingModule
                               System.out.println(" Error in downloading file from queue" + (new Date()).toString() + "Exception" + ex.getMessage() + sw.toString());
                               logger.error("Error in downloading file from queue : " + outboxDir, ex);
                           }
+                          finally
+                          {
+                              FileThreadCounter--;
+                          }
                         }
                     };
 
@@ -218,29 +229,40 @@ public abstract class DirectoryPollingModule extends PollingModule
                                 logger.error("Error in Scan Directry : " + outboxDir, ex);
 //
                             }
+                            finally
+                            {
+                                DirWatcherTheadCounter--;
+                            }
                         }
                     };
 
+                    while(QueueThreadCounter <MAX_QueueThread)
 
-                    for(int threadCounter=0; threadCounter<MAX_QueueThread;threadCounter++)
                     {
                         Thread producerThread = new Thread(producer, "ProducerThread");
                         producerThread.setPriority(NORM_PRIORITY+2); //QueueDownloader Max Thread
                         producerThread.start();
+                        QueueThreadCounter++;
                     }
 
-                    for(int threadCounter=0; threadCounter<MAX_FileThread;threadCounter++)
+                    while(FileThreadCounter <MAX_FileThread)
+
                     {
                         Thread consumerThread = new Thread(consumer, "ConsumerThread");
                         consumerThread.setPriority(NORM_PRIORITY+1); //FileProcessor Max Thread
                         consumerThread.start();
+                        FileThreadCounter++;
                     }
+                    // Add conter values at too
+                    // add finally in each runable deff and reduce the counter value
+                    // instead of for conver it to while loop based on te couter value & max thread condition
+                    while(DirWatcherTheadCounter <MAX_DirectoryThread)
 
-                    for(int threadCounter=0; threadCounter<MAX_DirectoryThread;threadCounter++)
                     {
                         Thread dirWatcherThread = new Thread(directoryWatcher, "DirWatcherThread");
                         dirWatcherThread.setPriority(NORM_PRIORITY);  //DirWatcher Max Thread
                         dirWatcherThread.start();
+                        DirWatcherTheadCounter++;
                     }
                     System.out.println("PollPool Executer Terminated at" + (new Date()).toString());
                     logger.info("PollPool Executer Terminated at" + (new Date()).toString());
