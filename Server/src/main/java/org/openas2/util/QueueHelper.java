@@ -140,7 +140,11 @@ public class QueueHelper {
                                 IOUtilOld.moveFile(file,NewFile,false, true);
                                 //org.h2.store.fs.FileUtils.move(outDir + "\\" + arr[0],);
                                 synchronized (fileQueue) {
-                                    fileQueue.add(outDir + "\\" + arr[0] + ".downloaded");
+                                    if (fileQueue.remainingCapacity() > 0 && !fileQueue.contains(outDir + "\\" + arr[0] + ".downloaded")) {
+
+                                        fileQueue.add(outDir + "\\" + arr[0] + ".downloaded");
+                                    }
+
                                 }
 
                             } else { //if (queueMessage.contains("|_B_|"))

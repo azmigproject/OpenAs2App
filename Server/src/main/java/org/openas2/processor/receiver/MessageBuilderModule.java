@@ -249,6 +249,7 @@ public abstract class MessageBuilderModule extends BaseReceiverModule {
 
 	public void buildMessageData(Message msg, InputStream ip, String filename) throws OpenAS2Exception
 	{
+
 		MessageParameters params = new MessageParameters(msg);
 
 		try

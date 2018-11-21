@@ -67,7 +67,10 @@ public class BlobHelper {
             File NewFile=new File(fileDownloadPath+".downloaded");
             IOUtilOld.moveFile(fl,NewFile,false, true);
             synchronized (fileQueue) {
-                fileQueue.add(fileDownloadPath + ".downloaded");
+                if (fileQueue.remainingCapacity() > 0 && !fileQueue.contains(fileDownloadPath + ".downloaded")) {
+
+                    fileQueue.add(fileDownloadPath + ".downloaded");
+                }
             }
             if(fl.exists() && fl.length()>0) {
 
