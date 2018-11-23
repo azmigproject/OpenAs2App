@@ -72,7 +72,7 @@ public class XMLSession extends BaseSession {
     private org.openas2.lib.dbUtils.Properties prop;
 
 
-    public XMLSession(String apiURL,int MaxQueueDownloaderThread,int MaxFileProcessorThread,int MaxDirWatcherThread ) throws OpenAS2Exception, IOException,Exception
+    public XMLSession(String apiURL,int MaxQueueDownloaderThread,int MaxFileProcessorThread,int MaxDirWatcherThread,int BlockingQueueSize,int BlockingQueueThreshold ) throws OpenAS2Exception, IOException,Exception
     {
        try {
 
@@ -81,6 +81,8 @@ public class XMLSession extends BaseSession {
            setMaxQueueDownloaderThread(MaxQueueDownloaderThread);
            setMaxFileProcessorThread(MaxFileProcessorThread);
            setMaxDirWatcherThread(MaxDirWatcherThread);
+           setBlockingQueueSizeSize(BlockingQueueSize);
+           setBlockingQueueThreshold(BlockingQueueThreshold);
            azureUtil = new AzureUtil();
            azureUtil.init();
            load(azureUtil);

@@ -17,6 +17,8 @@ public abstract class BaseSession implements Session {
     private  int MaxQueueDownloaderThread;
     private  int MaxFileProcessorThread;
     private  int MaxDirWatcherThread;
+    private  int BlockingQueueSizeSize;
+    private  int BlockingQueueThreshold;
 
 
     /**
@@ -154,6 +156,26 @@ public abstract class BaseSession implements Session {
     void setMaxDirWatcherThread(int threadPool)
     {
         MaxDirWatcherThread = threadPool;
+    }
+
+    public int getBlockingQueueThreshold()
+    {
+        return BlockingQueueThreshold;
+    }
+
+    void setBlockingQueueThreshold(int threshold)
+    {
+        BlockingQueueThreshold = threshold;
+    }
+
+    public int getBlockingQueueSizeSize()
+    {
+        return BlockingQueueSizeSize;
+    }
+
+    void setBlockingQueueSizeSize(int QueueSize)
+    {
+        BlockingQueueSizeSize = QueueSize;
     }
 
 }

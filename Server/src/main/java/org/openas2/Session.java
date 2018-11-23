@@ -92,5 +92,7 @@ public interface Session {
     int getMaxFileProcessorThread();
     int getMaxDirWatcherThread();
     int getMaxQueueDownloaderThread();
+    int getBlockingQueueSizeSize();
+    int getBlockingQueueThreshold();
 
 }
