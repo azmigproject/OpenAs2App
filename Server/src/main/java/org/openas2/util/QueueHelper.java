@@ -73,7 +73,7 @@ public class QueueHelper {
 
 
 
-    public boolean GetMsgFromQueue(String outDir, int NoOffiledownload,  BlockingQueue fileQueue) {
+    public boolean GetMsgFromQueue(String outDir, int NoOffiledownload,  HighPerformanceBlockingQueue fileQueue) {
 
         String queueMessage = "";
         String as2NewIdentifier = "";
@@ -140,10 +140,9 @@ public class QueueHelper {
                                 IOUtilOld.moveFile(file,NewFile,false, true);
                                 //org.h2.store.fs.FileUtils.move(outDir + "\\" + arr[0],);
                                 synchronized (fileQueue) {
-                                    if (fileQueue.remainingCapacity() > 0 && !fileQueue.contains(outDir + "\\" + arr[0] + ".downloaded")) {
 
-                                        fileQueue.add(outDir + "\\" + arr[0] + ".downloaded");
-                                    }
+
+                                        fileQueue.AddPath(outDir + "\\" + arr[0] + ".downloaded");
 
                                 }
 

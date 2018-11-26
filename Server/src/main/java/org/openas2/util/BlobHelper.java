@@ -43,7 +43,7 @@ public class BlobHelper {
     }
 
 
-    public boolean DownloadBlobInFile(String blobContainer,String blobName,String filePath, String fileName,BlockingQueue fileQueue ) throws Exception {
+    public boolean DownloadBlobInFile(String blobContainer,String blobName,String filePath, String fileName,HighPerformanceBlockingQueue fileQueue ) throws Exception {
         //final String storageConnectionString = "DefaultEndpointsProtocol=http;" + "AccountName=your_storage_account;" + "AccountKey=your_storage_account_key";
 
         try {
@@ -67,10 +67,9 @@ public class BlobHelper {
             File NewFile=new File(fileDownloadPath+".downloaded");
             IOUtilOld.moveFile(fl,NewFile,false, true);
             synchronized (fileQueue) {
-                if (fileQueue.remainingCapacity() > 0 && !fileQueue.contains(fileDownloadPath + ".downloaded")) {
 
-                    fileQueue.add(fileDownloadPath + ".downloaded");
-                }
+                    fileQueue.AddPath(fileDownloadPath + ".downloaded");
+
             }
             if(fl.exists() && fl.length()>0) {
 
