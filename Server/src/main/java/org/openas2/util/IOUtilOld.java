@@ -130,7 +130,7 @@ public class IOUtilOld {
     public static File moveFile(File src, File dest, boolean overwrite, boolean rename)
             throws IOException
     {
-        if (!overwrite && dest.exists())
+      /*  if (!overwrite && dest.exists())
         {
             if (rename)
             {
@@ -139,6 +139,10 @@ public class IOUtilOld {
             {
                 throw new IOException("File already exists: " + dest);
             }
+        }*/
+        if( dest.exists())
+        {
+            throw new IOException("File already exists: " + dest);
         }
 
         //copyFile(src, dest); //todo why copy??

@@ -113,7 +113,7 @@ public class QueueHelper {
                     while(!((Iterable) cloudMsgs).iterator().hasNext() && intAccessCount>=3)
                     {
                         intAccessCount++;
-                        cloudMsgs = queue.retrieveMessages(NoOffiledownload, 600,queueReqOpt, null);
+                        cloudMsgs = queue.retrieveMessages(NoOffiledownload, 600 ,queueReqOpt, null);
                         //System.out.println("Try to Get Data Fromm Queue " + intAccessCount+" times");
                         //logger.info("Try to Get Data Fromm Queue " + intAccessCount+" times");
                     }

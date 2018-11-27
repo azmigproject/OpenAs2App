@@ -106,7 +106,7 @@ public abstract class DirectoryPollingModule extends PollingModule
         // while (true) {
         try {
 
-            final int noOfFilesAllowedToDownload = 32;
+            final int noOfFilesAllowedToDownload = 1;//32;
             boolean isMsgInQueue = false;
             queueHelper = new QueueHelper();
             //System.out.println( "Polling started at" +outboxDir);
