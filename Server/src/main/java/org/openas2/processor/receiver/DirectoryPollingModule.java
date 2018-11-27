@@ -176,7 +176,7 @@ public abstract class DirectoryPollingModule extends PollingModule
                                 }
                             }
                             else*/
-                            if(FileBlockingQueue.isEmpty())
+                            if(FileBlockingQueue.size()==0)
                              {
                                 File[] Files = getFilesBasedOnFilter(IOUtilOld.getDirectoryFile(outboxDir), "downloaded");
                                 int dirFileLength = Files != null ? Files.length : 0;
@@ -185,7 +185,7 @@ public abstract class DirectoryPollingModule extends PollingModule
                                     if (dirFileLength > 0) {
                                         int dirFileCounter = 0;
                                         while (dirFileLength > 0 ) {
-                                            if (FileBlockingQueue.isEmpty()) {
+                                            if (FileBlockingQueue.size()==0) {
                                                 scanDirectory(Files);
                                                 synchronized (this) {
                                                     try {
@@ -197,9 +197,9 @@ public abstract class DirectoryPollingModule extends PollingModule
                                                 }
                                             }
 
-                                            //System.out.println(" Scan Directry  for" + dirFileLength + "  Files" + "in dir" + outboxDir);
-                                            //logger.info(" Scan Directry  for" + dirFileLength + "  Files" + "in dir" + outboxDir);
-                                            //dirFileCounter++;
+                                            System.out.println(" Scan Directry  for" + dirFileLength + "  Files" + "in dir" + outboxDir);
+                                            logger.info(" Scan Directry  for" + dirFileLength + "  Files" + "in dir" + outboxDir);
+                                            dirFileCounter++;
                                             //if (dirFileCounter == dirFileLength) {
 
                                                 Files = getFilesBasedOnFilter(IOUtilOld.getDirectoryFile(outboxDir), "downloaded");
@@ -209,6 +209,10 @@ public abstract class DirectoryPollingModule extends PollingModule
 
                                         }
                                     }
+
+                            }
+                            else
+                            {
 
                             }
                         }
@@ -458,7 +462,7 @@ public abstract class DirectoryPollingModule extends PollingModule
             synchronized (FileProcessingBlockingQueue) {
                 String filePath = file.getAbsolutePath();
 
-                if (FileProcessingBlockingQueue.contains(filePath) && !RunningQueueThreads.containsValue(filePath)) {
+                if (!FileProcessingBlockingQueue.contains(filePath) && !RunningQueueThreads.containsValue(filePath)) {
 
                         FileBlockingQueue.AddPath (filePath);
                         System.out.println("Track file and add it in  Tracked file list" + filePath);
