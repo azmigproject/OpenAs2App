@@ -396,6 +396,8 @@ public abstract class DirectoryPollingModule extends PollingModule
                 {
                     FileThreadCounter--;
                     RunningQueueThreads.remove(ThreadName);
+                    System.out.println("Finally executed in conumser thread now the FileThreadCounter value is " + FileThreadCounter);
+                    logger.info("Finally executed in conumser thread now the RunningQueueThreads value is " + RunningQueueThreads.size());
                 }
             }
         };
@@ -469,6 +471,13 @@ public abstract class DirectoryPollingModule extends PollingModule
                         logger.info("Track file and add it in  Tracked file list" + filePath);
                         logger.info("FileTracked" + FileBlockingQueue.size() + "& file in processing " + FileProcessingBlockingQueue.size());
 
+
+                }
+                else
+                {
+                    System.out.println("Track file and not add it in  Tracked file list" + filePath);
+                    logger.info("Track file and not add it in  Tracked file list" + filePath);
+                    logger.info("FileTracked" + FileBlockingQueue.size() + "& file in processing " + FileProcessingBlockingQueue.size());
 
                 }
             }
@@ -554,6 +563,9 @@ public abstract class DirectoryPollingModule extends PollingModule
                     System.out.println("Remove from FileProcessingBlockingQueue" + strFile);
                     logger.info("Remove from FileProcessingBlockingQueue" + strFile);
                     FileProcessingBlockingQueue.remove(strFile);
+                    logger.info(" remove file "+strFile+"FileProcessingBlockingQueue ");
+                    System.out.println(" remove file "+strFile+"FileProcessingBlockingQueue ");
+
                 }
 
             }
