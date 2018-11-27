@@ -226,6 +226,7 @@ public class Log implements org.apache.commons.logging.Log {
 		if (isLevelEnabled(LOG_LEVEL_ERROR))
 		{
 			lm.log(Level.ERROR, clazzname, message);
+			System.out.println(message.toString());
 			if (t != null) lm.log(t, false);			
 		}
 

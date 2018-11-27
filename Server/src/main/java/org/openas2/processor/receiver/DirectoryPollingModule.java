@@ -40,7 +40,7 @@ public abstract class DirectoryPollingModule extends PollingModule
     private int DirWatcherThreadCounter=0;
     private QueueHelper queueHelper;
     //BlockingQueue FileBlockingQueue;
-    BlockingQueue FileProcessingBlockingQueue;
+    BlockingQueue<String> FileProcessingBlockingQueue;
     private int BlockingQueueSizeSize=1000;
     private  int BlockingQueueThreshold=20;
 
@@ -67,7 +67,7 @@ public abstract class DirectoryPollingModule extends PollingModule
             /*FileBlockingQueue=new ArrayBlockingQueue(BlockingQueueSizeSize);
             FileProcessingBlockingQueue=new ArrayBlockingQueue(BlockingQueueSizeSize);*/
             /*FileBlockingQueue=new ArrayBlockingQueue(100000);*/
-            FileProcessingBlockingQueue=new LinkedBlockingQueue();
+            FileProcessingBlockingQueue=new  LinkedBlockingQueue<String>();
             FileBlockingQueue=new HighPerformanceBlockingQueue(BlockingQueueSizeSize);
             outboxDir = getParameter(PARAM_OUTBOX_DIRECTORY, true);
             IOUtilOld.getDirectoryFile(outboxDir);
@@ -113,7 +113,7 @@ public abstract class DirectoryPollingModule extends PollingModule
             isMsgInQueue = queueHelper.GetMsgFromQueue(outboxDir, 1,FileBlockingQueue);
 
 
-            if (isMsgInQueue || !FileBlockingQueue.isEmpty() || getFilesBasedOnFilter(IOUtilOld.getDirectoryFile(outboxDir), "downloaded").length > 0)
+            if (isMsgInQueue || FileBlockingQueue.size()>0 || getFilesBasedOnFilter(IOUtilOld.getDirectoryFile(outboxDir), "downloaded").length > 0)
 
             {
 
@@ -324,7 +324,7 @@ public abstract class DirectoryPollingModule extends PollingModule
     }
 
 
-    protected void scanDirectory(File[] files) throws IOException, InvalidParameterException
+     protected void scanDirectory(File[] files) throws IOException, InvalidParameterException
     {
 
         try {
@@ -341,6 +341,10 @@ public abstract class DirectoryPollingModule extends PollingModule
                         // start watching the file's size if it's not already being
                         // watched
                         trackFile(currentFile);
+                    }
+                    else
+                    {
+                        System.out.println("File not accessible and not tracked  " + currentFile);
                     }
                 }
             }
@@ -364,12 +368,12 @@ public abstract class DirectoryPollingModule extends PollingModule
             public void run() {
                 try {
 
-                    while (!FileBlockingQueue.isEmpty()) {
+                    while (FileBlockingQueue.size()>0) {
                         updateTracking(ThreadName);
 
                         System.out.println("BlockingQueue Length" + FileBlockingQueue.size());
                         logger.info("BlockingQueue Length" + FileBlockingQueue.size());
-                        if (FileBlockingQueue.isEmpty()) {
+                        if (FileBlockingQueue.size()>0) {
                             synchronized (this) {
                                 try {
                                     //  Thread.currentThread().wait(100);
@@ -394,8 +398,10 @@ public abstract class DirectoryPollingModule extends PollingModule
                 }
                 finally
                 {
-                    FileThreadCounter--;
-                    RunningQueueThreads.remove(ThreadName);
+                    --FileThreadCounter;
+
+                        RunningQueueThreads.remove(ThreadName);
+
                     System.out.println("Finally executed in conumser thread now the FileThreadCounter value is " + FileThreadCounter);
                     logger.info("Finally executed in conumser thread now the RunningQueueThreads value is " + RunningQueueThreads.size());
                 }
@@ -462,23 +468,23 @@ public abstract class DirectoryPollingModule extends PollingModule
 
         synchronized (FileBlockingQueue) {
             synchronized (FileProcessingBlockingQueue) {
-                String filePath = file.getAbsolutePath();
+                synchronized (RunningQueueThreads) {
+                    String filePath = file.getAbsolutePath();
 
-                if (!FileProcessingBlockingQueue.contains(filePath) && !RunningQueueThreads.containsValue(filePath)) {
+                    if (!FileProcessingBlockingQueue.contains(filePath) && !RunningQueueThreads.containsValue(filePath)) {
 
-                        FileBlockingQueue.AddPath (filePath);
+                        FileBlockingQueue.AddPath(filePath);
                         System.out.println("Track file and add it in  Tracked file list" + filePath);
                         logger.info("Track file and add it in  Tracked file list" + filePath);
                         logger.info("FileTracked" + FileBlockingQueue.size() + "& file in processing " + FileProcessingBlockingQueue.size());
 
 
-                }
-                else
-                {
-                    System.out.println("Track file and not add it in  Tracked file list" + filePath);
-                    logger.info("Track file and not add it in  Tracked file list" + filePath);
-                    logger.info("FileTracked" + FileBlockingQueue.size() + "& file in processing " + FileProcessingBlockingQueue.size());
+                    } else {
+                        System.out.println("Track file and not add it in  Tracked file list" + filePath);
+                        logger.info("Track file and not add it in  Tracked file list" + filePath);
+                        logger.info("FileTracked" + FileBlockingQueue.size() + "& file in processing " + FileProcessingBlockingQueue.size());
 
+                    }
                 }
             }
         }
@@ -490,7 +496,7 @@ public abstract class DirectoryPollingModule extends PollingModule
             synchronized (FileProcessingBlockingQueue) {
                 synchronized (RunningQueueThreads) {
 
-                    if (!FileBlockingQueue.isEmpty()) {
+                    if (FileBlockingQueue.size()>0) {
 
                         try {
                             strFileName = FileBlockingQueue.GetPath();
@@ -562,7 +568,7 @@ public abstract class DirectoryPollingModule extends PollingModule
                 synchronized (FileProcessingBlockingQueue) {
                     System.out.println("Remove from FileProcessingBlockingQueue" + strFile);
                     logger.info("Remove from FileProcessingBlockingQueue" + strFile);
-                    FileProcessingBlockingQueue.remove(strFile);
+                    FileProcessingBlockingQueue.remove(strFile.replace(".processing", ".downloaded"));
                     logger.info(" remove file "+strFile+"FileProcessingBlockingQueue ");
                     System.out.println(" remove file "+strFile+"FileProcessingBlockingQueue ");
 
@@ -621,6 +627,8 @@ public abstract class DirectoryPollingModule extends PollingModule
         catch (Exception ex)
         {
             System.out.println("Error occured in UpdateTrackingTask" + ex.getMessage());
+            logger.error("Error occured in UpdateTrackingTask", ex);
+
         }
 
     }
@@ -652,7 +660,11 @@ public abstract class DirectoryPollingModule extends PollingModule
             }
         } catch (FileNotFoundException e)
         {
-            throw new OpenAS2Exception("Failed to process file:" + file.getAbsolutePath(), e);
+            throw new OpenAS2Exception("Failed to process file as file not found:" + file.getAbsolutePath(), e);
+        }
+        catch (Exception e)
+        {
+            throw new OpenAS2Exception("Failed to process file due to exception:" + file.getAbsolutePath(), e);
         }
     }
 
