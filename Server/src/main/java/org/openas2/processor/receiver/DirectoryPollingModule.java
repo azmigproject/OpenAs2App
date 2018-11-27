@@ -221,7 +221,7 @@ public abstract class DirectoryPollingModule extends PollingModule
                         }
                         finally
                         {
-                            FileThreadCounter--;
+                            DirWatcherThreadCounter--;
                         }
                     }
                 };
@@ -390,7 +390,7 @@ public abstract class DirectoryPollingModule extends PollingModule
                 }
                 finally
                 {
-                    DirWatcherThreadCounter--;
+                    FileThreadCounter--;
                     RunningQueueThreads.remove(ThreadName);
                 }
             }
