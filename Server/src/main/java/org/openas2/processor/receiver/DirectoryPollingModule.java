@@ -336,12 +336,9 @@ public abstract class DirectoryPollingModule extends PollingModule {
 
     private Runnable GetConsumer(final String ThreadName) {
         return new Runnable() {
-
-
             @Override
             public void run() {
                 try {
-
                     while (FileBlockingQueue.size() > 0) {
                         updateTracking(ThreadName);
 
@@ -360,8 +357,6 @@ public abstract class DirectoryPollingModule extends PollingModule {
 
                         }
                     }
-
-
                 } catch (Exception ex) {
                     StringWriter sw = new StringWriter();
                     ex.printStackTrace(new PrintWriter(sw));
@@ -404,11 +399,9 @@ public abstract class DirectoryPollingModule extends PollingModule {
         try {
             return dir.listFiles(new FilenameFilter() {
                 public boolean accept(File dir, String name) {
-                    if (!name.toLowerCase().contains("error") && dir.isFile() &&  new Date(dir.lastModified()+age*1000).before(new Date()) ) {
+                    if (!name.toLowerCase().contains("error") && dir.isFile() && new Date(dir.lastModified()+(age*1000)).before(new Date()) ) {
                         return name.toLowerCase().endsWith("." + extensionFilter) ;
-                    } else
-
-                    {
+                    } else {
                         return false;
                     }
                 }
