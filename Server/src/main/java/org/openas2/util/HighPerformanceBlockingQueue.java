@@ -27,8 +27,14 @@ public class HighPerformanceBlockingQueue
     }
 
     public  int size() {
+    synchronized (this.queue) {
+        return this.queue.size();
+    }
+}
+
+    public  boolean contains(String msg) {
         synchronized (this.queue) {
-            return this.queue.size();
+            return this.queue.contains(msg);
         }
     }
 
@@ -50,7 +56,13 @@ public class HighPerformanceBlockingQueue
             if(!this.queue.isEmpty()) {
 
 
-                return this.queue.take();
+                String strValue=this.queue.take();
+               /* BlockingQueue<String> tempQueue=new LinkedBlockingQueue<String>(1);
+                tempQueue.add(strValue);
+                this.queue.removeAll(tempQueue);
+                tempQueue.clear();
+                tempQueue=null;*/
+                return strValue;
             }
             else
 

@@ -106,14 +106,14 @@ public class QueueHelper {
                     QueueRequestOptions queueReqOpt=new QueueRequestOptions();
                     queueReqOpt.setLocationMode(LocationMode.PRIMARY_THEN_SECONDARY);
 
-                    Iterable<CloudQueueMessage> cloudMsgs = queue.retrieveMessages(NoOffiledownload, 600,queueReqOpt, null);
+                    Iterable<CloudQueueMessage> cloudMsgs = queue.retrieveMessages(NoOffiledownload, 86400,queueReqOpt, null);
                     int intAccessCount=1;
                     //System.out.println("Try to Get Data Fromm Queue " + intAccessCount+" times");
                     //logger.info("Try to Get Data Fromm Queue " + intAccessCount+" times");
                     while(!((Iterable) cloudMsgs).iterator().hasNext() && intAccessCount>=3)
                     {
                         intAccessCount++;
-                        cloudMsgs = queue.retrieveMessages(NoOffiledownload, 600 ,queueReqOpt, null);
+                        cloudMsgs = queue.retrieveMessages(NoOffiledownload, 86400 ,queueReqOpt, null);
                         //System.out.println("Try to Get Data Fromm Queue " + intAccessCount+" times");
                         //logger.info("Try to Get Data Fromm Queue " + intAccessCount+" times");
                     }
