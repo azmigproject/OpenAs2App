@@ -101,7 +101,7 @@ public class OpenAS2Server {
 
             //XMLSession session = new XMLSession(findConfig(args).getAbsolutePath());
 
-            XMLSession session = new XMLSession(args[0],Integer.parseInt(args[1]),Integer.parseInt(args[2]),Integer.parseInt(args[3]),Integer.parseInt(args[4]),Integer.parseInt(args[5]));
+            XMLSession session = new XMLSession(args[0],Integer.parseInt(args[1]),Integer.parseInt(args[2]),Integer.parseInt(args[3]),Integer.parseInt(args[4]),Integer.parseInt(args[5]), Integer.parseInt(args[6]), Integer.parseInt(args[7]));
             final OpenAS2Server server = new OpenAS2Server(session);
 
             registerShutdownHookIfNeeded(server);

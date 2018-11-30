@@ -146,7 +146,7 @@ public class AS2SenderModule extends HttpSenderModule {
                 // Log significant msg state
                 msg.setOption("STATE", Message.MSG_STATE_SEND_START);
                 msg.trackMsgState(getSession());
-
+                //Retry Interval and Retry Attempts
                 sendMessage(conn, msg, securedData, retries);
             } catch (HttpResponseException hre)
             {
@@ -257,7 +257,7 @@ public class AS2SenderModule extends HttpSenderModule {
                                 + org.openas2.logging.Log.getExceptionMsg(ioe));
                         logger.error(msg, ioe);
                         // What to do???
-                        resend(msg, new OpenAS2Exception(org.openas2.logging.Log.getExceptionMsg(ioe)), retries);
+                        //resend(msg, new OpenAS2Exception(org.openas2.logging.Log.getExceptionMsg(ioe)), retries);
                         // Log significant msg state
                         msg.setOption("STATE", Message.MSG_STATE_MDN_RECEIVING_EXCEPTION);
                         msg.trackMsgState(getSession());
@@ -367,14 +367,33 @@ public class AS2SenderModule extends HttpSenderModule {
         {
             logger.info("Connecting to: " + conn.getURL() + msg.getLogMsgID());
         }
-
+        int maxRetryAttempts = getSession().getRetryAttempts();
+        int retryIntervalInSeconds = getSession().getRetryIntervalInSeconds();
+        int retryAttempts = 0;
+        OutputStream messageOut = null;
         // Note: closing this stream causes connection abort errors on some AS2
         // servers
-        OutputStream messageOut = conn.getOutputStream();
-
+        while(retryAttempts < maxRetryAttempts) {
+            ++retryAttempts;
+            try {
+                messageOut = conn.getOutputStream();
+                retryAttempts = maxRetryAttempts;
+            } catch (Exception ex){
+                Thread.sleep(retryIntervalInSeconds * 1000);
+            }
+        }
+        retryAttempts = 0;
+        InputStream messageIn = null;
         // Transfer the data
-        InputStream messageIn = securedData.getInputStream();
-
+        while (retryAttempts < maxRetryAttempts) {
+            ++retryAttempts;
+            try {
+                messageIn = securedData.getInputStream();
+                retryAttempts = maxRetryAttempts;
+            } catch (Exception ex){
+                Thread.sleep(retryIntervalInSeconds * 1000);
+            }
+        }
         try
         {
             ProfilerStub transferStub = Profiler.startProfile();

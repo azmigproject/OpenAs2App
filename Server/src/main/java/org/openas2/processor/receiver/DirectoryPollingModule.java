@@ -42,7 +42,7 @@ public abstract class DirectoryPollingModule extends PollingModule {
     //BlockingQueue FileBlockingQueue;
     BlockingQueue<String> FileProcessingBlockingQueue;
     private int BlockingQueueSizeSize = 1000;
-    private int BlockingQueueThreshold = 20;
+    private int FileWatcherStalenessThresholdInSeconds = 90;
 
     ConcurrentMap<String, String> RunningQueueThreads;
     HighPerformanceBlockingQueue FileBlockingQueue;
@@ -58,7 +58,7 @@ public abstract class DirectoryPollingModule extends PollingModule {
             MAX_FileThread = session.getMaxFileProcessorThread();
             MAX_DirectoryThread = session.getMaxDirWatcherThread();
             BlockingQueueSizeSize = session.getBlockingQueueSizeSize();
-            BlockingQueueThreshold = session.getBlockingQueueThreshold();
+            FileWatcherStalenessThresholdInSeconds = session.getFileWatcherStalenessThresholdInSeconds();
             RunningQueueThreads = new ConcurrentHashMap<String, String>();
             /*FileBlockingQueue=new ArrayBlockingQueue(1000);
             FileProcessingBlockingQueue=new ArrayBlockingQueue(1000);*/
@@ -166,7 +166,7 @@ public abstract class DirectoryPollingModule extends PollingModule {
                             }
                             else*/
                             if (FileBlockingQueue.size() == 0) {
-                                File[] Files = getFilesBasedOnFilterWithAge(IOUtilOld.getDirectoryFile(outboxDir), "downloaded",90);
+                                File[] Files = getFilesBasedOnFilterWithAge(IOUtilOld.getDirectoryFile(outboxDir), "downloaded",FileWatcherStalenessThresholdInSeconds);
                                 int dirFileLength = Files != null ? Files.length : 0;
 
 
@@ -395,12 +395,12 @@ public abstract class DirectoryPollingModule extends PollingModule {
         }
     }
 
-    private File[] getFilesBasedOnFilterWithAge(File dir, final String extensionFilter,final long age) {
+    private File[] getFilesBasedOnFilterWithAge(File dir, final String extensionFilter,final long staleIntervalInSeconds) {
         try {
-            return dir.listFiles(new FilenameFilter() {
-                public boolean accept(File dir, String name) {
-                    if (!name.toLowerCase().contains("error") && dir.isFile() && new Date(dir.lastModified()+(age*1000)).before(new Date()) ) {
-                        return name.toLowerCase().endsWith("." + extensionFilter) ;
+            return dir.listFiles(new FileFilter() {
+                public boolean accept(File f) {
+                    if (f.isFile() && !new Date().before(new Date(f.lastModified()+(staleIntervalInSeconds*1000)))) {
+                        return f.getName().toLowerCase().endsWith("." + extensionFilter);
                     } else {
                         return false;
                     }

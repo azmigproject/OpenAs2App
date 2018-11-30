@@ -93,6 +93,7 @@ public interface Session {
     int getMaxDirWatcherThread();
     int getMaxQueueDownloaderThread();
     int getBlockingQueueSizeSize();
-    int getBlockingQueueThreshold();
-
+    int getFileWatcherStalenessThresholdInSeconds();
+    int getRetryAttempts();
+    int getRetryIntervalInSeconds();
 }

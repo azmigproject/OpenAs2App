@@ -18,8 +18,9 @@ public abstract class BaseSession implements Session {
     private  int MaxFileProcessorThread;
     private  int MaxDirWatcherThread;
     private  int BlockingQueueSizeSize;
-    private  int BlockingQueueThreshold;
-
+    private  int FileWatcherStalenessThresholdInSeconds;
+    private int RetryAttempts;
+    private int RetryIntervalInSeconds;
 
     /**
      * Creates a <code>BaseSession</code> object, then calls the <code>init()</code> method.
@@ -158,14 +159,14 @@ public abstract class BaseSession implements Session {
         MaxDirWatcherThread = threadPool;
     }
 
-    public int getBlockingQueueThreshold()
+    public int getFileWatcherStalenessThresholdInSeconds()
     {
-        return BlockingQueueThreshold;
+        return FileWatcherStalenessThresholdInSeconds;
     }
 
-    void setBlockingQueueThreshold(int threshold)
+    void setFileWatcherStalenessThresholdInSeconds(int threshold)
     {
-        BlockingQueueThreshold = threshold;
+        FileWatcherStalenessThresholdInSeconds = threshold;
     }
 
     public int getBlockingQueueSizeSize()
@@ -178,4 +179,10 @@ public abstract class BaseSession implements Session {
         BlockingQueueSizeSize = QueueSize;
     }
 
+    void setRetryAttempts(int retryAttempts) { RetryAttempts =  retryAttempts; }
+
+    void setRetryIntervalInSeconds(int retryIntervalInSeconds) { RetryIntervalInSeconds = retryIntervalInSeconds; }
+
+    public int getRetryAttempts() { return RetryAttempts; }
+    public int getRetryIntervalInSeconds() { return RetryIntervalInSeconds; }
 }
