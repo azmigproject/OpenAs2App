@@ -190,7 +190,7 @@ public abstract class DirectoryPollingModule extends PollingModule {
                                         dirFileCounter++;
                                         //if (dirFileCounter == dirFileLength) {
 
-                                        Files = getFilesBasedOnFilter(IOUtilOld.getDirectoryFile(outboxDir), "downloaded");
+                                        Files = getFilesBasedOnFilterWithAge(IOUtilOld.getDirectoryFile(outboxDir), "downloaded", FileWatcherStalenessThresholdInSeconds);
                                         dirFileLength = Files != null ? Files.length : 0;
                                         // dirFileCounter = 0;
 
