@@ -479,9 +479,9 @@ public abstract class DirectoryPollingModule extends PollingModule {
                                             if (!FileProcessingBlockingQueue.contains(filePath) && !RunningQueueThreads.containsValue(filePath)) {
 
                                                 FileBlockingQueue.AddPath(filePath);
-                                                System.out.println("Track file and add it in  Tracked file list" + filePath);
-                                                logger.info("Track file and add it in  Tracked file list" + filePath);
-                                                logger.info("FileTracked" + FileBlockingQueue.size() + "& file in processing " + FileProcessingBlockingQueue.size());
+                                                System.out.println("Track file and add it in  Tracked file list (checkFileAndTrack)" + filePath);
+                                                logger.info("Track file and add it in  Tracked file list  (checkFileAndTrack)" + filePath);
+                                                logger.info("FileTracked" + FileBlockingQueue.size() + "& file in processing  (checkFileAndTrack)" + FileProcessingBlockingQueue.size()+ " "+filePath);
 
 
                                             } else {
@@ -526,9 +526,9 @@ public abstract class DirectoryPollingModule extends PollingModule {
                         if (!FileProcessingBlockingQueue.contains(filePath) && !RunningQueueThreads.containsValue(filePath)) {
 
                             FileBlockingQueue.AddPath(filePath);
-                            System.out.println("Track file and add it in  Tracked file list" + filePath);
-                            logger.info("Track file and add it in  Tracked file list" + filePath);
-                            logger.info("FileTracked" + FileBlockingQueue.size() + "& file in processing " + FileProcessingBlockingQueue.size());
+                            System.out.println("Track file and add it in  Tracked file list (trackFile)"+ filePath);
+                            logger.info("Track file and add it in  Tracked file list (trackFile)" + filePath);
+                            logger.info("FileTracked" + FileBlockingQueue.size() + "& file in processing (trackFile)" + FileProcessingBlockingQueue.size()+" "+filePath);
 
 
                         } else {
@@ -565,9 +565,9 @@ public abstract class DirectoryPollingModule extends PollingModule {
                                     FileProcessingBlockingQueue.add(strFileName);
                                     RunningQueueThreads.replace(ThreadName, strFileName);
 
-                                    System.out.println("Get file from queue for procesing" + strFileName);
-                                    System.out.println("Add file in FileProcessingBlockingQueue " + strFileName);
-                                    System.out.println("Thread " + ThreadName + "Process file " + strFileName);
+                                   // System.out.println("Get file from queue for procesing" + strFileName);
+                                    //System.out.println("Add file in FileProcessingBlockingQueue " + strFileName);
+                                   // System.out.println("Thread " + ThreadName + "Process file " + strFileName);
                                     logger.info("Get file from queue for procesing" + strFileName);
                                     logger.info("Add file in FileProcessingBlockingQueue " + strFileName);
                                     logger.info("Thread " + ThreadName + "Process file " + strFileName);

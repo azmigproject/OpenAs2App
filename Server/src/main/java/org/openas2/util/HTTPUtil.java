@@ -47,6 +47,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openas2.OpenAS2Exception;
 import org.openas2.WrappedException;
+import org.openas2.message.AS2Message;
 import org.openas2.message.Message;
 
 public class HTTPUtil {
@@ -612,6 +613,8 @@ public class HTTPUtil {
                 conn.setDoInput(input);
                 conn.setUseCaches(useCaches);
                 conn.setRequestMethod(requestMethod);
+                conn.setConnectTimeout(180000);
+                conn.setReadTimeout(180000);
 
                 return conn;
             } catch (IOException ioe) {
@@ -652,28 +655,52 @@ public class HTTPUtil {
         }
         
         // Copy headers from an Http connection to an InternetHeaders object
-        public static void copyHttpHeaders(HttpURLConnection conn, InternetHeaders headers) {
-            Iterator<Map.Entry<String,List<String>>> connHeadersIt = conn.getHeaderFields().entrySet().iterator();
+        public static void copyHttpHeaders(HttpURLConnection conn, InternetHeaders headers, Message msg) throws Exception {
+        	Log logger = LogFactory.getLog(AS2Util.class.getSimpleName());
+        	
+        	try
+        	{
+        	 logger.error("Retrieving header fields fom HTTP Stage1: "+ msg.getLogMsgID());
+        	 InputStream errStrm = conn.getErrorStream();
+       
+        	
+        	 if (errStrm != null)
+        	{
+        		logger.error("Error Retrieving header fields fom HTTP Stage: "+ msg.getLogMsgID());
+        		throw new Exception("HTTP Header Maping info not available. ");
+        	}
+        	 
+        	logger.error("Retrieving header fields fom HTTP Stage1.1: "+ msg.getLogMsgID());
+        	Map<String, List<String>> hders = conn.getHeaderFields();
+        	logger.error("Retrieving header fields fom HTTP Stage1.2: "+ msg.getLogMsgID());
+        	Iterator<Map.Entry<String,List<String>>> connHeadersIt = hders.entrySet().iterator();
+        	//Iterator<Map.Entry<String,List<String>>> connHeadersIt = conn.getHeaderFields().entrySet().iterator();
             Iterator<String> connValuesIt;
             Map.Entry<String,List<String>> connHeader;
             String headerName;
-
+            logger.error("Retrieving header fields fom HTTP Stage1.3: "+ msg.getLogMsgID());
             while (connHeadersIt.hasNext()) {
+            	
                 connHeader = connHeadersIt.next();
                 headerName = connHeader.getKey();
-
+                
                 if (headerName != null) {
                     connValuesIt = connHeader.getValue().iterator();
-
+                   
                     while (connValuesIt.hasNext()) {
+                    	
                         String value = connValuesIt.next();
-
+                        
                         String[] existingVals = headers.getHeader(headerName);
+                       
                         if (existingVals == null) {
+                        	
                             headers.setHeader(headerName, value);
+                            
                         }
                         else
                         {
+                        	logger.error("Retrieving header fields fom HTTP Stage9: "+ msg.getLogMsgID());
                         	// Avoid duplicates of the same value since headers that exist in the HTTP headers
                         	// may already have been inserted in the Message object
                         	boolean exists = false;
@@ -688,7 +715,12 @@ public class HTTPUtil {
                         }
                     }
                 }
+                logger.error("Retrieving header fields fom HTTP Stage10: "+ msg.getLogMsgID());
             }
+        	}catch(Exception e)
+        	{
+        		throw e;
+        	}
         }
 
     	private static class SelfSignedTrustManager implements X509TrustManager

@@ -105,77 +105,82 @@ public class QueueHelper {
                     // System.out.println( "Approx msg in queue"+queue.getApproximateMessageCount() );
                     QueueRequestOptions queueReqOpt=new QueueRequestOptions();
                     queueReqOpt.setLocationMode(LocationMode.PRIMARY_THEN_SECONDARY);
-
-                    Iterable<CloudQueueMessage> cloudMsgs = queue.retrieveMessages(NoOffiledownload, 86400,queueReqOpt, null);
-                    int intAccessCount=1;
+                    Iterable<CloudQueueMessage> cloudMsgs = null;
+                    
+                    synchronized(queue)
+                    {
+                    	//Iterable<CloudQueueMessage>	 cloudMsgs = queue.retrieveMessages(NoOffiledownload, 86400,queueReqOpt, null);
+                    	 cloudMsgs = queue.retrieveMessages(NoOffiledownload, 86400,queueReqOpt, null);
+                    }
+                    // int intAccessCount=1;
                     //System.out.println("Try to Get Data Fromm Queue " + intAccessCount+" times");
                     //logger.info("Try to Get Data Fromm Queue " + intAccessCount+" times");
-                    while(!((Iterable) cloudMsgs).iterator().hasNext() && intAccessCount>=3)
-                    {
-                        intAccessCount++;
-                        cloudMsgs = queue.retrieveMessages(NoOffiledownload, 86400 ,queueReqOpt, null);
-                        //System.out.println("Try to Get Data Fromm Queue " + intAccessCount+" times");
-                        //logger.info("Try to Get Data Fromm Queue " + intAccessCount+" times");
-                    }
 
                     int msgCounter=0;
-
+                    
+                   
                     for (CloudQueueMessage message : cloudMsgs) {
-                        msgCounter++;
-                        result = true;
-                        // Do processing for all messages in less than 5 minutes,
-                        // deleting each message after processing.
-                        try {
-                            queueMessage = message.getMessageContentAsString();
-                            System.out.println("In GetMsgFromQueueTask" + queueMessage);
-                            if (queueMessage.contains("|__|")) {
-                                String[] arr = queueMessage.split("\\|__\\|");
-                                File file = new File(outDir + "\\" + arr[0]);
-                                file.createNewFile();
-                                FileWriter writer = new FileWriter(file);
-                                writer.write(arr[1]);
-                                writer.flush();
-                                writer.close();
-                                File NewFile=new File(outDir + "\\" + arr[0]+".downloaded");
-                                IOUtilOld.moveFile(file,NewFile,false, true);
-                                //org.h2.store.fs.FileUtils.move(outDir + "\\" + arr[0],);
-                                synchronized (fileQueue) {
-
-
-                                        fileQueue.AddPath(outDir + "\\" + arr[0] + ".downloaded");
-
-                                }
-
-                            } else { //if (queueMessage.contains("|_B_|"))
-                                String[] arr = queueMessage.split("\\|_B_\\|");
-                                //BlobHelper blob = new BlobHelper();
-                                String blobName = GetBlobName(as2NewIdentifier, arr[0]);
-                                BlobHelper blob = new BlobHelper();
-
-
-                                if (blob.DownloadBlobInFile(Constants.BLOBCONTAINER, blobName, outDir, GetOriginalFileName(arr[0]),fileQueue)) {
-                                    blob.DeleteBlob(Constants.BLOBCONTAINER, blobName);
-                                }
-                            }
-
-                        } catch (Exception e) {
-                            // Output the stack trace.
-                            System.out.println("Error occured" + e.getMessage());
-                            e.printStackTrace();
-                            if (!queueMessage.isEmpty()) {
-                                System.console().writer().write("FileName:" + queueMessage);
-                            }
-                            logger.error(e);
-                        } finally {
-                            try {
-                                queue.deleteMessage(message);
-                            } catch (Exception exp) {
-                                System.out.println("Error occured in deleting queue mesage" + exp.getMessage());
-                                logger.error(exp);
-                            }
-                        }
+                    
+                    	 synchronized(fileQueue)
+                    	 {
+	                        msgCounter++;
+	                        result = true;
+	                        // Do processing for all messages in less than 5 minutes,
+	                        // deleting each message after processing.
+	                        try {
+	                            queueMessage = message.getMessageContentAsString();
+	                            System.out.println("In GetMsgFromQueueTask" + queueMessage);
+	                            if (queueMessage.contains("|__|")) {
+	                                String[] arr = queueMessage.split("\\|__\\|");
+	                                File file = new File(outDir + "\\" + arr[0]);
+	                                file.createNewFile();
+	                                FileWriter writer = new FileWriter(file);
+	                                writer.write(arr[1]);
+	                                writer.flush();
+	                                writer.close();
+	                                File NewFile=new File(outDir + "\\" + arr[0]+".downloaded");
+	                                IOUtilOld.moveFile(file,NewFile,false, true);
+	                                logger.info("File copied from txt to downloaded " + file.getName() +" to "+ NewFile.getName());
+	                                //org.h2.store.fs.FileUtils.move(outDir + "\\" + arr[0],);
+	                               // synchronized (fileQueue) {
+	
+	
+	                                        fileQueue.AddPath(outDir + "\\" + arr[0] + ".downloaded");
+	                                        logger.info("File Added to BlockingQueue " + outDir + "\\" + arr[0] + ".downloaded");
+	
+	                               // }
+	
+	                            } else { //if (queueMessage.contains("|_B_|"))
+	                                String[] arr = queueMessage.split("\\|_B_\\|");
+	                                //BlobHelper blob = new BlobHelper();
+	                                String blobName = GetBlobName(as2NewIdentifier, arr[0]);
+	                                BlobHelper blob = new BlobHelper();
+	
+	
+	                                if (blob.DownloadBlobInFile(Constants.BLOBCONTAINER, blobName, outDir, GetOriginalFileName(arr[0]),fileQueue)) {
+	                                    blob.DeleteBlob(Constants.BLOBCONTAINER, blobName);
+	                                }
+	                            }
+	
+	                        } catch (Exception e) {
+	                            // Output the stack trace.
+	                            System.out.println("Error occured" + e.getMessage());
+	                            e.printStackTrace();
+	                            if (!queueMessage.isEmpty()) {
+	                                System.console().writer().write("FileName:" + queueMessage);
+	                            }
+	                            logger.error(e);
+	                        } finally {
+	                            try {
+	                                queue.deleteMessage(message);
+	                            } catch (Exception exp) {
+	                                System.out.println("Error occured in deleting queue mesage" + exp.getMessage());
+	                                logger.error(exp);
+	                            }
+	                        }
 
                     }
+                }
                     /*if(msgCounter==0)
                     {
                         System.out.println("message not found in queue " + queueName +"after "+intAccessCount+"tries");

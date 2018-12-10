@@ -19,8 +19,8 @@ public abstract class HttpSenderModule extends BaseSenderModule implements Sende
     	if (url == null) throw new OpenAS2Exception("HTTP sender module received empty URL string.");
         /*System.setProperty("sun.net.client.defaultReadTimeout", getParameter(PARAM_READ_TIMEOUT, "60000"));
         System.setProperty("sun.net.client.defaultConnectTimeout", getParameter(PARAM_CONNECT_TIMEOUT, "60000"));*/
-        System.setProperty("sun.net.client.defaultReadTimeout", getParameter(PARAM_READ_TIMEOUT, "3000000"));
-        System.setProperty("sun.net.client.defaultConnectTimeout", getParameter(PARAM_CONNECT_TIMEOUT, "300000"));
+        System.setProperty("sun.net.client.defaultReadTimeout", getParameter(PARAM_READ_TIMEOUT, "60000"));
+        System.setProperty("sun.net.client.defaultConnectTimeout", getParameter(PARAM_CONNECT_TIMEOUT, "60000"));
         return HTTPUtil.getConnection(url, output, input, useCaches, requestMethod);
     }
 }

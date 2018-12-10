@@ -893,5 +893,63 @@ public class AS2Util {
     	return(headers);
 
     }
+    
+    public static boolean testStreamforCompleteData(AS2Message msg, byte[] data,  Session session)
+    {
+    	
+    	Log logger = LogFactory.getLog(AS2Util.class.getSimpleName());
+    	boolean result = true;
+    	
+    
+    	MessageMDN mdn = msg.getMDN();
+	     
+    	try
+    	{
+		// get the MDN partnership info
+		mdn.getPartnership().setSenderID(AS2Partnership.PID_AS2, mdn.getHeader("AS2-From"));
+		mdn.getPartnership().setReceiverID(AS2Partnership.PID_AS2, mdn.getHeader("AS2-To"));
+		session.getPartnershipFactory().updatePartnership(mdn, false);
+    	}catch(Exception ex)
+    	{
+    		logger.error("Error retrieving session to buil header for testing stream message" +  msg.getLogMsgID());
+    		result = false;
+    		return result;
+    	}
+    	
+		MimeBodyPart part;
+		try
+		{
+			part = new MimeBodyPart(mdn.getHeaders(), data);
+			msg.getMDN().setData(part);
+			
+			CertificateFactory cFx = session.getCertificateFactory();
+			X509Certificate senderCert = cFx.getCertificate(mdn, Partnership.PTYPE_RECEIVER);
+
+			msg.setStatus(Message.MSG_STATUS_MDN_PARSE);
+			
+			try
+			{
+				ICryptoHelper ch = getCryptoHelper();
+				MimeBodyPart mainPart = mdn.getData();
+		        
+				if (ch.isSigned(mainPart)) {
+				    mainPart = getCryptoHelper().verifySignature(mainPart, senderCert);
+				}
+			} catch (Exception e1)
+			{
+				result = false;
+	    		return result;
+				
+			}
+			
+			AS2Util.parseMDN(msg, senderCert);
+			
+		} catch (Exception e1)
+		{
+			result = false;
+		}
+    	
+    	return result;
+    }
 
 }
