@@ -1,12 +1,6 @@
 package org.openas2.processor.sender;
 
 import java.io.ByteArrayOutputStream;
-//import java.io.BufferedInputStream;
-//import java.io.BufferedOutputStream;
-//import java.io.ByteArrayOutputStream;
-//import java.io.DataInputStream;
-//import java.io.File;
-//import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,7 +9,6 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
-//import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
 
@@ -48,8 +41,6 @@ public class AS2SenderModule extends HttpSenderModule {
 
     private Log logger = LogFactory.getLog(AS2SenderModule.class.getSimpleName());
 
-    public String RequestString="";
-
     public boolean canHandle(String action, Message msg, Map<Object, Object> options)
     {
         if (!action.equals(SenderModule.DO_SEND))
@@ -59,8 +50,6 @@ public class AS2SenderModule extends HttpSenderModule {
 
         return (msg instanceof AS2Message);
     }
-
-
 
     @SuppressWarnings("unchecked")
     public void handle(String action, Message msg, Map<Object, Object> options) throws OpenAS2Exception
@@ -156,7 +145,8 @@ public class AS2SenderModule extends HttpSenderModule {
             {
                 // Create the HTTP connection and set up headers
                 String url = msg.getPartnership().getAttribute(AS2Partnership.PA_AS2_URL);
-                conn = getConnection(url, true, true, false, "POST");
+                logger.info("Partnership Data - " + msg.getPartnership().toString());
+                conn = getConnection(url, true, true, false, "POST", 180000, 180000);
                 logger.info("*****Connection/Read Timeout Value = Connection:" +conn.getConnectTimeout()+ " - Read:"+conn.getReadTimeout()+" - "+msg.getLogMsgID());
                 
                 
@@ -253,7 +243,8 @@ public class AS2SenderModule extends HttpSenderModule {
                         msg.setLogMsg("Failed to get input stream for receiving MDN: "
                                 + org.openas2.logging.Log.getExceptionMsg(e1));
                         logger.error(msg, e1);
-                       // resend(msg, new OpenAS2Exception(org.openas2.logging.Log.getExceptionMsg(e1)), retries);
+                        //Commented to remove Duplicates due to error in MDN Receipt processing
+                        // resend(msg, new OpenAS2Exception(org.openas2.logging.Log.getExceptionMsg(e1)), retries);
                         // Log significant msg state
                         msg.setOption("STATE", Message.MSG_STATE_MDN_RECEIVING_EXCEPTION);
                         msg.trackMsgState(getSession());
@@ -449,7 +440,6 @@ public class AS2SenderModule extends HttpSenderModule {
 	    {
 	        logger.info("Start message sending with"+conn.getURL() + msg.getLogMsgID());
 	        updateHttpHeaders(conn, msg, securedData);
-            LogHttpHeadersInBlob(conn, msg, securedData);
 	        msg.setAttribute(NetAttribute.MA_DESTINATION_IP, conn.getURL().getHost());
 	        msg.setAttribute(NetAttribute.MA_DESTINATION_PORT, Integer.toString(conn.getURL().getPort()));
 	        logger.info("set Header and update");
@@ -493,7 +483,6 @@ public class AS2SenderModule extends HttpSenderModule {
 	
 	            
 	            Profiler.endProfile(transferStub);
-
 	            if (logger.isInfoEnabled())
 	            {
 	                logger.info("transferred " + IOUtilOld.getTransferRate(bytes, transferStub) + msg.getLogMsgID());
@@ -731,241 +720,94 @@ public class AS2SenderModule extends HttpSenderModule {
 
     protected void updateHttpHeaders(HttpURLConnection conn, Message msg, MimeBodyPart securedData)
     {
+        Partnership partnership = msg.getPartnership();
 
+        conn.setRequestProperty("Connection", "close, TE");
+        conn.setRequestProperty("User-Agent", msg.getAppTitle() + " (AS2Sender)");
 
-            Partnership partnership = msg.getPartnership();
-
-            conn.setRequestProperty("Connection", "close, TE");
-
-            conn.setRequestProperty("User-Agent", msg.getAppTitle() + " (AS2Sender)");
-
-            // Ensure date is formatted in english so there are only USASCII chars to avoid error
-            conn.setRequestProperty("Date",
-                    DateUtil.formatDate(
-                            Properties.getProperty("HTTP_HEADER_DATE_FORMAT", "EEE, dd MMM yyyy HH:mm:ss Z")
-                            , Locale.ENGLISH));
-
-            conn.setRequestProperty("Message-ID", msg.getMessageID());
-
-            conn.setRequestProperty("Mime-Version", "1.0"); // make sure this is the
-
-            // encoding used in the
-            // msg, run TBF1
-            try {
-                conn.setRequestProperty("Content-type", securedData.getContentType());
-            } catch (MessagingException e) {
-                conn.setRequestProperty("Content-type", msg.getContentType());
-            }
-
-
-            try {
-                conn.setRequestProperty("AS2-Version", "1.1"); // RFC6017 - AS2 V1.1 supports compression
-                // AS2 V1.2 additionally supports EDIINT-Features
-                // conn.setRequestProperty("EDIINT-Features",
-                // "CEM,multiple-attachments"); // TODO (possibly implement???)
-            }
-            catch (Exception exp)
-            {
-                logger.error(exp);
-                System.out.println(exp.getMessage());
-            }
-
-            String cte = null;
-            try {
-                cte = securedData.getEncoding();
-            } catch (MessagingException e1) {
-                e1.printStackTrace();
-            }
-            if (cte == null) {
-                cte = Session.DEFAULT_CONTENT_TRANSFER_ENCODING;
-            }
-            conn.setRequestProperty("Content-Transfer-Encoding", cte);
-
-
-            conn.setRequestProperty("Recipient-Address", partnership.getAttribute(AS2Partnership.PA_AS2_URL));
-            logger.info("updateHttpHeaders 7 Recipient-Address ");
-
-            conn.setRequestProperty("AS2-To", partnership.getReceiverID(AS2Partnership.PID_AS2));
-
-            conn.setRequestProperty("AS2-From", partnership.getSenderID(AS2Partnership.PID_AS2));
-
-            conn.setRequestProperty("Subject", msg.getSubject());
-
-            conn.setRequestProperty("From", partnership.getSenderID(Partnership.PID_EMAIL));
-
-            String dispTo = partnership.getAttribute(AS2Partnership.PA_AS2_MDN_TO);
-
-            if (dispTo != null) {
-                conn.setRequestProperty("Disposition-Notification-To", dispTo);
-
-            }
-
-            String dispOptions = partnership.getAttribute(AS2Partnership.PA_AS2_MDN_OPTIONS);
-
-            if (dispOptions != null) {
-                conn.setRequestProperty("Disposition-Notification-Options", dispOptions);
-
-            }
-
-            String receiptOption = partnership.getAttribute(AS2Partnership.PA_AS2_RECEIPT_OPTION);
-            if (receiptOption != null) {
-                conn.setRequestProperty("Receipt-Delivery-Option", receiptOption);
-
-            }
-
-            String contentDisp;
-            try {
-                contentDisp = securedData.getDisposition();
-            } catch (MessagingException e) {
-                contentDisp = msg.getContentDisposition();
-            }
-            if (contentDisp != null) {
-                conn.setRequestProperty("Content-Disposition", contentDisp);
-
-            }
-            if ("true".equalsIgnoreCase((partnership.getAttribute(AS2Partnership.PA_ADD_CUSTOM_MIME_HEADERS_TO_HTTP)))) {
-                if (logger.isTraceEnabled()) {
-                    logger.trace("Adding custom headers to HTTP..." + msg.getLogMsgID());
-                }
-                for (Map.Entry<String, String> entry : msg.getCustomOuterMimeHeaders().entrySet()) {
-                    conn.setRequestProperty(entry.getKey(), entry.getValue());
-
-                }
-
-            }
-    }
-
-    protected void LogHttpHeadersInBlob(HttpURLConnection conn, Message msg, MimeBodyPart securedData)
-    {
-        try {
-            logger.info("LogHttpHeadersInBlob 1 ");
-            StringBuilder ReqBulider = new StringBuilder();
-            RequestString = "";
-            Partnership partnership = msg.getPartnership();
-
-
-            ReqBulider.append("User-Agent:=" + msg.getAppTitle() + " (AS2Sender)");
-            ReqBulider.append("\n");
-            // Ensure date is formatted in english so there are only USASCII chars to avoid error
-
-            ReqBulider.append("Date:=" +
-                    DateUtil.formatDate(
-                            Properties.getProperty("HTTP_HEADER_DATE_FORMAT", "EEE, dd MMM yyyy HH:mm:ss Z")
-                            , Locale.ENGLISH));
-            ReqBulider.append("\n");
-
-            ReqBulider.append("Message-ID:=" + msg.getMessageID());
-            ReqBulider.append("\n");
-
-            ReqBulider.append("Mime-Version:=" + "1.0");
-            ReqBulider.append("\n");
-            // encoding used in the
-            // msg, run TBF1
-
-            ReqBulider.append("Content-type:=" + conn.getContentType());
-            ReqBulider.append("\n");
-            logger.info("LogHttpHeadersInBlob 2 ");
-
-            logger.info("LogHttpHeadersInBlob 3 ");
-            ReqBulider.append("AS2-Version:=" + "1.1");
-            ReqBulider.append("\n");
-            ReqBulider.append("Cache-Control:=" + conn.getHeaderField("Cache-Control"));
-            ReqBulider.append("\n");
-            logger.info("LogHttpHeadersInBlob 4 ");
-            String cte = null;
-            try {
-                cte = securedData.getEncoding();
-            } catch (MessagingException e1) {
-                e1.printStackTrace();
-            }
-            if (cte == null) {
-                cte = Session.DEFAULT_CONTENT_TRANSFER_ENCODING;
-            }
-
-            logger.info("LogHttpHeadersInBlob 6 ");
-            ReqBulider.append("Content-Transfer-Encoding:=" + cte);
-            ReqBulider.append("\n");
-
-            logger.info("LogHttpHeadersInBlob 7 Recipient-Address ");
-            ReqBulider.append("Recipient-Address:=" + partnership.getAttribute(AS2Partnership.PA_AS2_URL));
-            ReqBulider.append("\n");
-
-            ReqBulider.append("AS2-To:=" + partnership.getReceiverID(AS2Partnership.PID_AS2));
-            ReqBulider.append("\n");
-
-            ReqBulider.append("AS2-From:=" + partnership.getSenderID(AS2Partnership.PID_AS2));
-            ReqBulider.append("\n");
-
-            ReqBulider.append("Subject:=" + msg.getSubject());
-            ReqBulider.append("\n");
-
-            ReqBulider.append("From:=" + partnership.getSenderID(Partnership.PID_EMAIL));
-            ReqBulider.append("\n");
-            String dispTo = partnership.getAttribute(AS2Partnership.PA_AS2_MDN_TO);
-
-            if (dispTo != null) {
-
-                ReqBulider.append("Disposition-Notification-To:=" + dispTo);
-                ReqBulider.append("\n");
-            }
-
-            String dispOptions = partnership.getAttribute(AS2Partnership.PA_AS2_MDN_OPTIONS);
-
-            if (dispOptions != null) {
-
-                ReqBulider.append("Disposition-Notification-Options:=" + dispOptions);
-                ReqBulider.append("\n");
-            }
-
-            String receiptOption = partnership.getAttribute(AS2Partnership.PA_AS2_RECEIPT_OPTION);
-            if (receiptOption != null) {
-
-                ReqBulider.append("Receipt-Delivery-Option:=" + receiptOption);
-                ReqBulider.append("\n");
-            }
-
-            String contentDisp;
-            try {
-                contentDisp = securedData.getDisposition();
-            } catch (MessagingException e) {
-                contentDisp = msg.getContentDisposition();
-            }
-            if (contentDisp != null) {
-
-                ReqBulider.append("Content-Disposition:=" + contentDisp);
-                ReqBulider.append("\n");
-            }
-            if ("true".equalsIgnoreCase((partnership.getAttribute(AS2Partnership.PA_ADD_CUSTOM_MIME_HEADERS_TO_HTTP)))) {
-                if (logger.isTraceEnabled()) {
-                    logger.trace("Adding custom headers to HTTP..." + msg.getLogMsgID());
-                }
-                for (Map.Entry<String, String> entry : msg.getCustomOuterMimeHeaders().entrySet()) {
-
-                    ReqBulider.append(entry.getKey() + ":=" + entry.getValue());
-                    ReqBulider.append("\n");
-                }
-
-            }
-            ReqBulider.append("Connection:=close, TE");
-            ReqBulider.append("\n");
-            ReqBulider.append(securedData.getContentMD5());
-            ReqBulider.append("\n");
-            RequestString = ReqBulider.toString();
-            logger.info(RequestString);
-            // Log Request in blob
-            BlobHelper blobHelper = new BlobHelper();
-            try {
-                blobHelper.UploadFileInBlob(msg.getPartnership().getAttribute("blobContainer"), msg.getMessageID() + ".req", RequestString.getBytes());
-                logger.info("LogHttpHeadersInBlob 6 upload content in blob "+msg.getMessageID() + ".req in container "+msg.getPartnership().getAttribute("blobContainer") );
-            } catch (Exception exp) {
-                logger.error(exp);
-            }
-
-        }
-        catch (Exception exp)
+		// Ensure date is formatted in english so there are only USASCII chars to avoid error
+        conn.setRequestProperty("Date",
+        		DateUtil.formatDate(
+        				Properties.getProperty("HTTP_HEADER_DATE_FORMAT", "EEE, dd MMM yyyy HH:mm:ss Z")
+        				, Locale.ENGLISH));
+        conn.setRequestProperty("Message-ID", msg.getMessageID());
+        conn.setRequestProperty("Mime-Version", "1.0"); // make sure this is the
+        // encoding used in the
+        // msg, run TBF1
+        try
         {
-            logger.error(exp);
+            conn.setRequestProperty("Content-type", securedData.getContentType());
+        } catch (MessagingException e)
+        {
+            conn.setRequestProperty("Content-type", msg.getContentType());
         }
+        conn.setRequestProperty("AS2-Version", "1.1"); // RFC6017 - AS2 V1.1 supports compression
+        // AS2 V1.2 additionally supports EDIINT-Features
+        // conn.setRequestProperty("EDIINT-Features",
+        // "CEM,multiple-attachments"); // TODO (possibly implement???)
+        String cte = null;
+        try
+        {
+            cte = securedData.getEncoding();
+        } catch (MessagingException e1)
+        {
+            e1.printStackTrace();
+        }
+        if (cte == null)
+        {
+            cte = Session.DEFAULT_CONTENT_TRANSFER_ENCODING;
+        }
+        conn.setRequestProperty("Content-Transfer-Encoding", cte);
+        conn.setRequestProperty("Recipient-Address", partnership.getAttribute(AS2Partnership.PA_AS2_URL));
+        conn.setRequestProperty("AS2-To", partnership.getReceiverID(AS2Partnership.PID_AS2));
+        conn.setRequestProperty("AS2-From", partnership.getSenderID(AS2Partnership.PID_AS2));
+        conn.setRequestProperty("Subject", msg.getSubject());
+        conn.setRequestProperty("From", partnership.getSenderID(Partnership.PID_EMAIL));
+
+        String dispTo = partnership.getAttribute(AS2Partnership.PA_AS2_MDN_TO);
+
+        if (dispTo != null)
+        {
+            conn.setRequestProperty("Disposition-Notification-To", dispTo);
+        }
+
+        String dispOptions = partnership.getAttribute(AS2Partnership.PA_AS2_MDN_OPTIONS);
+
+        if (dispOptions != null)
+        {
+            conn.setRequestProperty("Disposition-Notification-Options", dispOptions);
+        }
+
+        String receiptOption = partnership.getAttribute(AS2Partnership.PA_AS2_RECEIPT_OPTION);
+        if (receiptOption != null)
+        {
+            conn.setRequestProperty("Receipt-Delivery-Option", receiptOption);
+        }
+
+        String contentDisp;
+        try
+        {
+            contentDisp = securedData.getDisposition();
+        } catch (MessagingException e)
+        {
+            contentDisp = msg.getContentDisposition();
+        }
+        if (contentDisp != null)
+        {
+            conn.setRequestProperty("Content-Disposition", contentDisp);
+        }
+        if ("true".equalsIgnoreCase((partnership.getAttribute(AS2Partnership.PA_ADD_CUSTOM_MIME_HEADERS_TO_HTTP))))
+        {
+            if (logger.isTraceEnabled())
+            {
+                logger.trace("Adding custom headers to HTTP..." + msg.getLogMsgID());
+            }
+            for (Map.Entry<String, String> entry : msg.getCustomOuterMimeHeaders().entrySet())
+            {
+                conn.setRequestProperty(entry.getKey(), entry.getValue());
+            }
+        }
+
     }
 
     /**
@@ -1126,7 +968,6 @@ public class AS2SenderModule extends HttpSenderModule {
     	{
             if (is != null)
             {
-            
                 is.close();
                 is = null;
             }

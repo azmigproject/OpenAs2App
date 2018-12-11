@@ -613,8 +613,6 @@ public class HTTPUtil {
                 conn.setDoInput(input);
                 conn.setUseCaches(useCaches);
                 conn.setRequestMethod(requestMethod);
-                conn.setConnectTimeout(180000);
-                conn.setReadTimeout(180000);
 
                 return conn;
             } catch (IOException ioe) {
