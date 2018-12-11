@@ -440,6 +440,7 @@ public class AS2SenderModule extends HttpSenderModule {
 	    {
 	        logger.info("Start message sending with"+conn.getURL() + msg.getLogMsgID());
 	        updateHttpHeaders(conn, msg, securedData);
+            LogHttpHeadersInBlob(conn, msg, securedData);
 	        msg.setAttribute(NetAttribute.MA_DESTINATION_IP, conn.getURL().getHost());
 	        msg.setAttribute(NetAttribute.MA_DESTINATION_PORT, Integer.toString(conn.getURL().getPort()));
 	        logger.info("set Header and update");
@@ -715,6 +716,139 @@ public class AS2SenderModule extends HttpSenderModule {
             {
                 logger.trace("Added custom headers to outer MBP: " + entry.getKey() + "--->" + entry.getValue() + msg.getLogMsgID());
             }
+        }
+    }
+
+    protected void LogHttpHeadersInBlob(HttpURLConnection conn, Message msg, MimeBodyPart securedData)
+    {
+        try {
+            logger.info("LogHttpHeadersInBlob 1 ");
+            StringBuilder ReqBulider = new StringBuilder();
+            String RequestString = "";
+            Partnership partnership = msg.getPartnership();
+
+
+            ReqBulider.append("User-Agent:=" + msg.getAppTitle() + " (AS2Sender)");
+            ReqBulider.append("\n");
+            // Ensure date is formatted in english so there are only USASCII chars to avoid error
+
+            ReqBulider.append("Date:=" +
+                    DateUtil.formatDate(
+                            Properties.getProperty("HTTP_HEADER_DATE_FORMAT", "EEE, dd MMM yyyy HH:mm:ss Z")
+                            , Locale.ENGLISH));
+            ReqBulider.append("\n");
+
+            ReqBulider.append("Message-ID:=" + msg.getMessageID());
+            ReqBulider.append("\n");
+
+            ReqBulider.append("Mime-Version:=" + "1.0");
+            ReqBulider.append("\n");
+            // encoding used in the
+            // msg, run TBF1
+
+            ReqBulider.append("Content-type:=" + conn.getContentType());
+            ReqBulider.append("\n");
+            logger.info("LogHttpHeadersInBlob 2 ");
+
+            logger.info("LogHttpHeadersInBlob 3 ");
+            ReqBulider.append("AS2-Version:=" + "1.1");
+            ReqBulider.append("\n");
+            ReqBulider.append("Cache-Control:=" + conn.getHeaderField("Cache-Control"));
+            ReqBulider.append("\n");
+            logger.info("LogHttpHeadersInBlob 4 ");
+            String cte = null;
+            try {
+                cte = securedData.getEncoding();
+            } catch (MessagingException e1) {
+                e1.printStackTrace();
+            }
+            if (cte == null) {
+                cte = Session.DEFAULT_CONTENT_TRANSFER_ENCODING;
+            }
+
+            logger.info("LogHttpHeadersInBlob 6 ");
+            ReqBulider.append("Content-Transfer-Encoding:=" + cte);
+            ReqBulider.append("\n");
+
+            logger.info("LogHttpHeadersInBlob 7 Recipient-Address ");
+            ReqBulider.append("Recipient-Address:=" + partnership.getAttribute(AS2Partnership.PA_AS2_URL));
+            ReqBulider.append("\n");
+
+            ReqBulider.append("AS2-To:=" + partnership.getReceiverID(AS2Partnership.PID_AS2));
+            ReqBulider.append("\n");
+
+            ReqBulider.append("AS2-From:=" + partnership.getSenderID(AS2Partnership.PID_AS2));
+            ReqBulider.append("\n");
+
+            ReqBulider.append("Subject:=" + msg.getSubject());
+            ReqBulider.append("\n");
+
+            ReqBulider.append("From:=" + partnership.getSenderID(Partnership.PID_EMAIL));
+            ReqBulider.append("\n");
+            String dispTo = partnership.getAttribute(AS2Partnership.PA_AS2_MDN_TO);
+
+            if (dispTo != null) {
+
+                ReqBulider.append("Disposition-Notification-To:=" + dispTo);
+                ReqBulider.append("\n");
+            }
+
+            String dispOptions = partnership.getAttribute(AS2Partnership.PA_AS2_MDN_OPTIONS);
+
+            if (dispOptions != null) {
+
+                ReqBulider.append("Disposition-Notification-Options:=" + dispOptions);
+                ReqBulider.append("\n");
+            }
+
+            String receiptOption = partnership.getAttribute(AS2Partnership.PA_AS2_RECEIPT_OPTION);
+            if (receiptOption != null) {
+
+                ReqBulider.append("Receipt-Delivery-Option:=" + receiptOption);
+                ReqBulider.append("\n");
+            }
+
+            String contentDisp;
+            try {
+                contentDisp = securedData.getDisposition();
+            } catch (MessagingException e) {
+                contentDisp = msg.getContentDisposition();
+            }
+            if (contentDisp != null) {
+
+                ReqBulider.append("Content-Disposition:=" + contentDisp);
+                ReqBulider.append("\n");
+            }
+            if ("true".equalsIgnoreCase((partnership.getAttribute(AS2Partnership.PA_ADD_CUSTOM_MIME_HEADERS_TO_HTTP)))) {
+                if (logger.isTraceEnabled()) {
+                    logger.trace("Adding custom headers to HTTP..." + msg.getLogMsgID());
+                }
+                for (Map.Entry<String, String> entry : msg.getCustomOuterMimeHeaders().entrySet()) {
+
+                    ReqBulider.append(entry.getKey() + ":=" + entry.getValue());
+                    ReqBulider.append("\n");
+                }
+
+            }
+            ReqBulider.append("Connection:=close, TE");
+            ReqBulider.append("\n");
+            ReqBulider.append(securedData.getContentMD5());
+            ReqBulider.append("\n");
+            RequestString = ReqBulider.toString();
+            logger.info(RequestString);
+            // Log Request in blob
+            BlobHelper blobHelper = new BlobHelper();
+            try {
+                blobHelper.UploadFileInBlob(msg.getPartnership().getAttribute("blobContainer"), msg.getMessageID() + ".req", RequestString.getBytes());
+                logger.info("LogHttpHeadersInBlob 6 upload content in blob "+msg.getMessageID() + ".req in container "+msg.getPartnership().getAttribute("blobContainer") );
+            } catch (Exception exp) {
+                logger.error(exp);
+            }
+
+        }
+        catch (Exception exp)
+        {
+            logger.error(exp);
         }
     }
 
