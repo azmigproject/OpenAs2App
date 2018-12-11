@@ -1,12 +1,6 @@
 package org.openas2.processor.sender;
 
 import java.io.ByteArrayOutputStream;
-//import java.io.BufferedInputStream;
-//import java.io.BufferedOutputStream;
-//import java.io.ByteArrayOutputStream;
-//import java.io.DataInputStream;
-//import java.io.File;
-//import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,7 +9,6 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
-//import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
 
@@ -152,7 +145,8 @@ public class AS2SenderModule extends HttpSenderModule {
             {
                 // Create the HTTP connection and set up headers
                 String url = msg.getPartnership().getAttribute(AS2Partnership.PA_AS2_URL);
-                conn = getConnection(url, true, true, false, "POST");
+                logger.info("Partnership Data - " + msg.getPartnership().toString());
+                conn = getConnection(url, true, true, false, "POST", 180000, 180000);
                 logger.info("*****Connection/Read Timeout Value = Connection:" +conn.getConnectTimeout()+ " - Read:"+conn.getReadTimeout()+" - "+msg.getLogMsgID());
                 
                 
@@ -249,7 +243,8 @@ public class AS2SenderModule extends HttpSenderModule {
                         msg.setLogMsg("Failed to get input stream for receiving MDN: "
                                 + org.openas2.logging.Log.getExceptionMsg(e1));
                         logger.error(msg, e1);
-                       // resend(msg, new OpenAS2Exception(org.openas2.logging.Log.getExceptionMsg(e1)), retries);
+                        //Commented to remove Duplicates due to error in MDN Receipt processing
+                        // resend(msg, new OpenAS2Exception(org.openas2.logging.Log.getExceptionMsg(e1)), retries);
                         // Log significant msg state
                         msg.setOption("STATE", Message.MSG_STATE_MDN_RECEIVING_EXCEPTION);
                         msg.trackMsgState(getSession());
@@ -811,7 +806,6 @@ public class AS2SenderModule extends HttpSenderModule {
             {
                 conn.setRequestProperty(entry.getKey(), entry.getValue());
             }
-
         }
 
     }
@@ -974,7 +968,6 @@ public class AS2SenderModule extends HttpSenderModule {
     	{
             if (is != null)
             {
-            
                 is.close();
                 is = null;
             }

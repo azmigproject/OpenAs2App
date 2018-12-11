@@ -173,10 +173,6 @@ public class AzureUtil {
                 tempModule[i].setFormat(objTemp.getString("format"));
                 tempModule[i].setDefaults(objTemp.getString("defaults"));
                 tempModule[i].setQueueName(objTemp.getString("queuename"));
-                tempModule[i].setConnectionTimeout(objTemp.optInt("connectiontimeout",6000));
-                tempModule[i].setReadTimeout(objTemp.optInt("readtimeout",3000));
-
-
             }
             processor.setModules(tempModule);
 
