@@ -437,9 +437,13 @@ public class XMLSession extends BaseSession {
         LOGGER.info("Loading log manager(s)...");
 
         LogManager manager = LogManager.getLogManager();
-        //Logger logger =  new DbLogger(azureUtil.LOG_TABLE_NAME,azureUtil.STORAGE_CONNECTION_STRING);
-        Logger logger =  new FileLogger();
-         manager.addLogger(logger);
+        LOGGER.info( "LOG_TABLE_NAME=="+azureUtil.LOG_TABLE_NAME);
+        LOGGER.info( "LOG_COUNT_TABLE_NAME=="+azureUtil.LOG_COUNT_TABLE_NAME);
+        LOGGER.info( "STORAGE_CONNECTION_STRING=="+azureUtil.STORAGE_CONNECTION_STRING);
+        Logger logger =  new DbLogger(azureUtil.LOG_TABLE_NAME, azureUtil.LOG_COUNT_TABLE_NAME, azureUtil.STORAGE_CONNECTION_STRING);
+        Logger filelogger =  new FileLogger();
+         manager.addLogger(filelogger);
+        manager.addLogger(logger);
     }
     private void loadLoggers(Node rootNode) throws OpenAS2Exception
     {

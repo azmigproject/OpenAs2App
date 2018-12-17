@@ -304,8 +304,9 @@ public abstract class BaseMessage implements Message {
     public String toString() {
         StringBuffer buf = new StringBuffer();
         buf.append("Message From:").append(getPartnership().getSenderIDs());
+        buf.append(System.getProperty("line.separator"));
         buf.append("To:").append(getPartnership().getReceiverIDs());
-
+        buf.append(System.getProperty("line.separator"));
         Enumeration<Header> headerEn = getHeaders().getAllHeaders();
         buf.append(System.getProperty("line.separator") + "Headers:{");
 
@@ -314,11 +315,13 @@ public abstract class BaseMessage implements Message {
             buf.append(header.getName()).append("=").append(header.getValue());
 
             if (headerEn.hasMoreElements()) {
-                buf.append(", ");
+                //buf.append(", ");
+                buf.append(System.getProperty("line.separator"));
             }
         }
 
         buf.append("}");
+        buf.append(System.getProperty("line.separator"));
         buf.append(System.getProperty("line.separator") + "Attributes:").append(getAttributes());
 
         MessageMDN mdn = getMDN();

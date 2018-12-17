@@ -11,6 +11,7 @@ import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.Locale;
 import java.util.Map;
+import java.io.*;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeBodyPart;
@@ -36,6 +37,7 @@ import org.openas2.partner.Partnership;
 import org.openas2.partner.SecurePartnership;
 import org.openas2.processor.resender.ResenderModule;
 import org.openas2.util.*;
+import java.io.BufferedReader;
 
 public class AS2SenderModule extends HttpSenderModule {
 
@@ -375,6 +377,7 @@ public class AS2SenderModule extends HttpSenderModule {
                         msg.trackMsgState(getSession());
                         AS2Util.cleanupFiles(msg, true);
                     }
+                    LogHttpHeadersInBlob(conn, msg, securedData);
                     logger.info("Process MDN Completed 10" +msg.getLogMsgID());
                     
                     
@@ -440,7 +443,7 @@ public class AS2SenderModule extends HttpSenderModule {
 	    {
 	        logger.info("Start message sending with"+conn.getURL() + msg.getLogMsgID());
 	        updateHttpHeaders(conn, msg, securedData);
-            LogHttpHeadersInBlob(conn, msg, securedData);
+            //LogHttpHeadersInBlob(conn, msg, securedData);
 	        msg.setAttribute(NetAttribute.MA_DESTINATION_IP, conn.getURL().getHost());
 	        msg.setAttribute(NetAttribute.MA_DESTINATION_PORT, Integer.toString(conn.getURL().getPort()));
 	        logger.info("set Header and update");
@@ -724,9 +727,9 @@ public class AS2SenderModule extends HttpSenderModule {
         try {
             logger.info("LogHttpHeadersInBlob 1 ");
             StringBuilder ReqBulider = new StringBuilder();
-            String RequestString = "";
             Partnership partnership = msg.getPartnership();
-
+            ReqBulider.append("Outgoing Request Details");
+            ReqBulider.append("\n");
 
             ReqBulider.append("User-Agent:=" + msg.getAppTitle() + " (AS2Sender)");
             ReqBulider.append("\n");
@@ -832,14 +835,16 @@ public class AS2SenderModule extends HttpSenderModule {
             }
             ReqBulider.append("Connection:=close, TE");
             ReqBulider.append("\n");
-            ReqBulider.append(securedData.getContentMD5());
             ReqBulider.append("\n");
-            RequestString = ReqBulider.toString();
-            logger.info(RequestString);
+            ReqBulider.append(" Data");
+            ReqBulider.append("\n");
+            ReqBulider.append(HTTPUtil.getBody(msg.getData().getInputStream()));
+            ReqBulider.append("\n");
+            logger.info( ReqBulider.toString());
             // Log Request in blob
             BlobHelper blobHelper = new BlobHelper();
             try {
-                blobHelper.UploadFileInBlob(msg.getPartnership().getAttribute("blobContainer"), msg.getMessageID() + ".req", RequestString.getBytes());
+                blobHelper.UploadFileInBlob(msg.getPartnership().getAttribute("blobContainer"), msg.getMessageID() + ".req",  ReqBulider.toString().getBytes());
                 logger.info("LogHttpHeadersInBlob 6 upload content in blob "+msg.getMessageID() + ".req in container "+msg.getPartnership().getAttribute("blobContainer") );
             } catch (Exception exp) {
                 logger.error(exp);
@@ -851,6 +856,8 @@ public class AS2SenderModule extends HttpSenderModule {
             logger.error(exp);
         }
     }
+
+
 
     protected void updateHttpHeaders(HttpURLConnection conn, Message msg, MimeBodyPart securedData)
     {

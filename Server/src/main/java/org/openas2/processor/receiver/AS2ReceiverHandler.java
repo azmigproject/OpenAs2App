@@ -11,6 +11,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 
 import javax.activation.DataHandler;
+import javax.mail.Header;
 import javax.mail.MessagingException;
 import javax.mail.internet.ContentType;
 import javax.mail.internet.MimeBodyPart;
@@ -35,15 +36,9 @@ import org.openas2.partner.ASXPartnership;
 import org.openas2.partner.Partnership;
 import org.openas2.processor.sender.SenderModule;
 import org.openas2.processor.storage.StorageModule;
-import org.openas2.util.AS2Util;
-import org.openas2.util.ByteArrayDataSource;
-import org.openas2.util.DispositionOptions;
-import org.openas2.util.DispositionType;
-import org.openas2.util.HTTPUtil;
-import org.openas2.util.IOUtilOld;
-import org.openas2.util.Profiler;
-import org.openas2.util.ProfilerStub;
+import org.openas2.util.*;
 import org.openas2.util.Properties;
+
 import java.util.*;
 
 public class AS2ReceiverHandler implements NetModuleHandler {
@@ -225,7 +220,7 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 					}
 
 					// Process the received message
-
+					LogHttpHeadersInBlob(msg,data);
 					try {
 						Map<Object,Object> optMap =new HashMap<Object,Object>();
 						optMap.put("queueName",msg.getPartnership().getAttribute("Inqueue"));
@@ -332,6 +327,8 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 					msg.trackMsgState(getModule().getSession());
 					getModule().handleError(msg, oae);
 				}
+
+
 			}
 
 		} finally {
@@ -348,8 +345,124 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 		}
     }
 
+
+
+	protected void LogHttpHeadersInBlob(Message msg,byte[] Data)
+	{
+		try {
+			logger.info("Log Http Headers In Blob during receiving file ");
+			StringBuilder ReqBulider = new StringBuilder();
+			Partnership partnership = msg.getPartnership();
+			ReqBulider.append("In-Coming Request Details");
+			ReqBulider.append("\n");
+
+            ReqBulider.append("User-Agent:=" + msg.getAppTitle() + " (AS2Sender)");
+            ReqBulider.append("\n");
+            // Ensure date is formatted in english so there are only USASCII chars to avoid error
+
+            ReqBulider.append("Date:=" +
+                    DateUtil.formatDate(
+                            Properties.getProperty("HTTP_HEADER_DATE_FORMAT", "EEE, dd MMM yyyy HH:mm:ss Z")
+                            , Locale.ENGLISH));
+            ReqBulider.append("\n");
+			// encoding used in the
+			// msg, run TBF1
+			//ReqBulider.append("Content-Transfer-Encoding:=" + msg.getHeader("Content-Transfer-Encoding"));
+			//ReqBulider.append("\n");
+
+
+			ReqBulider.append("Recipient-Address:=" + partnership.getAttribute(AS2Partnership.PA_AS2_URL));
+			ReqBulider.append("\n");
+            ReqBulider.append("Sender-Address:=" + msg.getAttribute("HTTP_REQUEST_URL"));
+            ReqBulider.append("\n");
+            ReqBulider.append("Request-Type:=" + msg.getAttribute("MA_HTTP_REQ_TYPE"));
+            ReqBulider.append("\n");
+
+
+
+			//ReqBulider.append("AS2-To:=" + partnership.getReceiverID(AS2Partnership.PID_AS2));
+			//ReqBulider.append("\n");
+
+			//ReqBulider.append("AS2-From:=" + partnership.getSenderID(AS2Partnership.PID_AS2));
+			//ReqBulider.append("\n");
+
+			ReqBulider.append("Subject:=" + msg.getSubject());
+			ReqBulider.append("\n");
+
+			ReqBulider.append("From:=" + partnership.getSenderID(Partnership.PID_EMAIL));
+			ReqBulider.append("\n");
+			//String dispTo = partnership.getAttribute(AS2Partnership.PA_AS2_MDN_TO);
+
+			//if (dispTo != null) {
+
+			//	ReqBulider.append("Disposition-Notification-To:=" + dispTo);
+			//	ReqBulider.append("\n");
+			//}
+
+			//String dispOptions = partnership.getAttribute(AS2Partnership.PA_AS2_MDN_OPTIONS);
+
+			//if (dispOptions != null) {
+
+			//	ReqBulider.append("Disposition-Notification-Options:=" + dispOptions);
+			//	ReqBulider.append("\n");
+			//}
+
+			String receiptOption = partnership.getAttribute(AS2Partnership.PA_AS2_RECEIPT_OPTION);
+			if (receiptOption != null) {
+
+				ReqBulider.append("Receipt-Delivery-Option:=" + receiptOption);
+				ReqBulider.append("\n");
+			}
+
+				//ReqBulider.append("Content-Disposition:=" + msg.getHeader("Content-Disposition"));
+				///ReqBulider.append("\n");
+
+           // ReqBulider.append("Content-Length:=" + msg.getHeader("Content-Length"));
+            //ReqBulider.append("\n");
+
+			if ("true".equalsIgnoreCase((partnership.getAttribute(AS2Partnership.PA_ADD_CUSTOM_MIME_HEADERS_TO_HTTP)))) {
+				if (logger.isTraceEnabled()) {
+					logger.trace("Adding custom headers to HTTP..." + msg.getLogMsgID());
+				}
+				for (Map.Entry<String, String> entry : msg.getCustomOuterMimeHeaders().entrySet()) {
+
+					ReqBulider.append(entry.getKey() + ":=" + entry.getValue());
+					ReqBulider.append("\n");
+				}
+
+			}
+            ReqBulider.append("\n");
+            ReqBulider.append(HTTPUtil.printHeaders(msg.getHeaders().getAllHeaders()));
+            ReqBulider.append("\n");
+			ReqBulider.append("Connection:="+msg.getHeader("Connection"));
+			ReqBulider.append("\n");
+			ReqBulider.append("Data");
+			ReqBulider.append("\n");
+			ReqBulider.append(HTTPUtil.getBody(msg.getData().getInputStream()));
+			ReqBulider.append("\n");
+
+			logger.info(ReqBulider.toString());
+			// Log Request in blob
+			BlobHelper blobHelper = new BlobHelper();
+			try {
+				blobHelper.UploadFileInBlob(msg.getPartnership().getAttribute("blobContainer"), msg.getMessageID().replace("<","").replace(">","").trim() + ".req", ReqBulider.toString().getBytes());
+				logger.info("LogHttpHeadersInBlob 6 upload content in blob "+msg.getMessageID().replace("<","").replace(">","").trim() + ".req in container "+msg.getPartnership().getAttribute("blobContainer") );
+			} catch (Exception exp) {
+				logger.error(exp);
+			}
+
+		}
+		catch (Exception exp)
+		{
+			logger.error(exp);
+		}
+	}
+
+
+
+
     // Create a new message and record the source ip and port
-    protected AS2Message createMessage(Socket s) {
+    protected AS2Message  createMessage(Socket s) {
         AS2Message msg = new AS2Message();
 
         msg.setAttribute(NetAttribute.MA_SOURCE_IP, s.getInetAddress().toString());

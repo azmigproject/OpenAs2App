@@ -14,7 +14,7 @@ public class DBLogInfo extends TableServiceEntity {
 
 
     public DBLogInfo() {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         Date Now = new Date();
         this.partitionKey = sdf.format(Now);
         sdf = new SimpleDateFormat("dd HH-mm-ss.SSS");
@@ -202,6 +202,13 @@ public class DBLogInfo extends TableServiceEntity {
         this.fileSize = fileSize;
     }
 
+    public long getRowId() {
+        return RowId;
+    }
+    public void setRowId(long rowId) {
+        this.RowId = rowId;
+    }
+
     public String getContentType() {
         return contentType;
     }
@@ -219,7 +226,7 @@ public class DBLogInfo extends TableServiceEntity {
     public String getLogMsgID()
     {
         return "ID="+id+"|As2SenderId="+senderId+"|AS2ReceiverId="+receiverId+
-                "|messageText="+logMessage+"|messageId"+messageID;
+                "|messageText="+logMessage+"|messageId"+messageID+"|RowId"+RowId;
     }
 
     private String id;
@@ -249,8 +256,9 @@ public class DBLogInfo extends TableServiceEntity {
     private String compressionType;
     private String contentType;
     private String contentDisposition;
-
+    private long RowId;
 
 
     }
+
 

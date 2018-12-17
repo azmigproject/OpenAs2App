@@ -1,6 +1,7 @@
 package org.openas2.logging;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.joda.time.DateTime;
 import org.openas2.OpenAS2Exception;
 import org.openas2.Session;
 import org.openas2.message.Message;
@@ -11,6 +12,8 @@ import java.lang.instrument.ClassDefinition;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
 import java.util.jar.JarFile;
@@ -26,13 +29,14 @@ public class DbLogger extends BaseLogger {
 
 
     private  String AZURE_TABLE_NAME = "DBLog";
+    private  String AZURE_COUNTER_TABLE_NAME = "nptyAS2logCount";
     private  String  STORAGE_CONNECTION_STRING = "UseDevelopmentStorage=true";
     private CloudTableClient client;
 
 
-    public DbLogger(String tableName,String conString) throws Exception {
+    public DbLogger(String tableName, String counterTableName, String conString) throws Exception {
 
-        setLogTableInfo(tableName, conString);
+        setLogTableInfo(tableName,counterTableName, conString);
 
     }
 
@@ -99,10 +103,11 @@ public class DbLogger extends BaseLogger {
 
 
 
-    public void setLogTableInfo(String tableName,String conString) throws Exception {
+    public void setLogTableInfo(String tableName,String counterTableName,String conString) throws Exception {
 
 
         AZURE_TABLE_NAME=tableName;
+        AZURE_COUNTER_TABLE_NAME=counterTableName;
         STORAGE_CONNECTION_STRING=conString;
             CloudStorageAccount storageAccount =
                     CloudStorageAccount.parse(STORAGE_CONNECTION_STRING);
@@ -174,48 +179,136 @@ public class DbLogger extends BaseLogger {
         return objLog;
     }
 
-
-    private void  AddLogInTable(DBLogInfo  objLog)
+    private TableQuery<DBLogCounterInfo> GetLogCountTableQuery(String PartitionKey)
     {
+        String Query = String.format("PartitionKey eq '{0}'", PartitionKey);
+        TableQuery<DBLogCounterInfo> DataTableQuery = new TableQuery<DBLogCounterInfo>();
+        DataTableQuery.where(Query);
+        return DataTableQuery.where(Query);
+    }
+
+    private String  GetCountsFromCounterTable(CloudTable cloudCounterTable,String PartitionKey)
+    {
+        long MaxCount=0;
+        long RowCount=0;
+        long CurrCount=0;
+        long PrevMaxCount=0;
+        String RowKey="";
+
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        String PrevPartitionKey=  sdf.format(DateTime.now().minusDays(1).toDate());
+
+        // Create a filter condition where the partition key is "Smith".
+        String partitionFilter = TableQuery.generateFilterCondition(
+                "PartitionKey",
+                QueryComparisons.NOT_EQUAL,
+                "null");
+
+        // Specify a partition query, using "Smith" as the partition key filter.
+        TableQuery<DBLogCounterInfo> partitionQuery =
+                TableQuery.from(DBLogCounterInfo.class)
+                        .where(partitionFilter);
+
+
+
+
+                try {
+                    for (DBLogCounterInfo dbLogCounterinfo : cloudCounterTable.execute(partitionQuery)) {
+
+                        RowCount += dbLogCounterinfo.getCount();
+                        if (dbLogCounterinfo.getPartitionKey().compareTo(PartitionKey.trim())==0) {
+                            CurrCount = dbLogCounterinfo.getCount();
+                            MaxCount = dbLogCounterinfo.getAvailRecordCount();
+                            RowKey = dbLogCounterinfo.getRowKey();
+
+                        }
+                        if (dbLogCounterinfo.getPartitionKey().compareTo( PrevPartitionKey.trim())==0) {
+
+                            PrevMaxCount = dbLogCounterinfo.getAvailRecordCount();
+
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MaxCount = -1;
+                    RowCount = -1;
+                    CurrCount=-1;
+                    System.out.println("Process invalid data handle");
+                }
+
+
+            if(MaxCount==0)
+            {
+                MaxCount=PrevMaxCount;
+            }
+
+        return MaxCount+"|"+RowCount+"|"+CurrCount+"|"+RowKey;
+
+    }
+
+    private void  AddLogInTable(DBLogInfo  objLog) {
         try {
             // Create an operation to add the new customer to the people table.
             // Create a cloud table object for the table.
             CloudTable cloudTable = this.client.getTableReference(AZURE_TABLE_NAME);
+            CloudTable cloudCounterTable = this.client.getTableReference(AZURE_COUNTER_TABLE_NAME);
 
-            if(cloudTable!=null) {
-                if(objLog!=null ) {
-                    if ( objLog.getExceptionOrErrorDetails()!=null && objLog.getExceptionOrErrorDetails().length() > 1000) {
+            //Get the RowId
+
+            if (cloudTable != null && cloudCounterTable != null) {
+                if (objLog != null) {
+                    if (objLog.getExceptionOrErrorDetails() != null && objLog.getExceptionOrErrorDetails().length() > 1000) {
                         objLog.setExceptionOrErrorDetails(objLog.getExceptionOrErrorDetails().trim().substring(0, 999));
                     }
 
-                    TableOperation insertLog = TableOperation.insertOrReplace(objLog);
-                    if(insertLog!=null) {
+                    String Counters = GetCountsFromCounterTable(cloudCounterTable, objLog.getPartitionKey());
+                    System.out.println(Counters);
+                    String[] intVals = Counters.split("\\|");  //MaxCount+"|"+RowCount+"|"+CurrCount+"|"+RowKey;
+
+                    long AllRowCounter = Long.parseLong(intVals[0].trim()); //MaxCount
+                    long RowCount = Long.parseLong(intVals[1].trim()); //RowCount
+                    long Count = Long.parseLong(intVals[2].trim());//CurrCount
+                    String RowKey=intVals[3]; //RowKey
+
+                    if (AllRowCounter > -1 && RowCount > -1) {
+                        AllRowCounter = AllRowCounter + 1;
+                        Count=Count+1;
+                        RowCount = RowCount + 1;
+                        objLog.setRowId(RowCount);
+                        TableOperation insertLog = TableOperation.insertOrReplace(objLog);
+
+                        DBLogCounterInfo LogCountertable = new DBLogCounterInfo();
+                        LogCountertable.setPartitionKey(objLog.getPartitionKey());
+                        LogCountertable.setCount(Count);
+                        LogCountertable.setRowKey(RowKey);
+                        LogCountertable.setAvailRecordCount(AllRowCounter);
                         // Submit the operation to the table service.
                         cloudTable.execute(insertLog);
+
+                        TableOperation insertLogCounter = TableOperation.insertOrReplace(LogCountertable);
+
+                        cloudCounterTable.execute(insertLogCounter);
+
+
+                    } else {
+                        System.out.println("Unable to log message as not able to get Data from Logcounter table. ObjLog Info=" + objLog.getLogMessage());
+
                     }
-                    else
-                    {
-                        System.out.println("Unable to log message as TableOperation object null. ObjLog Info="+objLog.getLogMessage());
-                    }
-                }
-                else
-                {
+                } else {
                     System.out.println("Unable to log message as DBLogInfo object null");
                 }
-            }else
-            {
+            } else {
                 System.out.println("Unable to log message as cloudTable object null");
+
             }
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             System.out.println("Error in Document ");
             e.printStackTrace();
         }
 
     }
-
-
 
 }
 
