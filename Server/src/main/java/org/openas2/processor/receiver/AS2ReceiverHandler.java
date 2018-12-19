@@ -20,6 +20,7 @@ import javax.mail.internet.ParseException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.joda.time.DateTime;
 import org.openas2.DispositionException;
 import org.openas2.OpenAS2Exception;
 import org.openas2.Session;
@@ -219,8 +220,7 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 						logger.error("Failed to extract the file name from received content-disposition", e1);
 					}
 
-					// Process the received message
-					LogHttpHeadersInBlob(msg,data);
+
 					try {
 						Map<Object,Object> optMap =new HashMap<Object,Object>();
 						optMap.put("queueName",msg.getPartnership().getAttribute("Inqueue"));
@@ -272,7 +272,7 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 						} else {
 							HTTPUtil.sendHTTPResponse(out, HttpURLConnection.HTTP_OK, false);
 							out.flush();
-							logger.info("sent HTTP OK" + getClientInfo(s) + msg.getLogMsgID());
+							logger.info("sent HTTP OK" + getClientInfo(s) + msg.getLogMsgID()+((msg.getPayloadFilename().trim()!="")?"[For FileName="+msg.getPayloadFilename()+"]":""));
 						}
 
 					} catch (Exception e) {
@@ -332,6 +332,9 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 			}
 
 		} finally {
+
+			// Process the received message
+			LogHttpHeadersInBlob(msg,data);
 			if (out != null)
 			{
 				try {
@@ -359,11 +362,11 @@ public class AS2ReceiverHandler implements NetModuleHandler {
             ReqBulider.append("User-Agent:=" + msg.getAppTitle() + " (AS2Sender)");
             ReqBulider.append("\n");
             // Ensure date is formatted in english so there are only USASCII chars to avoid error
-
-            ReqBulider.append("Date:=" +
+			ReqBulider.append("Date:=" + DateTime.now().toString("dd MMM yyyy HH:mm:ss Z",Locale.ENGLISH));
+           /* ReqBulider.append("Date:=" +
                     DateUtil.formatDate(
                             Properties.getProperty("HTTP_HEADER_DATE_FORMAT", "EEE, dd MMM yyyy HH:mm:ss Z")
-                            , Locale.ENGLISH));
+                            , Locale.ENGLISH));*/
             ReqBulider.append("\n");
 			// encoding used in the
 			// msg, run TBF1

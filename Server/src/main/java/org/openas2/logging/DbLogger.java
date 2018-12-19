@@ -255,54 +255,62 @@ public class DbLogger extends BaseLogger {
             CloudTable cloudTable = this.client.getTableReference(AZURE_TABLE_NAME);
             CloudTable cloudCounterTable = this.client.getTableReference(AZURE_COUNTER_TABLE_NAME);
 
-            //Get the RowId
-
-            if (cloudTable != null && cloudCounterTable != null) {
-                if (objLog != null) {
-                    if (objLog.getExceptionOrErrorDetails() != null && objLog.getExceptionOrErrorDetails().length() > 1000) {
-                        objLog.setExceptionOrErrorDetails(objLog.getExceptionOrErrorDetails().trim().substring(0, 999));
-                    }
-
-                    String Counters = GetCountsFromCounterTable(cloudCounterTable, objLog.getPartitionKey());
-                    System.out.println(Counters);
-                    String[] intVals = Counters.split("\\|");  //MaxCount+"|"+RowCount+"|"+CurrCount+"|"+RowKey;
-
-                    long AllRowCounter = Long.parseLong(intVals[0].trim()); //MaxCount
-                    long RowCount = Long.parseLong(intVals[1].trim()); //RowCount
-                    long Count = Long.parseLong(intVals[2].trim());//CurrCount
-                    String RowKey=intVals[3]; //RowKey
-
-                    if (AllRowCounter > -1 && RowCount > -1) {
-                        AllRowCounter = AllRowCounter + 1;
-                        Count=Count+1;
-                        RowCount = RowCount + 1;
-                        objLog.setRowId(RowCount);
-                        TableOperation insertLog = TableOperation.insertOrReplace(objLog);
-
-                        DBLogCounterInfo LogCountertable = new DBLogCounterInfo();
-                        LogCountertable.setPartitionKey(objLog.getPartitionKey());
-                        LogCountertable.setCount(Count);
-                        LogCountertable.setRowKey(RowKey);
-                        LogCountertable.setAvailRecordCount(AllRowCounter);
-                        // Submit the operation to the table service.
-                        cloudTable.execute(insertLog);
-
-                        TableOperation insertLogCounter = TableOperation.insertOrReplace(LogCountertable);
-
-                        cloudCounterTable.execute(insertLogCounter);
 
 
+                    //Get the RowId
+
+                    if (cloudTable != null && cloudCounterTable != null) {
+                        synchronized (cloudTable) {
+                            synchronized (cloudCounterTable) {
+                                if (objLog != null) {
+                                    if (objLog.getExceptionOrErrorDetails() != null && objLog.getExceptionOrErrorDetails().length() > 1000) {
+                                        objLog.setExceptionOrErrorDetails(objLog.getExceptionOrErrorDetails().trim().substring(0, 999));
+                                    }
+
+                                    String Counters = GetCountsFromCounterTable(cloudCounterTable, objLog.getPartitionKey());
+                                    System.out.println(Counters);
+                                    String[] intVals = Counters.split("\\|");  //MaxCount+"|"+RowCount+"|"+CurrCount+"|"+RowKey;
+
+                                    long AllRowCounter = Long.parseLong(intVals[0].trim()); //MaxCount
+                                    long RowCount = Long.parseLong(intVals[1].trim()); //RowCount
+                                    long Count = Long.parseLong(intVals[2].trim());//CurrCount
+                                    String RowKey = intVals[3]; //RowKey
+
+                                    if (AllRowCounter > -1 && RowCount > -1) {
+                                        AllRowCounter = AllRowCounter + 1;
+                                        Count = Count + 1;
+                                        //RowCount = RowCount + 1;
+                                        objLog.setRowId(Count);
+                                        TableOperation insertLog = TableOperation.insertOrReplace(objLog);
+
+                                        DBLogCounterInfo LogCountertable = new DBLogCounterInfo();
+                                        LogCountertable.setPartitionKey(objLog.getPartitionKey());
+                                        LogCountertable.setCount(Count);
+                                        LogCountertable.setRowKey(RowKey);
+                                        LogCountertable.setAvailRecordCount(AllRowCounter);
+                                        // Submit the operation to the table service.
+                                        cloudTable.execute(insertLog);
+
+                                        TableOperation insertLogCounter = TableOperation.insertOrReplace(LogCountertable);
+
+                                        cloudCounterTable.execute(insertLogCounter);
+
+
+                                    } else {
+                                        System.out.println("Unable to log message as not able to get Data from Logcounter table. ObjLog Info=" + objLog.getLogMessage());
+
+                                    }
+                                } else {
+                                    System.out.println("Unable to log message as DBLogInfo object null");
+                                }
+                            }
+                        }
                     } else {
-                        System.out.println("Unable to log message as not able to get Data from Logcounter table. ObjLog Info=" + objLog.getLogMessage());
+                        System.out.println("Unable to log message as cloudTable object null");
 
                     }
-                } else {
-                    System.out.println("Unable to log message as DBLogInfo object null");
-                }
-            } else {
-                System.out.println("Unable to log message as cloudTable object null");
 
-            }
+
         } catch (Exception e) {
             System.out.println("Error in Document ");
             e.printStackTrace();

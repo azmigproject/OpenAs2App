@@ -20,6 +20,8 @@ import javax.net.ssl.SSLHandshakeException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.joda.time.DateTime;
+import org.joda.time.Instant;
 import org.openas2.OpenAS2Exception;
 import org.openas2.Session;
 import org.openas2.cert.CertificateFactory;
@@ -377,7 +379,7 @@ public class AS2SenderModule extends HttpSenderModule {
                         msg.trackMsgState(getSession());
                         AS2Util.cleanupFiles(msg, true);
                     }
-                    LogHttpHeadersInBlob(conn, msg, securedData);
+
                     logger.info("Process MDN Completed 10" +msg.getLogMsgID());
                     
                     
@@ -386,8 +388,9 @@ public class AS2SenderModule extends HttpSenderModule {
 
         } finally
         {
-        	
-        	
+            if (conn != null) {
+                LogHttpHeadersInBlob(conn, msg, securedData);
+            }
         	logger.info("Process MDN StaRT 11" +msg.getLogMsgID());
         	
         	if (connIn != null)
@@ -735,10 +738,11 @@ public class AS2SenderModule extends HttpSenderModule {
             ReqBulider.append("\n");
             // Ensure date is formatted in english so there are only USASCII chars to avoid error
 
-            ReqBulider.append("Date:=" +
-                    DateUtil.formatDate(
-                            Properties.getProperty("HTTP_HEADER_DATE_FORMAT", "EEE, dd MMM yyyy HH:mm:ss Z")
-                            , Locale.ENGLISH));
+            ReqBulider.append("Date:=" + DateTime.now().toString("dd MMM yyyy HH:mm:ss Z",Locale.ENGLISH));
+                    //DateUtil.formatDate(
+                            //Properties.getProperty("HTTP_HEADER_DATE_FORMAT", "EEE, dd MMM yyyy HH:mm:ss Z")
+
+                            //, Locale.ENGLISH));
             ReqBulider.append("\n");
 
             ReqBulider.append("Message-ID:=" + msg.getMessageID());
@@ -834,7 +838,6 @@ public class AS2SenderModule extends HttpSenderModule {
 
             }
             ReqBulider.append("Connection:=close, TE");
-            ReqBulider.append("\n");
             ReqBulider.append("\n");
             ReqBulider.append(" Data");
             ReqBulider.append("\n");
