@@ -272,7 +272,7 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 						} else {
 							HTTPUtil.sendHTTPResponse(out, HttpURLConnection.HTTP_OK, false);
 							out.flush();
-							logger.info("sent HTTP OK" + getClientInfo(s) + msg.getLogMsgID()+((msg.getPayloadFilename().trim()!="")?"[For FileName="+msg.getPayloadFilename()+"]":""));
+							logger.info("+((msg.getPayloadFilename().trim()!=\"\")?\"[For FileName=\"+msg.getPayloadFilename()+\"]\":\"\")+sent HTTP OK" + getClientInfo(s) + msg.getLogMsgID());
 						}
 
 					} catch (Exception e) {

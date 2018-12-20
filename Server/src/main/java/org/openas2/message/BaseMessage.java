@@ -305,8 +305,10 @@ public abstract class BaseMessage implements Message {
         StringBuffer buf = new StringBuffer();
         buf.append("Message From:").append(getPartnership().getSenderIDs());
         buf.append(System.getProperty("line.separator"));
+        buf.append("\\n");
         buf.append("To:").append(getPartnership().getReceiverIDs());
         buf.append(System.getProperty("line.separator"));
+        buf.append("\\n");
         Enumeration<Header> headerEn = getHeaders().getAllHeaders();
         buf.append(System.getProperty("line.separator") + "Headers:{");
 
@@ -317,17 +319,19 @@ public abstract class BaseMessage implements Message {
             if (headerEn.hasMoreElements()) {
                 //buf.append(", ");
                 buf.append(System.getProperty("line.separator"));
+                buf.append("\\n");
             }
         }
 
         buf.append("}");
         buf.append(System.getProperty("line.separator"));
-        buf.append(System.getProperty("line.separator") + "Attributes:").append(getAttributes());
-
+        buf.append("\\n");
+        buf.append(System.getProperty("line.separator")+"\\n" + "Attributes:").append(getAttributes());
+        buf.append("\\n");
         MessageMDN mdn = getMDN();
 
         if (mdn != null) {
-            buf.append(System.getProperty("line.separator") + "MDN:");
+            buf.append(System.getProperty("line.separator")+ "\\n" + "MDN:");
             buf.append(mdn.toString());
         }
 

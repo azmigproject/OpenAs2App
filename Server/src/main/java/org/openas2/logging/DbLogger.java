@@ -147,6 +147,8 @@ public class DbLogger extends BaseLogger {
             }
             objLog.setAS2To(as2Msg.getHeader("As2-To"));
             objLog.setAS2From(as2Msg.getHeader("As2-From"));
+            objLog.setIsMsgEncrypted(as2Msg.getPartnership().getAttribute("encrypt")!=null);
+            objLog.setIsMsgSigned(as2Msg.getPartnership().getAttribute("sign")!=null);
             objLog.setIsConfiguredForMDN(as2Msg.isConfiguredForMDN());
             objLog.setIsConfiguredForAsyncMDN(as2Msg.isConfiguredForAsynchMDN());
             objLog.setIsMDNRequired(as2Msg.isRequestingMDN());
