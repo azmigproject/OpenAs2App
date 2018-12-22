@@ -444,7 +444,7 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 			ReqBulider.append(HTTPUtil.getBody(msg.getData().getInputStream()));
 			ReqBulider.append("\n");
 
-			logger.info(ReqBulider.toString());
+
 			// Log Request in blob
 			BlobHelper blobHelper = new BlobHelper();
 			try {

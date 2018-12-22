@@ -47,12 +47,12 @@ public class OpenAS2ServerTest {
         System.setProperty("org.apache.commons.logging.Log", "org.openas2.logging.Log");
 
         openAS2AHome = RESOURCE.get("OpenAS2A");
-        OpenAS2ServerTest.openAS2A = new OpenAS2Server.Builder().run(RESOURCE.get("OpenAS2A", "config", "config.xml").getAbsolutePath());
+       // OpenAS2ServerTest.openAS2A = new OpenAS2Server.Builder().run(RESOURCE.get("OpenAS2A", "config", "config.xml").getAbsolutePath());
 
         openAS2AOutbox = FileUtils.getFile(openAS2AHome, "data", "toOpenAS2B");
         openAS2AMDNs = FileUtils.getFile(openAS2AHome, "data", "OpenAS2A_OID-OpenAS2B_OID", "mdn", DateUtil.formatDate("yyyy-MM-dd"));
 
-       openAS2B = new OpenAS2Server.Builder().run(RESOURCE.get("OpenAS2B", "config", "config.xml").getAbsolutePath());
+       //openAS2B = new OpenAS2Server.Builder().run(RESOURCE.get("OpenAS2B", "config", "config.xml").getAbsolutePath());
         //openAS2BHome = RESOURCE.get("OpenAS2B");
        // openAS2BInbox = FileUtils.getFile(openAS2BHome, "data", "OpenAS2A_OID-OpenAS2B_OID", "inbox");
         //openAS2BMDNs = FileUtils.getFile(openAS2BHome, "data", "OpenAS2A_OID-OpenAS2B_OID", "mdn", DateUtil.formatDate("yyyy-MM-dd"));

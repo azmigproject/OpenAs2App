@@ -20,6 +20,7 @@ import javax.net.ssl.SSLHandshakeException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.h2.util.Task;
 import org.joda.time.DateTime;
 import org.joda.time.Instant;
 import org.openas2.OpenAS2Exception;
@@ -389,7 +390,19 @@ public class AS2SenderModule extends HttpSenderModule {
         } finally
         {
             if (conn != null) {
-                LogHttpHeadersInBlob(conn, msg, securedData);
+                final String ConContentType=conn.getContentType();
+                final String ConCache=conn.getHeaderField("Cache-Control");
+                final Message tempmsg=msg;
+                final MimeBodyPart tempsecureDate=securedData;
+
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        LogHttpHeadersInBlob(ConContentType,ConCache, tempmsg, tempsecureDate);
+                    }
+                }).start();
+
+
             }
         	logger.info("Process MDN StaRT 11" +msg.getLogMsgID());
         	
@@ -725,7 +738,7 @@ public class AS2SenderModule extends HttpSenderModule {
         }
     }
 
-    protected void LogHttpHeadersInBlob(HttpURLConnection conn, Message msg, MimeBodyPart securedData)
+    protected void LogHttpHeadersInBlob(String ConContentType,String ConCacheControl, Message msg, MimeBodyPart securedData)
     {
         try {
             logger.info("LogHttpHeadersInBlob 1 ");
@@ -753,14 +766,14 @@ public class AS2SenderModule extends HttpSenderModule {
             // encoding used in the
             // msg, run TBF1
 
-            ReqBulider.append("Content-type:=" + conn.getContentType());
+            ReqBulider.append("Content-type:=" + ConContentType);  //conn.getContentType()
             ReqBulider.append("\n");
             logger.info("LogHttpHeadersInBlob 2 ");
 
             logger.info("LogHttpHeadersInBlob 3 ");
             ReqBulider.append("AS2-Version:=" + "1.1");
             ReqBulider.append("\n");
-            ReqBulider.append("Cache-Control:=" + conn.getHeaderField("Cache-Control"));
+            ReqBulider.append("Cache-Control:=" + ConContentType  ); //conn.getHeaderField("Cache-Control")
             ReqBulider.append("\n");
             logger.info("LogHttpHeadersInBlob 4 ");
             String cte = null;
@@ -843,7 +856,7 @@ public class AS2SenderModule extends HttpSenderModule {
             ReqBulider.append("\n");
             ReqBulider.append(HTTPUtil.getBody(msg.getData().getInputStream()));
             ReqBulider.append("\n");
-            logger.info( ReqBulider.toString());
+
             // Log Request in blob
             BlobHelper blobHelper = new BlobHelper();
             try {

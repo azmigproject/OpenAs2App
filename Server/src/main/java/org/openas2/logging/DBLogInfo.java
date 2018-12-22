@@ -1,5 +1,7 @@
 package org.openas2.logging;
 import com.microsoft.azure.storage.table.*;
+import org.openas2.Constants;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
@@ -17,10 +19,11 @@ public class DBLogInfo extends TableServiceEntity {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         Date Now = new Date();
         this.partitionKey = sdf.format(Now);
-        sdf = new SimpleDateFormat("dd HH-mm-ss.SSS");
+        /*sdf = new SimpleDateFormat("dd HH-mm-ss.SSS");
         sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
         UUID uuid = UUID.randomUUID();
-        this.rowKey =sdf.format(Now).replace(" ","").replaceAll("-","").replace(".","")+"-"+uuid.toString();
+        this.rowKey =sdf.format(Now).replace(" ","").replaceAll("-","").replace(".","")+"-"+uuid.toString();*/
+        this.rowKey= Constants.getNetTicks();
         this.source="NptyAs2 Server";
         this.isErrorMailSend=false;
         this.isnptyAS2ServerLog=true;
@@ -202,12 +205,6 @@ public class DBLogInfo extends TableServiceEntity {
         this.fileSize = fileSize;
     }
 
-    public long getRowId() {
-        return RowId;
-    }
-    public void setRowId(long rowId) {
-        this.RowId = rowId;
-    }
 
     public String getContentType() {
         return contentType;
@@ -226,7 +223,7 @@ public class DBLogInfo extends TableServiceEntity {
     public String getLogMsgID()
     {
         return "ID="+id+"|As2SenderId="+senderId+"|AS2ReceiverId="+receiverId+
-                "|messageText="+logMessage+"|messageId"+messageID+"|RowId"+RowId;
+                "|messageText="+logMessage+"|messageId"+messageID;
     }
 
     private String id;
@@ -256,7 +253,7 @@ public class DBLogInfo extends TableServiceEntity {
     private String compressionType;
     private String contentType;
     private String contentDisposition;
-    private long RowId;
+
 
 
     }

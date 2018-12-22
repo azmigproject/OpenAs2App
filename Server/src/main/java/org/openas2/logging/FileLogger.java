@@ -4,7 +4,9 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Map;
+import java.io.FilenameFilter;
 
+import com.google.common.io.Files;
 import org.openas2.OpenAS2Exception;
 import org.openas2.Session;
 import org.openas2.message.Message;
@@ -49,9 +51,34 @@ public class FileLogger extends BaseLogger {
         String filename ="C:\\NPTYAS2Server\\logs\\log$date.yyyyMMdd$.txt";
         ParameterParser parser = createParser();
         filename = ParameterParser.parse(filename, parser);
+        FilenameFilter textFilter = new FilenameFilter() {
+            public boolean accept(File dir, String name) {
+                String lowercaseName = name.toLowerCase();
+                if (lowercaseName.endsWith(".nptylogprt")) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        };
 
         File logFile = new File(filename);
-
+        if(logFile.exists()) {
+            if (logFile.length() > 100 * 1024 * 1024) {
+            //if (logFile.length() > 100) {
+                int count=logFile.getParentFile().listFiles(textFilter).length;
+               File logpartfile=new File(filename+"_"+count+".nptylogprt");
+               try {
+                   Files.move(logFile, logpartfile);
+               }
+               catch (Exception exp)
+               {
+                   String msg = "Could not create seperate logfile  \"" + logFile.getAbsolutePath()
+                           + "\" for log file parameter \"" + filename + " into new fileparameter\""+ logpartfile ;
+                   throw new OpenAS2Exception(msg);
+               }
+            }
+        }
         if (!logFile.exists()) {
             File parentDir = logFile.getParentFile();
             if (!parentDir.exists()) {

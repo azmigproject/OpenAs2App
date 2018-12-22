@@ -22,7 +22,6 @@ import org.openas2.XMLSession;
 public class AzureUtil {
 
     public  String LOG_TABLE_NAME = "DBLog";
-    public  String LOG_COUNT_TABLE_NAME = "nptyAS2logCount";
     private String PARTNER_TABLE_NAME = "Partner";
     private String PROFILE_TABLE_NAME = "Profile";
     private String LAST_UPDATED_TIME_STAMP = "LastUpdatedTimeStamp";
@@ -524,8 +523,7 @@ private partner GetPartnerFromDocument(Document doc)
         PROCESSOR_TABLE_NAME=configInfo.getString("Processor");
         PROPERTIES_TABLE_NAME=configInfo.getString("Properties");
         LOG_TABLE_NAME=configInfo.getString("LogTableName");
-        LOG_COUNT_TABLE_NAME=configInfo.getString("LogCountTableName");
-        this.documentClient = new DocumentClient(configInfo.getString("CosmosDbEndPoint"),
+         this.documentClient = new DocumentClient(configInfo.getString("CosmosDbEndPoint"),
                 configInfo.getString("CosmoDbKey"),
                 new ConnectionPolicy(),
                 ConsistencyLevel.Session);
