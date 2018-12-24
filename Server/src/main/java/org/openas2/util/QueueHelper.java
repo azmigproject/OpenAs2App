@@ -130,6 +130,7 @@ public class QueueHelper {
 	                        try {
 	                            queueMessage = message.getMessageContentAsString();
 	                            System.out.println("In GetMsgFromQueueTask" + queueMessage);
+	                            logger.info("In GetMsgFromQueueTask" + queueMessage);
 	                            if (queueMessage.contains("|__|")) {
 	                                String[] arr = queueMessage.split("\\|__\\|");
 	                                File file = new File(outDir + "\\" + arr[0]);
@@ -140,7 +141,7 @@ public class QueueHelper {
 	                                writer.close();
 	                                File NewFile=new File(outDir + "\\" + arr[0]+".downloaded");
 	                                IOUtilOld.moveFile(file,NewFile,false, true);
-	                                logger.info("File copied from txt to downloaded " + file.getName() +" to "+ NewFile.getName());
+	                                logger.info("File copied from txt to downloaded From Queue in GetMsgFromQueue method " + file.getName() +" to "+ NewFile.getName());
 	                                //org.h2.store.fs.FileUtils.move(outDir + "\\" + arr[0],);
 	                               // synchronized (fileQueue) {
 	
@@ -158,7 +159,9 @@ public class QueueHelper {
 	
 	
 	                                if (blob.DownloadBlobInFile(Constants.BLOBCONTAINER, blobName, outDir, GetOriginalFileName(arr[0]),fileQueue)) {
+                                        logger.info("File copied from txt to downloaded From Blob "+blobName+" in GetMsgFromQueue method " +GetOriginalFileName(arr[0]));
 	                                    blob.DeleteBlob(Constants.BLOBCONTAINER, blobName);
+                                        logger.info("Deleted the blob after file downloaded From Blob "+blobName+" in GetMsgFromQueue method " +GetOriginalFileName(arr[0]));
 	                                }
 	                            }
 	

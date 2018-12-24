@@ -485,9 +485,9 @@ public abstract class DirectoryPollingModule extends PollingModule {
 
 
                                             } else {
-                                                System.out.println("Track file and not add it in  Tracked file list" + filePath);
-                                                logger.info("Track file and not add it in  Tracked file list" + filePath);
-                                                logger.info("FileTracked" + FileBlockingQueue.size() + "& file in processing " + FileProcessingBlockingQueue.size());
+                                                System.out.println("Track file and not add it in  Tracked file list (checkFileAndTrack)" + filePath);
+                                                logger.info("Track file and not add it in  Tracked file list (checkFileAndTrack)" + filePath);
+                                                logger.info(" (checkFileAndTrack) FileTracked" + FileBlockingQueue.size() + "& file in processing " + FileProcessingBlockingQueue.size());
 
                                             }
                                         }
