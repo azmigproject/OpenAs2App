@@ -110,7 +110,7 @@ public class QueueHelper {
                     synchronized(queue)
                     {
                     	//Iterable<CloudQueueMessage>	 cloudMsgs = queue.retrieveMessages(NoOffiledownload, 86400,queueReqOpt, null);
-                    	 cloudMsgs = queue.retrieveMessages(NoOffiledownload, 86400,queueReqOpt, null);
+                    	 cloudMsgs = queue.retrieveMessages(NoOffiledownload, 180,queueReqOpt, null);
                     }
                     // int intAccessCount=1;
                     //System.out.println("Try to Get Data Fromm Queue " + intAccessCount+" times");

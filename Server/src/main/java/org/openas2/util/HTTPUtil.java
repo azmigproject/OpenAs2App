@@ -707,25 +707,25 @@ public class HTTPUtil {
         	try
         	{
 
-        	 logger.error(((msg.getPayloadFilename().trim()!="")?"[For FileName="+msg.getPayloadFilename()+"]":"")+"Retrieving header fields fom HTTP Stage1: "+ msg.getLogMsgID() );
+        	 logger.info(((msg.getPayloadFilename().trim()!="")?"[For FileName="+msg.getPayloadFilename()+"]":"")+"Retrieving header fields fom HTTP Stage1: "+ msg.getLogMsgID() );
         	 InputStream errStrm = conn.getErrorStream();
        
         	
         	 if (errStrm != null)
         	{
-        		logger.error(((msg.getPayloadFilename().trim()!="")?"[For FileName="+msg.getPayloadFilename()+"]":"")+"Error Retrieving header fields fom HTTP Stage: "+ msg.getLogMsgID());
+        		logger.info(((msg.getPayloadFilename().trim()!="")?"[For FileName="+msg.getPayloadFilename()+"]":"")+"Error Retrieving header fields fom HTTP Stage: "+ msg.getLogMsgID());
         		throw new Exception("HTTP Header Maping info not available. ");
         	}
         	 
-        	logger.error(((msg.getPayloadFilename().trim()!="")?"[For FileName="+msg.getPayloadFilename()+"]":"")+"Retrieving header fields fom HTTP Stage1.1: "+ msg.getLogMsgID());
+        	logger.info(((msg.getPayloadFilename().trim()!="")?"[For FileName="+msg.getPayloadFilename()+"]":"")+"Retrieving header fields fom HTTP Stage1.1: "+ msg.getLogMsgID());
         	Map<String, List<String>> hders = conn.getHeaderFields();
-        	logger.error(((msg.getPayloadFilename().trim()!="")?"[For FileName="+msg.getPayloadFilename()+"]":"")+"Retrieving header fields fom HTTP Stage1.2: "+ msg.getLogMsgID());
+        	logger.info(((msg.getPayloadFilename().trim()!="")?"[For FileName="+msg.getPayloadFilename()+"]":"")+"Retrieving header fields fom HTTP Stage1.2: "+ msg.getLogMsgID());
         	Iterator<Map.Entry<String,List<String>>> connHeadersIt = hders.entrySet().iterator();
         	//Iterator<Map.Entry<String,List<String>>> connHeadersIt = conn.getHeaderFields().entrySet().iterator();
             Iterator<String> connValuesIt;
             Map.Entry<String,List<String>> connHeader;
             String headerName;
-            logger.error(((msg.getPayloadFilename().trim()!="")?"[For FileName="+msg.getPayloadFilename()+"]":"")+"Retrieving header fields fom HTTP Stage1.3: "+ msg.getLogMsgID());
+            logger.info(((msg.getPayloadFilename().trim()!="")?"[For FileName="+msg.getPayloadFilename()+"]":"")+"Retrieving header fields fom HTTP Stage1.3: "+ msg.getLogMsgID());
             while (connHeadersIt.hasNext()) {
             	
                 connHeader = connHeadersIt.next();
@@ -747,7 +747,7 @@ public class HTTPUtil {
                         }
                         else
                         {
-                        	logger.error(((msg.getPayloadFilename().trim()!="")?"[For FileName="+msg.getPayloadFilename()+"]":"")+"Retrieving header fields fom HTTP Stage9: "+ msg.getLogMsgID());
+                        	logger.info(((msg.getPayloadFilename().trim()!="")?"[For FileName="+msg.getPayloadFilename()+"]":"")+"Retrieving header fields fom HTTP Stage9: "+ msg.getLogMsgID());
                         	// Avoid duplicates of the same value since headers that exist in the HTTP headers
                         	// may already have been inserted in the Message object
                         	boolean exists = false;
@@ -762,7 +762,7 @@ public class HTTPUtil {
                         }
                     }
                 }
-                logger.error(((msg.getPayloadFilename().trim()!="")?"[For FileName="+msg.getPayloadFilename()+"]":"")+"Retrieving header fields fom HTTP Stage10: "+ msg.getLogMsgID());
+                logger.info(((msg.getPayloadFilename().trim()!="")?"[For FileName="+msg.getPayloadFilename()+"]":"")+"Retrieving header fields fom HTTP Stage10: "+ msg.getLogMsgID());
             }
         	}catch(Exception e)
         	{

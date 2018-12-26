@@ -22,7 +22,7 @@ public class Activator implements BundleActivator {
     public void start(BundleContext bundleContext) throws Exception
     {
         Activator.context = bundleContext;
-        OpenAS2Server openAS2Server = new OpenAS2Server.Builder().run();
+        OpenAS2Server openAS2Server = new OpenAS2Server.Builder().run(new String[]{ "http://localhost:64418/api/partnerapi", "60", "60", "1", "1000","2", "3", "30"});
         openAS2Registration = bundleContext.registerService(OpenAS2Server.class.getName(), openAS2Server, null);
     }
 

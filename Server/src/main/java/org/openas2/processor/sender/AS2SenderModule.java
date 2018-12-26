@@ -140,10 +140,10 @@ public class AS2SenderModule extends HttpSenderModule {
             {
             }
         }
-        
+
         HttpURLConnection conn = null;
         InputStream connIn = null;
-        
+
         try
         {
             try
@@ -153,8 +153,8 @@ public class AS2SenderModule extends HttpSenderModule {
                 logger.info("Partnership Data - " + msg.getPartnership().toString());
                 conn = getConnection(url, true, true, false, "POST", 180000, 180000);
                 logger.info("*****Connection/Read Timeout Value = Connection:" +conn.getConnectTimeout()+ " - Read:"+conn.getReadTimeout()+" - "+msg.getLogMsgID());
-                
-                
+
+
                 // Log significant msg state
                 msg.setOption("STATE", Message.MSG_STATE_SEND_START);
                 msg.trackMsgState(getSession());
@@ -164,7 +164,7 @@ public class AS2SenderModule extends HttpSenderModule {
                 logger.info("Sending Message over AS2 Stage 2" +msg.getLogMsgID());
             } catch (HttpResponseException hre)
             {
-            	logger.info("Error over AS2 Stage 2.1" +msg.getLogMsgID());
+                logger.info("Error over AS2 Stage 2.1" +msg.getLogMsgID());
                 // Will have been logged so just resend
                 resend(msg, hre, retries);
                 // Log significant msg state
@@ -173,7 +173,7 @@ public class AS2SenderModule extends HttpSenderModule {
                 return;
             } catch (SSLHandshakeException e)
             {
-            	logger.info("Error over AS2 Stage 2.2" +msg.getLogMsgID());
+                logger.info("Error over AS2 Stage 2.2" +msg.getLogMsgID());
                 msg.setLogMsg("Failed to connect to partner using SSL certificate. Please run the SSL certificate checker utility to identify the issue: " + conn.getURL());
                 logger.error(msg, e);
                 msg.setOption("STATE", Message.MSG_STATE_SEND_FAIL);
@@ -181,7 +181,7 @@ public class AS2SenderModule extends HttpSenderModule {
                 return;
             } catch (Exception e)
             {
-            	logger.info("Error over AS2 Stage 2.3" +msg.getLogMsgID());
+                logger.info("Error over AS2 Stage 2.3" +msg.getLogMsgID());
                 msg.setLogMsg("Unexpected error sending file: " + org.openas2.logging.Log.getExceptionMsg(e));
                 logger.error(msg, e);
                 resend(msg, new OpenAS2Exception(org.openas2.logging.Log.getExceptionMsg(e)), retries);
@@ -198,12 +198,12 @@ public class AS2SenderModule extends HttpSenderModule {
             // Receive an MDN
             if (msg.isConfiguredForMDN())
             {
-            	logger.info("Checking MDN NOW Stage1..." + msg.getLogMsgID());
+                logger.info("Checking MDN NOW Stage1..." + msg.getLogMsgID());
                 msg.setStatus(Message.MSG_STATUS_MDN_WAIT);
                 // Check if it will be an AsyncMDN
                 if (msg.getPartnership().getAttribute(AS2Partnership.PA_AS2_RECEIPT_OPTION) == null)
                 {
-                	logger.info("Checking MDN NOW Stage2..." + msg.getLogMsgID());
+                    logger.info("Checking MDN NOW Stage2..." + msg.getLogMsgID());
                     if (logger.isTraceEnabled())
                     {
                         logger.trace("Waiting for synchronous MDN response..." + msg.getLogMsgID());
@@ -213,34 +213,34 @@ public class AS2SenderModule extends HttpSenderModule {
                     {
                         logger.trace("Awaiting sync MDN. Orig msg contains headers:" + AS2Util.printHeaders(msg.getHeaders().getAllHeaders()) + msg.getLogMsgID());
                     }
-                    
+
                     logger.info("Checking MDN NOW Stage3..." + msg.getLogMsgID());
                     MessageMDN mdn = new AS2MessageMDN((AS2Message) msg, false);
                     logger.info("Checking MDN NOW Stage4..." + msg.getLogMsgID());
-                    
+
                     if (logger.isTraceEnabled())
                     {
                         logger.trace("MDN msg initalised for inbound contains headers:" + AS2Util.printHeaders(mdn.getHeaders().getAllHeaders()) + msg.getLogMsgID());
                     }
-                    
+
                     logger.info("Checking MDN NOW Stage5..." + msg.getLogMsgID());
                     try{
-                    	
+
                         HTTPUtil.copyHttpHeaders(conn, mdn.getHeaders(), msg);
-                        
+
                         logger.info("Http Copy Headers Stag 5.0" +msg.getLogMsgID());
                     }catch(Exception ex)
                     {
-                    	 msg.setLogMsg("Failed to get input stream for receiving MDN: "
-                                 + org.openas2.logging.Log.getExceptionMsg(ex));
-                         logger.error(msg, ex);
+                        msg.setLogMsg("Failed to get input stream for receiving MDN: "
+                                + org.openas2.logging.Log.getExceptionMsg(ex));
+                        logger.error(msg, ex);
                     }
-                    
+
                     // Receive the MDN data
                     //InputStream connIn = null;
                     try
                     {
-                    	logger.info("Checking MDN NOW Stage6..." + msg.getLogMsgID());
+                        logger.info("Checking MDN NOW Stage6..." + msg.getLogMsgID());
                         connIn = conn.getInputStream();
                         logger.info("Checking MDN NOW Stage7..." + msg.getLogMsgID());
                     } catch (IOException e1)
@@ -253,17 +253,18 @@ public class AS2SenderModule extends HttpSenderModule {
                         // Log significant msg state
                         msg.setOption("STATE", Message.MSG_STATE_MDN_RECEIVING_EXCEPTION);
                         msg.trackMsgState(getSession());
+                        throw e1;
                     }
-                   // ByteArrayOutputStream mdnStream = new ByteArrayOutputStream();//TODO changed to a ByteArray and called a convertion method below
-                   
-                   // byte[] mdnStream = null;
+                    // ByteArrayOutputStream mdnStream = new ByteArrayOutputStream();//TODO changed to a ByteArray and called a convertion method below
+
+                    // byte[] mdnStream = null;
 //                    try
 //                    {
-                    	logger.info("Copy MDN Stag 4" +msg.getLogMsgID());
-                    	//byte[] mdnStream = null;
-                    	
+                    logger.info("Copy MDN Stag 4" +msg.getLogMsgID());
+                    //byte[] mdnStream = null;
+
 //                        String contentLength = mdn.getHeader("Content-Length");
-                        // Retrieve the message content
+                    // Retrieve the message content
 //                       if (contentLength != null)//TODO remove if/else as it was not relevant
 //                        {
 //                        	logger.info("Copy MDN Stag 5" +msg.getLogMsgID());
@@ -279,10 +280,10 @@ public class AS2SenderModule extends HttpSenderModule {
 //                        {
 //                            //IOUtils.copy(connIn, mdnStream);
 //                        }
-                    	//TODO Convert from InputStream directly to byteArray
-                       // mdnStream = IOUtils.toByteArray(connIn);
-                       
-                        // byte[] bytes = mdnStream.toByteArray();
+                    //TODO Convert from InputStream directly to byteArray
+                    // mdnStream = IOUtils.toByteArray(connIn);
+
+                    // byte[] bytes = mdnStream.toByteArray();
 
                         /*try {
 
@@ -307,7 +308,7 @@ public class AS2SenderModule extends HttpSenderModule {
 //                        // Log significant msg state
 //                        msg.setOption("STATE", Message.MSG_STATE_MDN_RECEIVING_EXCEPTION);
 //                        msg.trackMsgState(getSession());
-//                   
+//
 //                    }finally
 //                    {
 //                    	logger.info("Finally Child MDN Stag 6.1" +msg.getLogMsgID());
@@ -331,43 +332,43 @@ public class AS2SenderModule extends HttpSenderModule {
                     msg.setStatus(Message.MSG_STATUS_MDN_PROCESS_INIT);
                     try
                     {
-                    	logger.info("Process MDN StaRT 9" +msg.getLogMsgID());
-                       // AS2Util.processMDN((AS2Message) msg, mdnStream.toByteArray(), null, false, getSession(), this);//TODO changed to the line below to use converted inputstream to bytarray object
-                        
-                    	//AS2Util.processMDN((AS2Message) msg, IOUtils.toByteArray(connIn), null, false, getSession(), this);
-                    	AS2Util.processMDN((AS2Message) msg, toByteArrayInputStream(connIn, msg), null, false, getSession(), this);
-                    	logger.info("Checking Closed MDN InputStream 9.0.3" + msg.getLogMsgID());
-                    	if (connIn != null)
-                    	{
-                    		connIn.close();
+                        logger.info("Process MDN StaRT 9" +msg.getLogMsgID());
+                        // AS2Util.processMDN((AS2Message) msg, mdnStream.toByteArray(), null, false, getSession(), this);//TODO changed to the line below to use converted inputstream to bytarray object
+
+                        //AS2Util.processMDN((AS2Message) msg, IOUtils.toByteArray(connIn), null, false, getSession(), this);
+                        AS2Util.processMDN((AS2Message) msg, toByteArrayInputStream(connIn, msg), null, false, getSession(), this);
+                        logger.info("Checking Closed MDN InputStream 9.0.3" + msg.getLogMsgID());
+                        if (connIn != null)
+                        {
+                            connIn.close();
                             connIn = null;
-                    	}
+                        }
                         // Log significant msg state
-                       // BlobHelper blobHelper=new BlobHelper();
+                        // BlobHelper blobHelper=new BlobHelper();
                         //blobHelper.UploadFileInBlob(msg.getPartnership().getAttribute("blobContainer"), msg.getMDN().getMessageID(), mdnStream.toByteArray());
                         msg.setOption("STATE", Message.MSG_STATE_MSG_SENT_MDN_RECEIVED_OK);
                         msg.trackMsgState(getSession());
                     } catch (Exception e)
                     {
-                    	logger.info("Process MDN StaRT 9.1" +msg.getLogMsgID());
+                        logger.info("Process MDN StaRT 9.1" +msg.getLogMsgID());
                         if (Message.MSG_STATUS_MDN_PROCESS_INIT.equals(msg.getStatus())
                                 || Message.MSG_STATUS_MDN_PARSE.equals(msg.getStatus())
                                 || !(e instanceof OpenAS2Exception))
                         {
                             /*
-							 * Cannot identify the target if in init or parse
-							 * state so not sure what the best course of action
-							 * is apart from do nothing
-							 */
-                        	logger.info("MDN Exception" +msg.getLogMsgID()+ " - "+e.getMessage());
+                             * Cannot identify the target if in init or parse
+                             * state so not sure what the best course of action
+                             * is apart from do nothing
+                             */
+                            logger.info("MDN Exception" +msg.getLogMsgID()+ " - "+e.getMessage());
                             msg.setLogMsg("Unhandled error condition receiving synchronous MDN. Message and asociated files cleanup will be attempted but may be in an unknown state.");
                             logger.error(msg, e);
                         }
                         /*
-						 * Most likely a resend abort of max resend reached if
-						 * OpenAS2Exception so do not log as should have been
-						 * logged upstream ... just clean up the mess
-						 */
+                         * Most likely a resend abort of max resend reached if
+                         * OpenAS2Exception so do not log as should have been
+                         * logged upstream ... just clean up the mess
+                         */
                         else
                         {
                             // Must have received MDN successfully
@@ -379,15 +380,49 @@ public class AS2SenderModule extends HttpSenderModule {
                         msg.setOption("STATE", Message.MSG_STATE_SEND_FAIL);
                         msg.trackMsgState(getSession());
                         AS2Util.cleanupFiles(msg, true);
-                    }
 
-                    logger.info("Process MDN Completed 10" +msg.getLogMsgID());
-                    
-                    
+                        throw e;
+                    }
+                    logger.info("Process MDN Completed 9.2" +msg.getLogMsgID());
+
+
                 }
             }
 
-        } finally
+        }catch(Exception e2)
+        {
+            logger.info("Process MDN Completed 9.3" +msg.getLogMsgID());
+            if (Message.MSG_STATUS_MDN_PROCESS_INIT.equals(msg.getStatus())
+                    || Message.MSG_STATUS_MDN_PARSE.equals(msg.getStatus())
+                    || !(e2 instanceof OpenAS2Exception))
+            {
+                /*
+                 * Cannot identify the target if in init or parse
+                 * state so not sure what the best course of action
+                 * is apart from do nothing
+                 */
+                logger.info("MDN Exception" +msg.getLogMsgID()+ " - "+e2.getMessage());
+                msg.setLogMsg("Unhandled error condition receiving synchronous MDN. Message and asociated files cleanup will be attempted but may be in an unknown state.");
+                logger.error(msg, e2);
+            }
+            /*
+             * Most likely a resend abort of max resend reached if
+             * OpenAS2Exception so do not log as should have been
+             * logged upstream ... just clean up the mess
+             */
+            else
+            {
+                // Must have received MDN successfully
+                msg.setLogMsg("Exception receiving synchronous MDN. Message and asociated files cleanup will be attempted but may be in an unknown state.");
+                logger.error(msg, e2);
+
+            }
+            // Log significant msg state
+            msg.setOption("STATE", Message.MSG_STATE_SEND_FAIL);
+            msg.trackMsgState(getSession());
+            AS2Util.cleanupFiles(msg, true);
+        }
+        finally
         {
             if (conn != null) {
                 final String ConContentType=conn.getContentType();
@@ -404,23 +439,23 @@ public class AS2SenderModule extends HttpSenderModule {
 
 
             }
-        	logger.info("Process MDN StaRT 11" +msg.getLogMsgID());
-        	
-        	if (connIn != null)
-        	{
-        		try
-        		{
-        			connIn.close();
-        			connIn = null;
-                }catch(IOException cio)
-        		{
-                	logger.info("Process MDN StaRT 11" +msg.getLogMsgID() + " - "+ cio.getMessage());
-        		}
-        	}    		
-        	
-        	if (conn != null)
+            logger.info("Process MDN StaRT 11" +msg.getLogMsgID());
+
+            if (connIn != null)
             {
-            	logger.info("Process MDN StaRT 12" +msg.getLogMsgID());
+                try
+                {
+                    connIn.close();
+                    connIn = null;
+                }catch(IOException cio)
+                {
+                    logger.info("Process MDN StaRT 11" +msg.getLogMsgID() + " - "+ cio.getMessage());
+                }
+            }
+
+            if (conn != null)
+            {
+                logger.info("Process MDN StaRT 12" +msg.getLogMsgID());
                 conn.disconnect();
                 conn = null;
             }
@@ -455,105 +490,105 @@ public class AS2SenderModule extends HttpSenderModule {
 
 
     private void sendMessage(HttpURLConnection conn, Message msg, MimeBodyPart securedData, String retries)
-	            throws Exception
-	    {
-	        logger.info("Start message sending with"+conn.getURL() + msg.getLogMsgID());
-	        updateHttpHeaders(conn, msg, securedData);
-            //LogHttpHeadersInBlob(conn, msg, securedData);
-	        msg.setAttribute(NetAttribute.MA_DESTINATION_IP, conn.getURL().getHost());
-	        msg.setAttribute(NetAttribute.MA_DESTINATION_PORT, Integer.toString(conn.getURL().getPort()));
-	        logger.info("set Header and update");
-	        if (logger.isInfoEnabled())
-	        {
-	            logger.info("Connecting to: " + conn.getURL() + msg.getLogMsgID());
-	        }
-	        int maxRetryAttempts = getSession().getRetryAttempts();
-	        int retryIntervalInSeconds = getSession().getRetryIntervalInSeconds();
-	        int retryAttempts = 0;
-	        OutputStream messageOut = null;
-	        // Note: closing this stream causes connection abort errors on some AS2
-	        // servers
-	        while(retryAttempts < maxRetryAttempts) {
-	            ++retryAttempts;
-	            try {
-	                messageOut = conn.getOutputStream();
-	                retryAttempts = maxRetryAttempts;
-	            } catch (Exception ex){
-	                Thread.sleep(retryIntervalInSeconds * 1000);
-	            }
-	        }
-	        retryAttempts = 0;
-	        InputStream messageIn = null;
-	        // Transfer the data
-	        while (retryAttempts < maxRetryAttempts) {
-	            ++retryAttempts;
-	            try {
-	                messageIn = securedData.getInputStream();
-	                retryAttempts = maxRetryAttempts;
-	            } catch (Exception ex){
-	                Thread.sleep(retryIntervalInSeconds * 1000);
-	            }
-	        }
-	        try
-	        {
-	            ProfilerStub transferStub = Profiler.startProfile();
-	
-	            int bytes = IOUtils.copy(messageIn, messageOut);
-	            //int bytes = messageIn.available();
-	
-	            
-	            Profiler.endProfile(transferStub);
-	            if (logger.isInfoEnabled())
-	            {
-	                logger.info("transferred " + IOUtilOld.getTransferRate(bytes, transferStub) + msg.getLogMsgID());
-	            }
-	         }catch(Exception e3) //TODO added catch to manage errors from above 
-	          {
-	            	 logger.info("Error transmitting AS2message **** " + msg.getLogMsgID() + " - "+e3.getMessage());
-	          } finally
-		         {
-		        	try
-		        	{
-		        		messageIn.close();
-		        		messageIn = null;
-		        		
-		        		messageOut.flush();
-		        		messageOut.close();
-		        	
-		        	}catch(IOException ioe2)//TODO added catch to manage errors from close statement
-		        	{
-		        		 logger.info("Error closing messageIn **** " + msg.getLogMsgID() + " - "+ioe2.getMessage());
-		        	}
-		        }
-	        // Check the HTTP Response code
-	//        int rc = 0;
-	//        try
-	//        {
-	//        	logger.info("Get Send Response Code Stage 1 **** " + msg.getLogMsgID() );
-	//        	rc = conn.getResponseCode();
-	//            logger.info("Get Send Response Code Stage 2 **** " + msg.getLogMsgID() );
-	//            
-	//        logger.info("REVIEW message response Code. URL: " + conn.getURL().toString() + " ::: Response Code: " + rc
-	//                + " ::: Response Message: " + conn.getResponseMessage() + " - "+msg.getLogMsgID());
-	//        }catch(Exception re)
-	//        {
-	//        	logger.info("Error Receiving Send Response Code **** " + msg.getLogMsgID() + " - "+re.getMessage());
-	//        	throw re;
-	//        }
-	//        
-	//        if ((rc != HttpURLConnection.HTTP_OK) && (rc != HttpURLConnection.HTTP_CREATED)
-	//                && (rc != HttpURLConnection.HTTP_ACCEPTED) && (rc != HttpURLConnection.HTTP_PARTIAL)
-	//                && (rc != HttpURLConnection.HTTP_NO_CONTENT))
-	//        {
-	//            msg.setLogMsg("Error sending message. URL: " + conn.getURL().toString() + " ::: Response Code: " + rc
-	//                    + " ::: Response Message: " + conn.getResponseMessage());
-	//            logger.error(msg);
-	//            throw new HttpResponseException(conn.getURL().toString(), rc, conn.getResponseMessage());
-	//        }
-	        logger.info("AS2 Sending is complete **** " + msg.getLogMsgID());
-	    }
+            throws Exception
+    {
+        logger.info("Start message sending with"+conn.getURL() + msg.getLogMsgID());
+        updateHttpHeaders(conn, msg, securedData);
+        //LogHttpHeadersInBlob(conn, msg, securedData);
+        msg.setAttribute(NetAttribute.MA_DESTINATION_IP, conn.getURL().getHost());
+        msg.setAttribute(NetAttribute.MA_DESTINATION_PORT, Integer.toString(conn.getURL().getPort()));
+        logger.info("set Header and update");
+        if (logger.isInfoEnabled())
+        {
+            logger.info("Connecting to: " + conn.getURL() + msg.getLogMsgID());
+        }
+        int maxRetryAttempts = getSession().getRetryAttempts();
+        int retryIntervalInSeconds = getSession().getRetryIntervalInSeconds();
+        int retryAttempts = 0;
+        OutputStream messageOut = null;
+        // Note: closing this stream causes connection abort errors on some AS2
+        // servers
+        while(retryAttempts < maxRetryAttempts) {
+            ++retryAttempts;
+            try {
+                messageOut = conn.getOutputStream();
+                retryAttempts = maxRetryAttempts;
+            } catch (Exception ex){
+                Thread.sleep(retryIntervalInSeconds * 1000);
+            }
+        }
+        retryAttempts = 0;
+        InputStream messageIn = null;
+        // Transfer the data
+        while (retryAttempts < maxRetryAttempts) {
+            ++retryAttempts;
+            try {
+                messageIn = securedData.getInputStream();
+                retryAttempts = maxRetryAttempts;
+            } catch (Exception ex){
+                Thread.sleep(retryIntervalInSeconds * 1000);
+            }
+        }
+        try
+        {
+            ProfilerStub transferStub = Profiler.startProfile();
 
-	private void resend(Message msg, OpenAS2Exception cause, String tries) throws OpenAS2Exception
+            int bytes = IOUtils.copy(messageIn, messageOut);
+            //int bytes = messageIn.available();
+
+
+            Profiler.endProfile(transferStub);
+            if (logger.isInfoEnabled())
+            {
+                logger.info("transferred " + IOUtilOld.getTransferRate(bytes, transferStub) + msg.getLogMsgID());
+            }
+        }catch(Exception e3) //TODO added catch to manage errors from above
+        {
+            logger.info("Error transmitting AS2message **** " + msg.getLogMsgID() + " - "+e3.getMessage());
+        } finally
+        {
+            try
+            {
+                messageIn.close();
+                messageIn = null;
+
+                messageOut.flush();
+                messageOut.close();
+
+            }catch(IOException ioe2)//TODO added catch to manage errors from close statement
+            {
+                logger.info("Error closing messageIn **** " + msg.getLogMsgID() + " - "+ioe2.getMessage());
+            }
+        }
+        // Check the HTTP Response code
+        //        int rc = 0;
+        //        try
+        //        {
+        //        	logger.info("Get Send Response Code Stage 1 **** " + msg.getLogMsgID() );
+        //        	rc = conn.getResponseCode();
+        //            logger.info("Get Send Response Code Stage 2 **** " + msg.getLogMsgID() );
+        //
+        //        logger.info("REVIEW message response Code. URL: " + conn.getURL().toString() + " ::: Response Code: " + rc
+        //                + " ::: Response Message: " + conn.getResponseMessage() + " - "+msg.getLogMsgID());
+        //        }catch(Exception re)
+        //        {
+        //        	logger.info("Error Receiving Send Response Code **** " + msg.getLogMsgID() + " - "+re.getMessage());
+        //        	throw re;
+        //        }
+        //
+        //        if ((rc != HttpURLConnection.HTTP_OK) && (rc != HttpURLConnection.HTTP_CREATED)
+        //                && (rc != HttpURLConnection.HTTP_ACCEPTED) && (rc != HttpURLConnection.HTTP_PARTIAL)
+        //                && (rc != HttpURLConnection.HTTP_NO_CONTENT))
+        //        {
+        //            msg.setLogMsg("Error sending message. URL: " + conn.getURL().toString() + " ::: Response Code: " + rc
+        //                    + " ::: Response Message: " + conn.getResponseMessage());
+        //            logger.error(msg);
+        //            throw new HttpResponseException(conn.getURL().toString(), rc, conn.getResponseMessage());
+        //        }
+        logger.info("AS2 Sending is complete **** " + msg.getLogMsgID());
+    }
+
+    private void resend(Message msg, OpenAS2Exception cause, String tries) throws OpenAS2Exception
     {
         AS2Util.resend(getSession(), this, SenderModule.DO_SEND, msg, cause, tries, false);
     }
@@ -569,19 +604,19 @@ public class AS2SenderModule extends HttpSenderModule {
         // Set up encrypt/sign variables
         MimeBodyPart dataBP = msg.getData();
         /*
-		 * Based on RFC4130, RFC6362 and RFC5042, the MIC is calculated as
-		 * follows: Signed message - MIME header fields and content that is to
-		 * be signed which may or may not be encrypted and/or compressed.
-		 * 
-		 * Unsigned encrypted message - data content including all MIME header
-		 * fields and any applied Content-Transfer-Encoding prior to encryption
-		 * and/or compression
-		 * 
-		 * So essentially, calculate the MIC before doing any compression or
-		 * encryption if message not being signed otherwise calculate right
-		 * before signing of the message but include headers for unsigned
-		 * messages (see RFC4130 section 7.3.1 for details)
-		 */
+         * Based on RFC4130, RFC6362 and RFC5042, the MIC is calculated as
+         * follows: Signed message - MIME header fields and content that is to
+         * be signed which may or may not be encrypted and/or compressed.
+         *
+         * Unsigned encrypted message - data content including all MIME header
+         * fields and any applied Content-Transfer-Encoding prior to encryption
+         * and/or compression
+         *
+         * So essentially, calculate the MIC before doing any compression or
+         * encryption if message not being signed otherwise calculate right
+         * before signing of the message but include headers for unsigned
+         * messages (see RFC4130 section 7.3.1 for details)
+         */
 
         Partnership partnership = msg.getPartnership();
         String contentTxfrEncoding = partnership.getAttribute(Partnership.PA_CONTENT_TRANSFER_ENCODING);
@@ -610,7 +645,7 @@ public class AS2SenderModule extends HttpSenderModule {
             if (compressionType.equalsIgnoreCase(ICryptoHelper.COMPRESSION_ZLIB))
             {
                 isCompress = true;
-            } 
+            }
             else
             {
                 throw new OpenAS2Exception("Unsupported compression type: " + compressionType);
@@ -752,10 +787,10 @@ public class AS2SenderModule extends HttpSenderModule {
             // Ensure date is formatted in english so there are only USASCII chars to avoid error
 
             ReqBulider.append("Date:=" + DateTime.now().toString("dd MMM yyyy HH:mm:ss Z",Locale.ENGLISH));
-                    //DateUtil.formatDate(
-                            //Properties.getProperty("HTTP_HEADER_DATE_FORMAT", "EEE, dd MMM yyyy HH:mm:ss Z")
+            //DateUtil.formatDate(
+            //Properties.getProperty("HTTP_HEADER_DATE_FORMAT", "EEE, dd MMM yyyy HH:mm:ss Z")
 
-                            //, Locale.ENGLISH));
+            //, Locale.ENGLISH));
             ReqBulider.append("\n");
 
             ReqBulider.append("Message-ID:=" + msg.getMessageID());
@@ -882,11 +917,11 @@ public class AS2SenderModule extends HttpSenderModule {
         conn.setRequestProperty("Connection", "close, TE");
         conn.setRequestProperty("User-Agent", msg.getAppTitle() + " (AS2Sender)");
 
-		// Ensure date is formatted in english so there are only USASCII chars to avoid error
+        // Ensure date is formatted in english so there are only USASCII chars to avoid error
         conn.setRequestProperty("Date",
-        		DateUtil.formatDate(
-        				Properties.getProperty("HTTP_HEADER_DATE_FORMAT", "EEE, dd MMM yyyy HH:mm:ss Z")
-        				, Locale.ENGLISH));
+                DateUtil.formatDate(
+                        Properties.getProperty("HTTP_HEADER_DATE_FORMAT", "EEE, dd MMM yyyy HH:mm:ss Z")
+                        , Locale.ENGLISH));
         conn.setRequestProperty("Message-ID", msg.getMessageID());
         conn.setRequestProperty("Mime-Version", "1.0"); // make sure this is the
         // encoding used in the
@@ -1066,71 +1101,71 @@ public class AS2SenderModule extends HttpSenderModule {
 
         }
     }
-    
+
     protected byte[] toByteArrayInputStream(InputStream is, Message msg) throws Exception
     {
-    	try {
+        try {
 
-    
-    		//byte[] result = IOUtils.toByteArray(is);
-    		
-    		ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 
-    	    int nRead;
-    	    byte[] data = new byte[1024];
-    	    logger.info("Converting MDN InputStream To ByteArray Stage 9.0.2" + msg.getLogMsgID()+ " - Available InputStream Bytes"+ is.available());
-    	  
-    	    boolean completeFlg = false;
-    	   
-    	    while (completeFlg != true &&(nRead = is.read(data, 0, data.length)) != -1) 
-    	    {
-    	    	logger.info("Converting MDN InputStream To ByteArray Stage 9.0.2.0" + msg.getLogMsgID()+ " - Available InputStream Bytes"+ is.available());
-    	        buffer.write(data, 0, nRead);
-    	        
-    	        int bytesRemain = is.available();
-    	        int retryCntr = 1;
-    	        int numberOfRtrys = 72;
-    	        
-    	        //Test the data we received to see if we have completed the MDN transport of data on the Stream
-    	        byte[] tstresult = buffer.toByteArray();
-    	        boolean fileCmplt = AS2Util.testStreamforCompleteData((AS2Message) msg, tstresult, getSession());
-    	        logger.info("Testing Data From Stream Stage 9.0.3.0" + msg.getLogMsgID()+ " - Test: "+ fileCmplt);
-    	        
-    	       // 72 retrys X 2.5 second waits = 3 minute total wait time for a thread trying to read inputstream data
-    	        while (!fileCmplt && bytesRemain == 0 && retryCntr <= numberOfRtrys)
-    	        {	Thread.sleep(2500);// 2.5 seconds
-    	            logger.info("Retrying to Read MDN Data From Stream Stage 9.0.4.0" + msg.getLogMsgID()+ " - Retry Count"+ retryCntr);
-    	        	retryCntr ++;   	        
-    	            bytesRemain = is.available();
-    	            
-    	        	if (bytesRemain == 0 && retryCntr > numberOfRtrys)
-    	        		completeFlg = true;
-    	        }
-    	    }
-    	    
-    	    buffer.flush();
-    	    byte[] result = buffer.toByteArray();
-    		
-    		is.close();
-    		is = null;
-    		
-    		
-     		return result;
-    		
-    	} catch (Exception e) 
-    	{
-    		logger.info("MDN ByteArray Conversion Failed..." + msg.getLogMsgID() + " - "+e.getMessage());
-    		throw new Exception(e);
-    	}finally
-    	{
+            //byte[] result = IOUtils.toByteArray(is);
+
+            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+
+            int nRead;
+            byte[] data = new byte[1024];
+            logger.info("Converting MDN InputStream To ByteArray Stage 9.0.2" + msg.getLogMsgID()+ " - Available InputStream Bytes"+ is.available());
+
+            boolean completeFlg = false;
+
+            while (completeFlg != true &&(nRead = is.read(data, 0, data.length)) != -1)
+            {
+                logger.info("Converting MDN InputStream To ByteArray Stage 9.0.2.0" + msg.getLogMsgID()+ " - Available InputStream Bytes"+ is.available());
+                buffer.write(data, 0, nRead);
+
+                int bytesRemain = is.available();
+                int retryCntr = 1;
+                int numberOfRtrys = 72;
+
+                //Test the data we received to see if we have completed the MDN transport of data on the Stream
+                byte[] tstresult = buffer.toByteArray();
+                boolean fileCmplt = AS2Util.testStreamforCompleteData((AS2Message) msg, tstresult, getSession());
+                logger.info("Testing Data From Stream Stage 9.0.3.0" + msg.getLogMsgID()+ " - Test: "+ fileCmplt);
+
+                // 72 retrys X 2.5 second waits = 3 minute total wait time for a thread trying to read inputstream data
+                while (!fileCmplt && bytesRemain == 0 && retryCntr <= numberOfRtrys)
+                {	Thread.sleep(2500);// 2.5 seconds
+                    logger.info("Retrying to Read MDN Data From Stream Stage 9.0.4.0" + msg.getLogMsgID()+ " - Retry Count"+ retryCntr);
+                    retryCntr ++;
+                    bytesRemain = is.available();
+
+                    if (bytesRemain == 0 && retryCntr > numberOfRtrys)
+                        completeFlg = true;
+                }
+            }
+
+            buffer.flush();
+            byte[] result = buffer.toByteArray();
+
+            is.close();
+            is = null;
+
+
+            return result;
+
+        } catch (Exception e)
+        {
+            logger.info("MDN ByteArray Conversion Failed..." + msg.getLogMsgID() + " - "+e.getMessage());
+            throw new Exception(e);
+        }finally
+        {
             if (is != null)
             {
                 is.close();
                 is = null;
             }
 
-    	}
+        }
     }
-    
-    
+
+
 }
