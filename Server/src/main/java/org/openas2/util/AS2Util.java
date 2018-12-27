@@ -312,7 +312,7 @@ public class AS2Util {
 		 */
 		String disposition = msg.getMDN().getAttribute(AS2MessageMDN.MDNA_DISPOSITION);
 		if (disposition != null && logger.isInfoEnabled())
-			logger.info("received MDN [" + disposition + "]" + msg.getLogMsgID());
+			logger.info("received MDN [" + disposition + "]" +" For File="+msg.getPayloadFilename()+" MessageID=" + msg.getLogMsgID());
 		boolean dispositionHasWarning = false;
 		try {
 			new DispositionType(disposition).validate();
@@ -868,7 +868,7 @@ public class AS2Util {
 			if (!isMoved)
 			{
 				IOUtilOld.deleteFile(fPendingFile);
-	            if (logger.isInfoEnabled()) logger.info("deleted " + fPendingFile.getAbsolutePath() + msg.getLogMsgID());
+	            if (logger.isInfoEnabled()) logger.info("deleted   " + fPendingFile.getAbsolutePath()+"For File="+msg.getPayloadFilename()+ "MessageId=" + msg.getLogMsgID());
 			}
 		} catch (Exception e)
 		{

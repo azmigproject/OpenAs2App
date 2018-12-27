@@ -162,9 +162,9 @@ public class AS2SenderModule extends HttpSenderModule {
                 msg.trackMsgState(getSession());
                 //Retry Interval and Retry Attempts
 
-                logger.info("Sending Message over AS2 Starts" +msg.getLogMsgID());
+                logger.info("Sending Message over AS2 Starts For File"+msg.getPayloadFilename()+" MessageID=" +msg.getLogMsgID());
                 sendMessage(conn, msg, securedData, retries);
-                logger.info("Sending Message over AS2 Ends" +msg.getLogMsgID());
+                logger.info("Sending Message over AS2 EndsFor File"+msg.getPayloadFilename()+" MessageID="+msg.getLogMsgID());
             } catch (HttpResponseException hre)
             {
                if(logger.isDebugEnabled())
@@ -199,7 +199,7 @@ public class AS2SenderModule extends HttpSenderModule {
 
             if (logger.isInfoEnabled())
             {
-                logger.info("Message sent. Checking if MDN will be returned..." + msg.getLogMsgID());
+                logger.info("Message sent. Checking if MDN will be returned... For File"+msg.getPayloadFilename() +"Message ID=" + msg.getLogMsgID());
             }
             // Receive an MDN
             if (msg.isConfiguredForMDN())
@@ -337,7 +337,7 @@ public class AS2SenderModule extends HttpSenderModule {
 
                     if (logger.isInfoEnabled())
                     {
-                        logger.info("Synchronous MDN received. Start processing..." + msg.getLogMsgID());
+                        logger.info("Synchronous MDN received. Start processing... For File"+msg.getPayloadFilename()+"MessageId=" + msg.getLogMsgID());
                     }
                     msg.setStatus(Message.MSG_STATUS_MDN_PROCESS_INIT);
                     try
@@ -604,7 +604,7 @@ public class AS2SenderModule extends HttpSenderModule {
         //            logger.error(msg);
         //            throw new HttpResponseException(conn.getURL().toString(), rc, conn.getResponseMessage());
         //        }
-        logger.info("AS2 Sending is complete **** " + msg.getLogMsgID());
+        logger.info("AS2 Sending is complete **** For File"+msg.getPayloadFilename()+" MessageID=" + msg.getLogMsgID());
     }
 
     private void resend(Message msg, OpenAS2Exception cause, String tries) throws OpenAS2Exception
@@ -1058,9 +1058,9 @@ public class AS2SenderModule extends HttpSenderModule {
             String retries = (String) msg.getOption(ResenderModule.OPTION_RETRIES);
             oos.writeObject((retries == null ? "" : retries));
 
-            if (logger.isInfoEnabled())
+            if (logger.isDebugEnabled())
             {
-                logger.info("Save Original mic & message id information into file: " + pendingInfoFile
+                logger.debug("Save Original mic & message id information into file: " + pendingInfoFile
                         + msg.getLogMsgID());
             }
             oos.writeObject(msg.getAttribute(FileAttribute.MA_FILENAME));
