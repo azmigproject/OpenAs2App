@@ -1146,7 +1146,7 @@ public class AS2SenderModule extends HttpSenderModule {
 
                 int bytesRemain = is.available();
                 int retryCntr = 1;
-                int numberOfRtrys = 72;
+                int numberOfRtrys = 96;
 
                 //Test the data we received to see if we have completed the MDN transport of data on the Stream
                 byte[] tstresult = buffer.toByteArray();
