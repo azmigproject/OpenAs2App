@@ -186,7 +186,8 @@ public abstract class DirectoryPollingModule extends PollingModule {
                                         }
 
                                         System.out.println(" Scan Directry  for" + dirFileLength + "  Files" + "in dir" + outboxDir);
-                                        logger.info(" Scan Directry  for" + dirFileLength + "  Files" + "in dir" + outboxDir);
+                                       if(logger.isDebugEnabled())
+                                        logger.debug(" Scan Directry  for" + dirFileLength + "  Files" + "in dir" + outboxDir);
                                         dirFileCounter++;
                                         //if (dirFileCounter == dirFileLength) {
 
@@ -285,7 +286,8 @@ public abstract class DirectoryPollingModule extends PollingModule {
                     DirWatcherThreadCounter++;
                 }
                 System.out.println("PollPool Executer Terminated at" + (new Date()).toString());
-                logger.info("PollPool Executer Terminated at" + (new Date()).toString());
+                if(logger.isDebugEnabled())
+                logger.debug("PollPool Executer Terminated at" + (new Date()).toString());
             } else {
                 //System.out.println( "Threading condition invalidate in this poll");
             }
@@ -343,7 +345,8 @@ public abstract class DirectoryPollingModule extends PollingModule {
                         updateTracking(ThreadName);
 
                         System.out.println("BlockingQueue Length" + FileBlockingQueue.size());
-                        logger.info("BlockingQueue Length" + FileBlockingQueue.size());
+                        if(logger.isDebugEnabled())
+                        logger.debug("BlockingQueue Length" + FileBlockingQueue.size());
                         if (FileBlockingQueue.size() > 0) {
                             synchronized (this) {
                                 try {
@@ -369,7 +372,8 @@ public abstract class DirectoryPollingModule extends PollingModule {
                     RunningQueueThreads.remove(ThreadName);
 
                     System.out.println("Finally executed in conumser thread now the FileThreadCounter value is " + FileThreadCounter);
-                    logger.info("Finally executed in conumser thread now the RunningQueueThreads value is " + RunningQueueThreads.size());
+                   if(logger.isDebugEnabled())
+                    logger.debug("Finally executed in conumser thread now the RunningQueueThreads value is " + RunningQueueThreads.size());
                 }
             }
         };
@@ -481,13 +485,15 @@ public abstract class DirectoryPollingModule extends PollingModule {
                                                 FileBlockingQueue.AddPath(filePath);
                                                 System.out.println("Track file and add it in  Tracked file list (checkFileAndTrack)" + filePath);
                                                 logger.info("Track file and add it in  Tracked file list  (checkFileAndTrack)" + filePath);
-                                                logger.info("FileTracked" + FileBlockingQueue.size() + "& file in processing  (checkFileAndTrack)" + FileProcessingBlockingQueue.size()+ " "+filePath);
+                                                if(logger.isDebugEnabled())
+                                                logger.debug("FileTracked" + FileBlockingQueue.size() + "& file in processing  (checkFileAndTrack)" + FileProcessingBlockingQueue.size()+ " "+filePath);
 
 
                                             } else {
                                                 System.out.println("Track file and not add it in  Tracked file list (checkFileAndTrack)" + filePath);
                                                 logger.info("Track file and not add it in  Tracked file list (checkFileAndTrack)" + filePath);
-                                                logger.info(" (checkFileAndTrack) FileTracked" + FileBlockingQueue.size() + "& file in processing " + FileProcessingBlockingQueue.size());
+                                                if(logger.isDebugEnabled())
+                                                logger.debug(" (checkFileAndTrack) FileTracked" + FileBlockingQueue.size() + "& file in processing " + FileProcessingBlockingQueue.size());
 
                                             }
                                         }
@@ -570,7 +576,8 @@ public abstract class DirectoryPollingModule extends PollingModule {
                                    // System.out.println("Thread " + ThreadName + "Process file " + strFileName);
                                     logger.info("Get file from queue for procesing" + strFileName);
                                     logger.info("Add file in FileProcessingBlockingQueue " + strFileName);
-                                    logger.info("Thread " + ThreadName + "Process file " + strFileName);
+                                    if(logger.isDebugEnabled())
+                                    logger.debug("Thread " + ThreadName + "Process file " + strFileName);
                                     File file = new File(strFileName);
                                     File newFile = new File(strFileName.replace(".downloaded", ".processing"));
                                     file.renameTo(newFile);
@@ -582,12 +589,13 @@ public abstract class DirectoryPollingModule extends PollingModule {
 
                                 {
                                     System.out.println("File Already in processing so not get the file " + strFileName);
-                                    logger.info("File Already in processing so not get the file " + strFileName);
+                                    if(logger.isDebugEnabled())
+                                    logger.debug("File Already in processing so not get the file " + strFileName);
                                     strFileName = "";
                                 }
                             } else {
                                 System.out.println("File Already in processing so not get the file " + strFileName);
-                                logger.info("File Already in processing so not get the file " + strFileName);
+                                if(logger.isDebugEnabled()) logger.debug("File Already in processing so not get the file " + strFileName);
                                 strFileName = "";
                             }
 
@@ -659,14 +667,14 @@ public abstract class DirectoryPollingModule extends PollingModule {
                     processFile(file);
                 } catch (OpenAS2Exception e) {
                     System.out.println("Error occured in UpdateTrackingTask" + e.getMessage());
-                    logger.info("Error occured in UpdateTrackingTask" + e.getMessage());
+                    logger.error("Error occured in UpdateTrackingTask" + e.getMessage());
                     e.terminate();
                     try {
                         //IOUtilOld.handleError(file, errorDir);
                         IOUtilOld.handleError(file, errorDir);
                     } catch (OpenAS2Exception e1) {
                         logger.error("Error handling file error for file: " + file.getAbsolutePath(), e1);
-                        System.out.println("Error occured in UpdateTrackingTask" + e.getMessage());
+                        System.out.println("Error occured in UpdateTrackingTask" + e1.getMessage());
                         //forceStop(e1);
                         return;
                     }
@@ -683,8 +691,8 @@ public abstract class DirectoryPollingModule extends PollingModule {
 
     protected void processFile(File file) throws OpenAS2Exception {
 
-        if (logger.isInfoEnabled())
-            logger.info("processing " + file.getAbsolutePath());
+        if (logger.isDebugEnabled())
+            logger.debug("processing " + file.getAbsolutePath());
 
         try {
             System.out.println("Document processing starts " + file.getAbsolutePath());

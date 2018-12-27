@@ -130,24 +130,28 @@ public class QueueHelper {
 	                        try {
 	                            queueMessage = message.getMessageContentAsString();
 	                            System.out.println("In GetMsgFromQueueTask" + queueMessage);
-	                            logger.info("In GetMsgFromQueueTask" + queueMessage);
+	                            if(logger.isDebugEnabled())
+	                            logger.debug("In GetMsgFromQueueTask" + queueMessage);
 	                            if (queueMessage.contains("|__|")) {
 	                                String[] arr = queueMessage.split("\\|__\\|");
-	                                File file = new File(outDir + "\\" + arr[0]);
+	                                String dirPath=( outDir.endsWith("\\")?outDir:(outDir + "\\"));
+	                                File file = new File(dirPath + arr[0]);
 	                                file.createNewFile();
 	                                FileWriter writer = new FileWriter(file);
 	                                writer.write(arr[1]);
 	                                writer.flush();
 	                                writer.close();
-	                                File NewFile=new File(outDir + "\\" + arr[0]+".downloaded");
+	                                File NewFile=new File(dirPath + arr[0]+".downloaded");
 	                                IOUtilOld.moveFile(file,NewFile,false, true);
-	                                logger.info("File copied from txt to downloaded From Queue in GetMsgFromQueue method " + file.getName() +" to "+ NewFile.getName());
+                                    if(logger.isDebugEnabled())
+	                                logger.debug("File copied from txt to downloaded From Queue in GetMsgFromQueue method " + file.getName() +" to "+ NewFile.getName());
 	                                //org.h2.store.fs.FileUtils.move(outDir + "\\" + arr[0],);
 	                               // synchronized (fileQueue) {
 	
 	
-	                                        fileQueue.AddPath(outDir + "\\" + arr[0] + ".downloaded");
-	                                        logger.info("File Added to BlockingQueue " + outDir + "\\" + arr[0] + ".downloaded");
+	                                        fileQueue.AddPath(dirPath + arr[0] + ".downloaded");
+                                    if(logger.isDebugEnabled())
+	                                        logger.debug("File Added to BlockingQueue " + dirPath + arr[0] + ".downloaded");
 	
 	                               // }
 	
@@ -159,9 +163,11 @@ public class QueueHelper {
 	
 	
 	                                if (blob.DownloadBlobInFile(Constants.BLOBCONTAINER, blobName, outDir, GetOriginalFileName(arr[0]),fileQueue)) {
-                                        logger.info("File copied from txt to downloaded From Blob "+blobName+" in GetMsgFromQueue method " +GetOriginalFileName(arr[0]));
+                                        if(logger.isDebugEnabled())
+	                                    logger.debug("File copied from txt to downloaded From Blob "+blobName+" in GetMsgFromQueue method " +GetOriginalFileName(arr[0]));
 	                                    blob.DeleteBlob(Constants.BLOBCONTAINER, blobName);
-                                        logger.info("Deleted the blob after file downloaded From Blob "+blobName+" in GetMsgFromQueue method " +GetOriginalFileName(arr[0]));
+                                        if(logger.isDebugEnabled())
+                                        logger.debug("Deleted the blob after file downloaded From Blob "+blobName+" in GetMsgFromQueue method " +GetOriginalFileName(arr[0]));
 	                                }
 	                            }
 	

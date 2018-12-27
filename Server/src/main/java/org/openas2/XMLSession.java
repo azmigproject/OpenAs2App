@@ -437,9 +437,12 @@ public class XMLSession extends BaseSession {
         LOGGER.info("Loading log manager(s)...");
 
         LogManager manager = LogManager.getLogManager();
-        LOGGER.info( "LOG_TABLE_NAME=="+azureUtil.LOG_TABLE_NAME);
-        LOGGER.info( "STORAGE_CONNECTION_STRING=="+azureUtil.STORAGE_CONNECTION_STRING);
-        Logger logger =  new DbLogger(azureUtil.LOG_TABLE_NAME, azureUtil.STORAGE_CONNECTION_STRING);
+        if(LOGGER.isDebugEnabled()) {
+            LOGGER.debug("LOG_TABLE_NAME==" + azureUtil.LOG_TABLE_NAME);
+            LOGGER.debug("STORAGE_CONNECTION_STRING==" + azureUtil.STORAGE_CONNECTION_STRING);
+        }
+         Logger logger = new DbLogger(azureUtil.LOG_TABLE_NAME, azureUtil.STORAGE_CONNECTION_STRING);
+
         Logger filelogger =  new FileLogger();
         manager.addLogger(filelogger);
         manager.addLogger(logger);

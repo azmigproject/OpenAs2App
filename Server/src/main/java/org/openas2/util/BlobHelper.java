@@ -60,7 +60,7 @@ public class BlobHelper {
             // Retrieve a reference to a blob.
             CloudBlobContainer blockBlobContainer = blobClient.getContainerReference(blobContainer);
             CloudBlockBlob blockBlob = blockBlobContainer.getBlockBlobReference(blobName);
-            String fileDownloadPath = filePath + File.separator + fileName;
+            String fileDownloadPath = ((filePath.endsWith(File.separator)?filePath: filePath + File.separator) + fileName);
             blockBlob.downloadToFile(fileDownloadPath);
             File fl=new File(fileDownloadPath);
             //org.h2.store.fs.FileUtils.move(fileDownloadPath,fileDownloadPath+".downloaded");
@@ -133,7 +133,7 @@ public class BlobHelper {
             // Retrieve a reference to a queue.
             CloudBlobContainer blockBlobContainer = blobClient.getContainerReference(blobContainer);
             CloudBlockBlob blockBlob = blockBlobContainer.getBlockBlobReference(blobName);
-            String fileDownloadPath = filePath + File.separator + fileName;
+            //String fileDownloadPath = filePath + File.separator + fileName;
             blockBlob.download(outStream);
             return outStream;
         }

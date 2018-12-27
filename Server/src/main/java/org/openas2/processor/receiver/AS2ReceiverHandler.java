@@ -353,7 +353,8 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 	protected void LogHttpHeadersInBlob(Message msg,byte[] Data)
 	{
 		try {
-			logger.info("Log Http Headers In Blob during receiving file ");
+			if(logger.isDebugEnabled())
+			logger.debug("Log Http Headers In Blob during receiving file ");
 			StringBuilder ReqBulider = new StringBuilder();
 			Partnership partnership = msg.getPartnership();
 			ReqBulider.append("In-Coming Request Details");
@@ -449,7 +450,8 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 			BlobHelper blobHelper = new BlobHelper();
 			try {
 				blobHelper.UploadFileInBlob(msg.getPartnership().getAttribute("blobContainer"), msg.getMessageID().replace("<","").replace(">","").trim() + ".req", ReqBulider.toString().getBytes());
-				logger.info("LogHttpHeadersInBlob 6 upload content in blob "+msg.getMessageID().replace("<","").replace(">","").trim() + ".req in container "+msg.getPartnership().getAttribute("blobContainer") );
+				if(logger.isDebugEnabled())
+					logger.debug("LogHttpHeadersInBlob 6 upload content in blob "+msg.getMessageID().replace("<","").replace(">","").trim() + ".req in container "+msg.getPartnership().getAttribute("blobContainer") );
 			} catch (Exception exp) {
 				logger.error(exp);
 			}
