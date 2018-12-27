@@ -441,7 +441,7 @@ public class XMLSession extends BaseSession {
         LOGGER.info( "STORAGE_CONNECTION_STRING=="+azureUtil.STORAGE_CONNECTION_STRING);
         Logger logger =  new DbLogger(azureUtil.LOG_TABLE_NAME, azureUtil.STORAGE_CONNECTION_STRING);
         Logger filelogger =  new FileLogger();
-         manager.addLogger(filelogger);
+        manager.addLogger(filelogger);
         manager.addLogger(logger);
     }
     private void loadLoggers(Node rootNode) throws OpenAS2Exception

@@ -60,9 +60,9 @@ public class AS2SenderModule extends HttpSenderModule {
     public void handle(String action, Message msg, Map<Object, Object> options) throws OpenAS2Exception
     {
 
-        if (logger.isInfoEnabled())
+        if (logger.isDebugEnabled())
         {
-            logger.info("message sender invoked" + msg.getLogMsgID());
+            logger.debug("message sender invoked" + msg.getLogMsgID());
         }
         boolean isResend = Message.MSG_STATUS_MSG_RESEND.equals(msg.getStatus());
         options.put("DIRECTION", "SEND");
@@ -150,21 +150,21 @@ public class AS2SenderModule extends HttpSenderModule {
             {
                 // Create the HTTP connection and set up headers
                 String url = msg.getPartnership().getAttribute(AS2Partnership.PA_AS2_URL);
-                logger.info("Partnership Data - " + msg.getPartnership().toString());
+                logger.debug("Partnership Data - " + msg.getPartnership().toString());
                 conn = getConnection(url, true, true, false, "POST", 180000, 180000);
-                logger.info("*****Connection/Read Timeout Value = Connection:" +conn.getConnectTimeout()+ " - Read:"+conn.getReadTimeout()+" - "+msg.getLogMsgID());
+                logger.debug("*****Connection/Read Timeout Value = Connection:" +conn.getConnectTimeout()+ " - Read:"+conn.getReadTimeout()+" - "+msg.getLogMsgID());
 
 
                 // Log significant msg state
                 msg.setOption("STATE", Message.MSG_STATE_SEND_START);
                 msg.trackMsgState(getSession());
                 //Retry Interval and Retry Attempts
-                logger.info("Sending Message over AS2 Stage 1" +msg.getLogMsgID());
+                logger.debug("Sending Message over AS2 Stage 1" +msg.getLogMsgID());
                 sendMessage(conn, msg, securedData, retries);
-                logger.info("Sending Message over AS2 Stage 2" +msg.getLogMsgID());
+                logger.debug("Sending Message over AS2 Stage 2" +msg.getLogMsgID());
             } catch (HttpResponseException hre)
             {
-                logger.info("Error over AS2 Stage 2.1" +msg.getLogMsgID());
+                logger.debug("Error over AS2 Stage 2.1" +msg.getLogMsgID());
                 // Will have been logged so just resend
                 resend(msg, hre, retries);
                 // Log significant msg state
@@ -173,7 +173,7 @@ public class AS2SenderModule extends HttpSenderModule {
                 return;
             } catch (SSLHandshakeException e)
             {
-                logger.info("Error over AS2 Stage 2.2" +msg.getLogMsgID());
+                logger.debug("Error over AS2 Stage 2.2" +msg.getLogMsgID());
                 msg.setLogMsg("Failed to connect to partner using SSL certificate. Please run the SSL certificate checker utility to identify the issue: " + conn.getURL());
                 logger.error(msg, e);
                 msg.setOption("STATE", Message.MSG_STATE_SEND_FAIL);
@@ -181,7 +181,7 @@ public class AS2SenderModule extends HttpSenderModule {
                 return;
             } catch (Exception e)
             {
-                logger.info("Error over AS2 Stage 2.3" +msg.getLogMsgID());
+                logger.debug("Error over AS2 Stage 2.3" +msg.getLogMsgID());
                 msg.setLogMsg("Unexpected error sending file: " + org.openas2.logging.Log.getExceptionMsg(e));
                 logger.error(msg, e);
                 resend(msg, new OpenAS2Exception(org.openas2.logging.Log.getExceptionMsg(e)), retries);
@@ -198,12 +198,12 @@ public class AS2SenderModule extends HttpSenderModule {
             // Receive an MDN
             if (msg.isConfiguredForMDN())
             {
-                logger.info("Checking MDN NOW Stage1..." + msg.getLogMsgID());
+                logger.debug("Checking MDN NOW Stage1..." + msg.getLogMsgID());
                 msg.setStatus(Message.MSG_STATUS_MDN_WAIT);
                 // Check if it will be an AsyncMDN
                 if (msg.getPartnership().getAttribute(AS2Partnership.PA_AS2_RECEIPT_OPTION) == null)
                 {
-                    logger.info("Checking MDN NOW Stage2..." + msg.getLogMsgID());
+                    logger.debug("Checking MDN NOW Stage2..." + msg.getLogMsgID());
                     if (logger.isTraceEnabled())
                     {
                         logger.trace("Waiting for synchronous MDN response..." + msg.getLogMsgID());
@@ -213,22 +213,23 @@ public class AS2SenderModule extends HttpSenderModule {
                     {
                         logger.trace("Awaiting sync MDN. Orig msg contains headers:" + AS2Util.printHeaders(msg.getHeaders().getAllHeaders()) + msg.getLogMsgID());
                     }
-
-                    logger.info("Checking MDN NOW Stage3..." + msg.getLogMsgID());
+                    if(logger.isDebugEnabled())
+                        logger.debug("Checking MDN NOW Stage3..." + msg.getLogMsgID());
                     MessageMDN mdn = new AS2MessageMDN((AS2Message) msg, false);
-                    logger.info("Checking MDN NOW Stage4..." + msg.getLogMsgID());
+                    if(logger.isDebugEnabled())
+                        logger.debug("Checking MDN NOW Stage4..." + msg.getLogMsgID());
 
                     if (logger.isTraceEnabled())
                     {
                         logger.trace("MDN msg initalised for inbound contains headers:" + AS2Util.printHeaders(mdn.getHeaders().getAllHeaders()) + msg.getLogMsgID());
                     }
-
-                    logger.info("Checking MDN NOW Stage5..." + msg.getLogMsgID());
+                    if(logger.isDebugEnabled())
+                        logger.debug("Checking MDN NOW Stage5..." + msg.getLogMsgID());
                     try{
 
                         HTTPUtil.copyHttpHeaders(conn, mdn.getHeaders(), msg);
-
-                        logger.info("Http Copy Headers Stag 5.0" +msg.getLogMsgID());
+                        if(logger.isDebugEnabled())
+                            logger.debug("Http Copy Headers Stag 5.0" +msg.getLogMsgID());
                     }catch(Exception ex)
                     {
                         msg.setLogMsg("Failed to get input stream for receiving MDN: "
@@ -240,9 +241,11 @@ public class AS2SenderModule extends HttpSenderModule {
                     //InputStream connIn = null;
                     try
                     {
-                        logger.info("Checking MDN NOW Stage6..." + msg.getLogMsgID());
+                        if(logger.isDebugEnabled())
+                            logger.debug("Checking MDN NOW Stage6..." + msg.getLogMsgID());
                         connIn = conn.getInputStream();
-                        logger.info("Checking MDN NOW Stage7..." + msg.getLogMsgID());
+                        if(logger.isDebugEnabled())
+                            logger.debug("Checking MDN NOW Stage7..." + msg.getLogMsgID());
                     } catch (IOException e1)
                     {
                         msg.setLogMsg("Failed to get input stream for receiving MDN: "
@@ -260,7 +263,8 @@ public class AS2SenderModule extends HttpSenderModule {
                     // byte[] mdnStream = null;
 //                    try
 //                    {
-                    logger.info("Copy MDN Stag 4" +msg.getLogMsgID());
+                    if(logger.isDebugEnabled())
+                        logger.debug("Copy MDN Stag 4" +msg.getLogMsgID());
                     //byte[] mdnStream = null;
 
 //                        String contentLength = mdn.getHeader("Content-Length");

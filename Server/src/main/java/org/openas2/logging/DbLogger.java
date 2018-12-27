@@ -62,14 +62,12 @@ public class DbLogger extends BaseLogger {
     }
 
     public void doLog(Level level, String msgText, Message as2Msg) {
-        if (level.getName() == "error" || level.getName() == "warning" || as2Msg != null) {
-            try {
-                DBLogInfo objInfo = GetDBLogInfo(level, msgText, as2Msg);
-                AddLogInTable(objInfo);
-            } catch (Exception e) {
-                System.out.println("Error in Document ");
-                e.printStackTrace();
-            }
+        try {
+            DBLogInfo objInfo = GetDBLogInfo(level, msgText, as2Msg);
+            AddLogInTable(objInfo);
+        } catch (Exception e) {
+            System.out.println("Error in Document ");
+            e.printStackTrace();
         }
     }
 
