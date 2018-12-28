@@ -81,6 +81,10 @@ public interface Message extends Serializable {
 
     void setStatus(String status);
 
+   // String getLogMessage();
+
+   /// void setLogMessage(String logMessage);
+
     Map<String, String> getCustomOuterMimeHeaders();
 
     void setCustomOuterMimeHeaders(Map<String, String> customOuterMimeHeaders);

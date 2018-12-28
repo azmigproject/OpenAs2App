@@ -2,8 +2,13 @@ package org.openas2.util;
 
 import com.microsoft.azure.storage.*;
 import com.microsoft.azure.storage.blob.*;
+import com.microsoft.azure.storage.queue.CloudQueue;
+import com.microsoft.azure.storage.queue.CloudQueueMessage;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.openas2.lib.dbUtils.ServersSettings;
 import org.openas2.Constants;
 import java.io.File;
@@ -12,7 +17,8 @@ import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
 public class BlobHelper {
-
+	
+	private Log logger = LogFactory.getLog("BlobHelper Class Process");
 
     public boolean UploadFileInBlob(String blobContainer,String blobName, byte[] byteContent) throws Exception {
 
@@ -43,7 +49,7 @@ public class BlobHelper {
     }
 
 
-    public boolean DownloadBlobInFile(String blobContainer,String blobName,String filePath, String fileName,HighPerformanceBlockingQueue fileQueue ) throws Exception {
+    public boolean DownloadBlobInFile(String blobContainer,String blobName,String filePath, String fileName,HighPerformanceBlockingQueue fileQueue, CloudQueueMessage message, CloudQueue queue ) throws Exception {
         //final String storageConnectionString = "DefaultEndpointsProtocol=http;" + "AccountName=your_storage_account;" + "AccountKey=your_storage_account_key";
 
         try {
@@ -60,8 +66,19 @@ public class BlobHelper {
             // Retrieve a reference to a blob.
             CloudBlobContainer blockBlobContainer = blobClient.getContainerReference(blobContainer);
             CloudBlockBlob blockBlob = blockBlobContainer.getBlockBlobReference(blobName);
-            String fileDownloadPath = ((filePath.endsWith(File.separator)?filePath: filePath + File.separator) + fileName);
+            //String fileDownloadPath = filePath + File.separator + fileName;
+            String fileDownloadPath = filePath + fileName;
             blockBlob.downloadToFile(fileDownloadPath);
+            
+            if(logger.isDebugEnabled())
+                logger.debug("Deleting File From Queue in GetMsgFromQueue method " + fileName );
+            try {
+                queue.deleteMessage(message);
+            } catch (Exception exp) {
+                System.out.println("Error occured in deleting queue mesage" + exp.getMessage());
+                logger.error(exp);
+            }
+            
             File fl=new File(fileDownloadPath);
             //org.h2.store.fs.FileUtils.move(fileDownloadPath,fileDownloadPath+".downloaded");
             File NewFile=new File(fileDownloadPath+".downloaded");
@@ -134,6 +151,7 @@ public class BlobHelper {
             CloudBlobContainer blockBlobContainer = blobClient.getContainerReference(blobContainer);
             CloudBlockBlob blockBlob = blockBlobContainer.getBlockBlobReference(blobName);
             //String fileDownloadPath = filePath + File.separator + fileName;
+            String fileDownloadPath = filePath +  fileName;
             blockBlob.download(outStream);
             return outStream;
         }

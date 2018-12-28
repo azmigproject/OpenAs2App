@@ -7,6 +7,7 @@ import java.util.List;
 import javax.annotation.Nonnull;
 
 import org.openas2.message.Message;
+import org.openas2.message.SimpleLogMessage;
 
 
 public class LogManager {
@@ -75,7 +76,13 @@ public class LogManager {
             {
                 if (msg instanceof Message)
                 {
+
                     logger.log(level, clazzName + ": " + ((Message) msg).getLogMsg(), (Message) msg);
+                }
+                else if (msg instanceof SimpleLogMessage)
+                {
+                    tempmsg=((SimpleLogMessage) msg).getMessageObject();
+                    logger.log(level, clazzName + ": " + ((SimpleLogMessage) msg).getLogMessage(), tempmsg);
                 } else
                 {
                     logger.log(level, clazzName + ": " + msg.toString(), tempmsg);

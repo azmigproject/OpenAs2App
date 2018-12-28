@@ -1,8 +1,10 @@
 package org.openas2.processor.receiver;
 
 import java.io.*;
+import java.nio.*;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -13,6 +15,7 @@ import org.openas2.OpenAS2Exception;
 import org.openas2.Session;
 import org.openas2.XMLSession;
 import org.openas2.message.Message;
+import org.openas2.message.SimpleLogMessage;
 import org.openas2.params.InvalidParameterException;
 import org.openas2.util.DateUtil;
 import org.openas2.util.HighPerformanceBlockingQueue;
@@ -479,19 +482,25 @@ public abstract class DirectoryPollingModule extends PollingModule {
                                         // locked
                                         FileOutputStream fOut = new FileOutputStream(file, true);
                                         fOut.close();
+                                        SimpleLogMessage sm=new SimpleLogMessage();
+
+                                        sm.setFileName(file.getName());
+                                        sm.setReceiverId(file.getParentFile().getName());
                                         if (!FileBlockingQueue.contains(filePath)) {
                                             if (!FileProcessingBlockingQueue.contains(filePath) && !RunningQueueThreads.containsValue(filePath)) {
 
                                                 FileBlockingQueue.AddPath(filePath);
                                                 System.out.println("Track file and add it in  Tracked file list (checkFileAndTrack)" + filePath);
-                                                logger.info("Track file and add it in  Tracked file list  (checkFileAndTrack)" + filePath);
+                                                sm.setLogMessage("Track file and add it in  Tracked file list  (checkFileAndTrack)" + filePath);
+                                                logger.info(sm);
                                                 if(logger.isDebugEnabled())
                                                 logger.debug("FileTracked" + FileBlockingQueue.size() + "& file in processing  (checkFileAndTrack)" + FileProcessingBlockingQueue.size()+ " "+filePath);
 
 
                                             } else {
                                                 System.out.println("Track file and not add it in  Tracked file list (checkFileAndTrack)" + filePath);
-                                                logger.info("Track file and not add it in  Tracked file list (checkFileAndTrack)" + filePath);
+                                                sm.setLogMessage("Track file and not add it in  Tracked file list (checkFileAndTrack)" + filePath);
+                                                logger.info(sm);
                                                 if(logger.isDebugEnabled())
                                                 logger.debug(" (checkFileAndTrack) FileTracked" + FileBlockingQueue.size() + "& file in processing " + FileProcessingBlockingQueue.size());
 
@@ -570,20 +579,28 @@ public abstract class DirectoryPollingModule extends PollingModule {
                                 if (!FileProcessingBlockingQueue.contains(strFileName)) {
                                     FileProcessingBlockingQueue.add(strFileName);
                                     RunningQueueThreads.replace(ThreadName, strFileName);
+                                    File file = new File(strFileName);
+                                    SimpleLogMessage sm=new SimpleLogMessage();
 
+                                    sm.setFileName(file.getName());
+                                    sm.setReceiverId(file.getParentFile().getParentFile().getName());
                                    // System.out.println("Get file from queue for procesing" + strFileName);
                                     //System.out.println("Add file in FileProcessingBlockingQueue " + strFileName);
                                    // System.out.println("Thread " + ThreadName + "Process file " + strFileName);
-                                    logger.info("Get file from queue for procesing" + strFileName);
-                                    logger.info("Add file in FileProcessingBlockingQueue " + strFileName);
+                                    sm.setLogMessage("Get file from queue for procesing" + strFileName);
+                                    logger.info(sm);
+                                    sm.setLogMessage("Add file in FileProcessingBlockingQueue " + strFileName);
+                                    logger.info(sm);
                                     if(logger.isDebugEnabled())
                                     logger.debug("Thread " + ThreadName + "Process file " + strFileName);
-                                    File file = new File(strFileName);
+
                                     File newFile = new File(strFileName.replace(".downloaded", ".processing"));
                                     file.renameTo(newFile);
                                     //file = newFile;
                                     System.out.println("File Renamed" + file.toString());
-                                    logger.info("File Renamed" + file.toString());
+                                    sm.setFileName(newFile.getName());
+                                    sm.setLogMessage("File " + file.toString() +"renamed to "+newFile.getName());
+                                    logger.info(sm);
                                     strFileName = strFileName.replace(".downloaded", ".processing");
                                 } else
 
@@ -627,9 +644,15 @@ public abstract class DirectoryPollingModule extends PollingModule {
 
                 synchronized (FileProcessingBlockingQueue) {
                     System.out.println("Remove from FileProcessingBlockingQueue" + strFile);
-                    logger.info("Remove from FileProcessingBlockingQueue" + strFile);
+                    if(logger.isDebugEnabled())
+                    logger.debug("Removeing from FileProcessingBlockingQueue" + strFile);
                     FileProcessingBlockingQueue.remove(strFile.replace(".processing", ".downloaded"));
-                    logger.info(" remove file " + strFile + "FileProcessingBlockingQueue ");
+                    SimpleLogMessage sm=new SimpleLogMessage();
+                    sm.setLogMessage(" remove file " + strFile + "FileProcessingBlockingQueue ");
+                    String pattern = Pattern.quote(System.getProperty("file.separator"));
+                    sm.setFileName(strFile.split(pattern)[strFile.split(pattern).length-1]);
+                    sm.setReceiverId(strFile.split(pattern)[strFile.split(pattern).length-2]);
+                    logger.info(sm);
                     System.out.println(" remove file " + strFile + "FileProcessingBlockingQueue ");
 
                 }
@@ -696,14 +719,20 @@ public abstract class DirectoryPollingModule extends PollingModule {
 
         try {
             System.out.println("Document processing starts " + file.getAbsolutePath());
-            logger.info("Document processing starts " + file.getAbsolutePath());
+            SimpleLogMessage sm=new SimpleLogMessage();
+            sm.setLogMessage("Document processing starts " + file.getAbsolutePath());
+            sm.setFileName(file.getName());
+            sm.setReceiverId(file.getParentFile().getName());
+            logger.info(sm);
             processDocument(new FileInputStream(file), file.getName().replace(".processing", "").trim());
             System.out.println("Document processing completed " + file.getAbsolutePath());
-            logger.info("Document processing completed " + file.getAbsolutePath());
+            sm.setLogMessage("Document processing completed " + file.getAbsolutePath());
+            logger.info(sm);
             try {
                 IOUtilOld.deleteFile(file);
                 System.out.println("Document processing deleted " + file.getAbsolutePath());
-                logger.info("Document processing deleted " + file.getAbsolutePath());
+                 sm.setLogMessage("Document processing deleted " + file.getAbsolutePath());
+                logger.info(sm);
             } catch (IOException e) {
                 throw new OpenAS2Exception("Failed to delete file handed off for processing:" + file.getAbsolutePath(), e);
             }

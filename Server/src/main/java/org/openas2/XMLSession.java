@@ -125,13 +125,16 @@ public class XMLSession extends BaseSession {
 
                     azureUtil = new AzureUtil();
                     azureUtil.init(true);
-                    LOGGER.info("Inside reload config at "+ DateTime.now().toString() );
+                    if(LOGGER.isDebugEnabled())
+                    LOGGER.debug("Inside reload config at "+ DateTime.now().toString() );
                     String tempLastUpdatedDateTime=azureUtil.getLastUpdatedTimeStamp();
                     if(!DateTime.parse(tempLastUpdatedDateTime).isEqual(DateTime.parse(Constants.LastUpdateTimeStamp).toInstant()))
                     {
-                        LOGGER.info("in loadReqData function" );
+                        if(LOGGER.isDebugEnabled())
+                        LOGGER.debug("in loadReqData function" );
                         loadReqData(azureUtil);
-                        LOGGER.info("out loadReqData function" );
+                        if(LOGGER.isDebugEnabled())
+                        LOGGER.debug("out loadReqData function" );
                         Constants.LastUpdateTimeStamp=tempLastUpdatedDateTime;
                     }
                     else

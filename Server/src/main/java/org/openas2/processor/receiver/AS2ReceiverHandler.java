@@ -64,7 +64,8 @@ public class AS2ReceiverHandler implements NetModuleHandler {
     }
 
     public void handle(NetModule owner, Socket s) {
-        if (logger.isInfoEnabled()) logger.info("incoming connection"+getClientInfo(s));
+
+        if (logger.isDebugEnabled()) logger.debug("incoming connection"+getClientInfo(s));
 
 
 
@@ -99,13 +100,15 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 				ne.terminate();
 			}
 			Profiler.endProfile(transferStub);
-			
+            msg.setPayloadFilename(msg.getHeader("AS2-From"));
 			String mic = null;
 			if (data == null)
 			{
 				if ("true".equalsIgnoreCase(msg.getAttribute("isHealthCheck")))
 				{
-					if (logger.isInfoEnabled())
+					msg.setLogMsg("");
+				    if (logger.isInfoEnabled())
+
 						logger.info("Healthcheck ping detected" + " [" + getClientInfo(s) + "]"
 								+ msg.getLogMsgID());
 					return;
@@ -126,9 +129,10 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 			}
 			else
 			{
-				if (logger.isInfoEnabled())
-						logger.info("received " + IOUtilOld.getTransferRate(data.length, transferStub) + getClientInfo(s)
-								+ msg.getLogMsgID());
+				if (logger.isDebugEnabled())
+				        msg.setLogMsg("received " + IOUtilOld.getTransferRate(data.length, transferStub) + getClientInfo(s)
+                                + msg.getLogMsgID());
+						logger.debug(msg);
 
 				if (logger.isTraceEnabled())
 				{
@@ -188,7 +192,8 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 						sourceIpAddress = msg.getXRealIP();
 					}
 					if(sourceIpAddress != null) {
-						logger.info(msg.getLogMsgID() + " AS2 message has been forwarded by the proxy " + msg.getAttribute(NetAttribute.MA_SOURCE_IP) + ", the original server IP address is " + sourceIpAddress);
+					    msg.setLogMsg(msg.getLogMsgID() + " AS2 message has been forwarded by the proxy " + msg.getAttribute(NetAttribute.MA_SOURCE_IP) + ", the original server IP address is " + sourceIpAddress);
+						logger.info(msg);
 						msg.setAttribute(NetAttribute.MA_SOURCE_IP, sourceIpAddress);
 					}
 
@@ -227,6 +232,8 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 						optMap.put("blobContainer",msg.getPartnership().getAttribute("blobContainer"));
 						optMap.put("MaxFileSize_Queue",msg.getPartnership().getAttribute("MaxFileSize_Queue"));
 						getModule().getSession().getProcessor().handle(StorageModule.DO_STORE, msg,optMap);
+                        msg.setLogMsg("Received File Saved in "+msg.getHeader("AS2-From")+"queue" );
+                        logger.info(msg);
 					} catch (OpenAS2Exception oae) {
 						msg.setLogMsg("Error handling received message: " + oae.getCause());
 						System.out.println("Error handling received message: " + oae.getCause());
@@ -272,7 +279,8 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 						} else {
 							HTTPUtil.sendHTTPResponse(out, HttpURLConnection.HTTP_OK, false);
 							out.flush();
-							logger.info("+((msg.getPayloadFilename().trim()!=\"\")?\"[For FileName=\"+msg.getPayloadFilename()+\"]\":\"\")+sent HTTP OK" + getClientInfo(s) + msg.getLogMsgID());
+							msg.setLogMsg("((msg.getPayloadFilename().trim()!=\"\")?\"[For FileName=\"+msg.getPayloadFilename()+\"]\":\"\")+sent HTTP OK" + getClientInfo(s) + msg.getLogMsgID());
+							logger.info(msg);
 						}
 
 					} catch (Exception e) {
@@ -641,7 +649,8 @@ public class AS2ReceiverHandler implements NetModuleHandler {
                 	out.write("Content-Length: 0\r\n\r\n".getBytes()); 
                 	out.flush();
                 	if (logger.isInfoEnabled())
-	                	  logger.info("setup to send asynch MDN [" + disposition.toString() + "]" + msg.getLogMsgID());
+                	    msg.setLogMsg("setup to send asynch MDN [" + disposition.toString() + "]"+"For File="+msg.getPayloadFilename()+"MessageId=" + msg.getLogMsgID());
+	                	  logger.info(msg);
                     return;
                 }
                 
@@ -681,7 +690,8 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 				if (logger.isInfoEnabled()) 
 					//logger.info("sent MDN [" + disposition.toString() + "]" + msg.getLogMsgID());
 
-					logger.info("sent MDN [" + disposition.toString() + "]" + msg.getLogMsgID());
+					msg.setLogMsg("sent MDN [" + disposition.toString() + "]" +"For File="+msg.getPayloadFilename()+"MessageId=" + msg.getLogMsgID());
+				    logger.info(msg);
             } catch (Exception e) {
                 WrappedException we = new WrappedException("Error sending MDN", e);
 				System.out.println("Error sending MDN "+ e.getMessage());

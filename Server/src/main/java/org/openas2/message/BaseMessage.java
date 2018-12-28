@@ -43,12 +43,14 @@ public abstract class BaseMessage implements Message {
 	private String calculatedMIC = null;
 	private String logMsg = null;
     private String status = MSG_STATUS_MSG_INIT;
+   // private String LogMessage = null;
 	private Map<String, String> customOuterMimeHeaders = new HashMap<String, String>();
 	private String payloadFilename = null;
     
 
 	public BaseMessage() {
         super();
+       // LogMessage=null;
     }
 
 	public String getAppTitle()
@@ -413,7 +415,12 @@ public abstract class BaseMessage implements Message {
         // write the message's MDN
         out.writeObject(MDN);
     }
-    
+
+    //public String getLogMessage(){return LogMessage;}
+   /* public void setLogMessage(String msg)
+    {
+        LogMessage = msg;
+    }*/
     public String getLogMsgID() {
     	return " [" + getMessageID() + "]";
     }

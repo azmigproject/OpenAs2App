@@ -72,7 +72,7 @@ public class DbLogger extends BaseLogger {
     }
 
     public void doLog(Level level, String msgText, DBLogInfo as2Msg) {
-        if (level.getName() == "error" || level.getName() == "warning" || as2Msg != null) {
+
             try {
 
                 AddLogInTable(as2Msg);
@@ -80,7 +80,7 @@ public class DbLogger extends BaseLogger {
                 System.out.println("Error in Document ");
                 e.printStackTrace();
             }
-        }
+
     }
 
     protected String getShowDefaults() {
@@ -158,8 +158,13 @@ public class DbLogger extends BaseLogger {
                 objLog.setFileSize(as2Msg.getData().getSize());
             }//TO DO ADD OPTION FOR FILE SIZE
         }
-
-            objLog.setLogMessage(msgText);
+     if(as2Msg!=null && as2Msg.getLogMsg()!=null && as2Msg.getLogMsg()!="")
+     {
+         objLog.setLogMessage(as2Msg.getLogMsg());
+     }
+     else {
+         objLog.setLogMessage(msgText);
+     }
 
 
         return objLog;
@@ -200,20 +205,21 @@ public class DbLogger extends BaseLogger {
                     //Get the RowId
 
                     if (cloudTable != null ) {
-                        synchronized (cloudTable) {
+                        //synchronized (cloudTable) {
 
                                 if (objLog != null) {
                                     if (objLog.getExceptionOrErrorDetails() != null && objLog.getExceptionOrErrorDetails().length() > 1000) {
                                         objLog.setExceptionOrErrorDetails(objLog.getExceptionOrErrorDetails().trim().substring(0, 999));
                                     }
 
-                                    int maxattempt = 3;
+                                    int maxattempt = 10;
                                     while (maxattempt > 0) {
                                         try {
                                             TableOperation insertLog = TableOperation.insert(objLog);
                                             cloudTable.execute(insertLog);
                                             maxattempt=0;
-                                        } catch (Exception exp) {
+                                        }
+                                        catch (StorageException exp) {
                                             objLog.setRowKey(Constants.getNetTicks());
                                             maxattempt--;
                                             if (maxattempt == 0)
@@ -221,18 +227,21 @@ public class DbLogger extends BaseLogger {
                                                 System.out.println("Unable to Log message for into Azure Table - "+objLog.getRowKey()+" FileName= "+objLog.getFileName()+" Message="+ objLog.getLogMessage()+" in Azure Table, Error in  adding entity in azure table method  exp="+exp.getMessage());
                                             }
                                         }
+
+
+
                                     }
                                 }
 
-                            }
+                           // }
 
                     } else {
                         System.out.println("Unable to log message as cloudTable object null");
 
                     }
         } catch (Exception e) {
-            System.out.println("Error in Document ");
-            e.printStackTrace();
+            System.out.println("Error in DBLogger in AddLogInTable "+e.getMessage());
+
         }
 
     }

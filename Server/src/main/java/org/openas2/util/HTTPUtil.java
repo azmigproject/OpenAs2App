@@ -718,10 +718,10 @@ public class HTTPUtil {
         		throw new Exception("HTTP Header Maping info not available. ");
         	}
         	 if(logger.isDebugEnabled())
-        	logger.info(((msg.getPayloadFilename().trim()!="")?"[For FileName="+msg.getPayloadFilename()+"]":"")+"Retrieving header fields fom HTTP Stage1.1: "+ msg.getLogMsgID());
+        	logger.debug(((msg.getPayloadFilename().trim()!="")?"[For FileName="+msg.getPayloadFilename()+"]":"")+"Retrieving header fields fom HTTP Stage1.1: "+ msg.getLogMsgID());
         	Map<String, List<String>> hders = conn.getHeaderFields();
         	if(logger.isDebugEnabled())
-        	logger.info(((msg.getPayloadFilename().trim()!="")?"[For FileName="+msg.getPayloadFilename()+"]":"")+"Retrieving header fields fom HTTP Stage1.2: "+ msg.getLogMsgID());
+        	logger.debug(((msg.getPayloadFilename().trim()!="")?"[For FileName="+msg.getPayloadFilename()+"]":"")+"Retrieving header fields fom HTTP Stage1.2: "+ msg.getLogMsgID());
         	Iterator<Map.Entry<String,List<String>>> connHeadersIt = hders.entrySet().iterator();
         	//Iterator<Map.Entry<String,List<String>>> connHeadersIt = conn.getHeaderFields().entrySet().iterator();
             Iterator<String> connValuesIt;

@@ -151,24 +151,25 @@ public class AS2SenderModule extends HttpSenderModule {
                 // Create the HTTP connection and set up headers
                 String url = msg.getPartnership().getAttribute(AS2Partnership.PA_AS2_URL);
                 if(logger.isDebugEnabled())
-                logger.debug("Partnership Data - " + msg.getPartnership().toString());
+                    logger.debug("Partnership Data - " + msg.getPartnership().toString());
                 conn = getConnection(url, true, true, false, "POST", 180000, 180000);
                 if(logger.isDebugEnabled())
-                logger.debug("*****Connection/Read Timeout Value = Connection:" +conn.getConnectTimeout()+ " - Read:"+conn.getReadTimeout()+" - "+msg.getLogMsgID());
+                    logger.debug("*****Connection/Read Timeout Value = Connection:" +conn.getConnectTimeout()+ " - Read:"+conn.getReadTimeout()+"- For File"+msg.getPayloadFilename()+" MessageID="+msg.getLogMsgID());
 
 
                 // Log significant msg state
                 msg.setOption("STATE", Message.MSG_STATE_SEND_START);
                 msg.trackMsgState(getSession());
                 //Retry Interval and Retry Attempts
-
-                logger.info("Sending Message over AS2 Starts For File"+msg.getPayloadFilename()+" MessageID=" +msg.getLogMsgID());
+                msg.setLogMsg("Sending Message over AS2 Starts For File"+msg.getPayloadFilename()+" MessageID=" +msg.getLogMsgID());
+                logger.info(msg);
                 sendMessage(conn, msg, securedData, retries);
-                logger.info("Sending Message over AS2 EndsFor File"+msg.getPayloadFilename()+" MessageID="+msg.getLogMsgID());
+                msg.setLogMsg("Sending Message over AS2 EndsFor File"+msg.getPayloadFilename()+" MessageID="+msg.getLogMsgID());
+                logger.info(msg);
             } catch (HttpResponseException hre)
             {
-               if(logger.isDebugEnabled())
-                logger.debug("Error over AS2 Stage 2.1" +msg.getLogMsgID());
+                if(logger.isDebugEnabled())
+                    logger.debug("Error over AS2 Stage 2.1" +msg.getLogMsgID());
                 // Will have been logged so just resend
                 resend(msg, hre, retries);
                 // Log significant msg state
@@ -178,7 +179,7 @@ public class AS2SenderModule extends HttpSenderModule {
             } catch (SSLHandshakeException e)
             {
                 if(logger.isDebugEnabled())
-                logger.debug("Error over AS2 Stage 2.2" +msg.getLogMsgID());
+                    logger.debug("Error over AS2 Stage 2.2" +msg.getLogMsgID());
                 msg.setLogMsg("Failed to connect to partner using SSL certificate. Please run the SSL certificate checker utility to identify the issue: " + conn.getURL());
                 logger.error(msg, e);
                 msg.setOption("STATE", Message.MSG_STATE_SEND_FAIL);
@@ -187,7 +188,7 @@ public class AS2SenderModule extends HttpSenderModule {
             } catch (Exception e)
             {
                 if(logger.isDebugEnabled())
-                logger.debug("Error over AS2 Stage 2.3" +msg.getLogMsgID());
+                    logger.debug("Error over AS2 Stage 2.3" +msg.getLogMsgID());
                 msg.setLogMsg("Unexpected error sending file: " + org.openas2.logging.Log.getExceptionMsg(e));
                 logger.error(msg, e);
                 resend(msg, new OpenAS2Exception(org.openas2.logging.Log.getExceptionMsg(e)), retries);
@@ -204,11 +205,13 @@ public class AS2SenderModule extends HttpSenderModule {
             // Receive an MDN
             if (msg.isConfiguredForMDN())
             {
+                if(logger.isDebugEnabled())
                 logger.debug("Checking MDN NOW Stage1..." + msg.getLogMsgID());
                 msg.setStatus(Message.MSG_STATUS_MDN_WAIT);
                 // Check if it will be an AsyncMDN
                 if (msg.getPartnership().getAttribute(AS2Partnership.PA_AS2_RECEIPT_OPTION) == null)
                 {
+                    if(logger.isDebugEnabled())
                     logger.debug("Checking MDN NOW Stage2..." + msg.getLogMsgID());
                     if (logger.isTraceEnabled())
                     {
@@ -343,13 +346,13 @@ public class AS2SenderModule extends HttpSenderModule {
                     try
                     {
                         if(logger.isDebugEnabled())
-                        logger.debug("Process MDN StaRT 9" +msg.getLogMsgID());
+                            logger.debug("Process MDN StaRT 9" +msg.getLogMsgID());
                         // AS2Util.processMDN((AS2Message) msg, mdnStream.toByteArray(), null, false, getSession(), this);//TODO changed to the line below to use converted inputstream to bytarray object
 
                         //AS2Util.processMDN((AS2Message) msg, IOUtils.toByteArray(connIn), null, false, getSession(), this);
                         AS2Util.processMDN((AS2Message) msg, toByteArrayInputStream(connIn, msg), null, false, getSession(), this);
                         if(logger.isDebugEnabled())
-                        logger.debug("Checking Closed MDN InputStream 9.0.3" + msg.getLogMsgID());
+                            logger.debug("Checking Closed MDN InputStream 9.0.3" + msg.getLogMsgID());
                         if (connIn != null)
                         {
                             connIn.close();
@@ -360,6 +363,7 @@ public class AS2SenderModule extends HttpSenderModule {
                         //blobHelper.UploadFileInBlob(msg.getPartnership().getAttribute("blobContainer"), msg.getMDN().getMessageID(), mdnStream.toByteArray());
                         msg.setOption("STATE", Message.MSG_STATE_MSG_SENT_MDN_RECEIVED_OK);
                         msg.trackMsgState(getSession());
+
                     } catch (Exception e)
                     {
                         if(logger.isDebugEnabled()) logger.debug("Process MDN StaRT 9.1" +msg.getLogMsgID());
@@ -396,7 +400,7 @@ public class AS2SenderModule extends HttpSenderModule {
                         throw e;
                     }
                     if(logger.isDebugEnabled())
-                    logger.debug("Process MDN Completed 9.2" +msg.getLogMsgID());
+                        logger.debug("Process MDN Completed 9.2" +msg.getLogMsgID());
 
 
                 }
@@ -405,7 +409,7 @@ public class AS2SenderModule extends HttpSenderModule {
         }catch(Exception e2)
         {
             if(logger.isDebugEnabled())
-            logger.debug("Process MDN Completed 9.3" +msg.getLogMsgID());
+                logger.debug("Process MDN Completed 9.3" +msg.getLogMsgID());
             if (Message.MSG_STATUS_MDN_PROCESS_INIT.equals(msg.getStatus())
                     || Message.MSG_STATUS_MDN_PARSE.equals(msg.getStatus())
                     || !(e2 instanceof OpenAS2Exception))
@@ -454,7 +458,7 @@ public class AS2SenderModule extends HttpSenderModule {
 
             }
             if(logger.isDebugEnabled())
-            logger.debug("Process MDN StaRT 11" +msg.getLogMsgID());
+                logger.debug("Process MDN StaRT 11" +msg.getLogMsgID());
 
             if (connIn != null)
             {
@@ -465,14 +469,14 @@ public class AS2SenderModule extends HttpSenderModule {
                 }catch(IOException cio)
                 {
                     if(logger.isDebugEnabled())
-                    logger.debug("Process MDN StaRT 11" +msg.getLogMsgID() + " - "+ cio.getMessage());
+                        logger.debug("Process MDN StaRT 11" +msg.getLogMsgID() + " - "+ cio.getMessage());
                 }
             }
 
             if (conn != null)
             {
                 if(logger.isDebugEnabled())
-                logger.debug("Process MDN StaRT 12" +msg.getLogMsgID());
+                    logger.debug("Process MDN StaRT 12" +msg.getLogMsgID());
                 conn.disconnect();
                 conn = null;
             }
@@ -509,14 +513,14 @@ public class AS2SenderModule extends HttpSenderModule {
     private void sendMessage(HttpURLConnection conn, Message msg, MimeBodyPart securedData, String retries)
             throws Exception
     {
-       if(logger.isDebugEnabled())
-        logger.debug("Start message sending with"+conn.getURL() + msg.getLogMsgID());
+        if(logger.isDebugEnabled())
+            logger.debug("Start message sending with"+conn.getURL() + msg.getLogMsgID());
         updateHttpHeaders(conn, msg, securedData);
         //LogHttpHeadersInBlob(conn, msg, securedData);
         msg.setAttribute(NetAttribute.MA_DESTINATION_IP, conn.getURL().getHost());
         msg.setAttribute(NetAttribute.MA_DESTINATION_PORT, Integer.toString(conn.getURL().getPort()));
         if(logger.isDebugEnabled())
-        logger.debug("set Header and update");
+            logger.debug("set Header and update");
         if (logger.isDebugEnabled())
         {
             logger.debug("Connecting to: " + conn.getURL() + msg.getLogMsgID());
@@ -796,7 +800,7 @@ public class AS2SenderModule extends HttpSenderModule {
     {
         try {
             if(logger.isDebugEnabled())
-            logger.debug("LogHttpHeadersInBlob 1 ");
+                logger.debug("LogHttpHeadersInBlob 1 ");
             StringBuilder ReqBulider = new StringBuilder();
             Partnership partnership = msg.getPartnership();
             ReqBulider.append("Outgoing Request Details");
@@ -916,7 +920,7 @@ public class AS2SenderModule extends HttpSenderModule {
             try {
                 blobHelper.UploadFileInBlob(msg.getPartnership().getAttribute("blobContainer"), msg.getMessageID() + ".req",  ReqBulider.toString().getBytes());
                 if(logger.isDebugEnabled())
-                logger.debug("LogHttpHeadersInBlob upload content in blob "+msg.getMessageID() + ".req in container "+msg.getPartnership().getAttribute("blobContainer") );
+                    logger.debug("LogHttpHeadersInBlob upload content in blob "+msg.getMessageID() + ".req in container "+msg.getPartnership().getAttribute("blobContainer") );
             } catch (Exception exp) {
                 logger.error(exp);
             }
@@ -1134,14 +1138,14 @@ public class AS2SenderModule extends HttpSenderModule {
             int nRead;
             byte[] data = new byte[1024];
             if(logger.isDebugEnabled())
-            logger.debug("Converting MDN InputStream To ByteArray Stage 9.0.2" + msg.getLogMsgID()+ " - Available InputStream Bytes"+ is.available());
+                logger.debug("Converting MDN InputStream To ByteArray Stage 9.0.2" + msg.getLogMsgID()+ " - Available InputStream Bytes"+ is.available());
 
             boolean completeFlg = false;
 
             while (completeFlg != true &&(nRead = is.read(data, 0, data.length)) != -1)
             {
                 if(logger.isDebugEnabled())
-                logger.debug("Converting MDN InputStream To ByteArray Stage 9.0.2.0" + msg.getLogMsgID()+ " - Available InputStream Bytes"+ is.available());
+                    logger.debug("Converting MDN InputStream To ByteArray Stage 9.0.2.0" + msg.getLogMsgID()+ " - Available InputStream Bytes"+ is.available());
                 buffer.write(data, 0, nRead);
 
                 int bytesRemain = is.available();
@@ -1152,13 +1156,13 @@ public class AS2SenderModule extends HttpSenderModule {
                 byte[] tstresult = buffer.toByteArray();
                 boolean fileCmplt = AS2Util.testStreamforCompleteData((AS2Message) msg, tstresult, getSession());
                 if(logger.isDebugEnabled())
-                logger.debug("Testing Data From Stream Stage 9.0.3.0" + msg.getLogMsgID()+ " - Test: "+ fileCmplt);
+                    logger.debug("Testing Data From Stream Stage 9.0.3.0" + msg.getLogMsgID()+ " - Test: "+ fileCmplt);
 
                 // 72 retrys X 2.5 second waits = 3 minute total wait time for a thread trying to read inputstream data
                 while (!fileCmplt && bytesRemain == 0 && retryCntr <= numberOfRtrys)
                 {	Thread.sleep(2500);// 2.5 seconds
                     if(logger.isDebugEnabled())
-                    logger.debug("Retrying to Read MDN Data From Stream Stage 9.0.4.0" + msg.getLogMsgID()+ " - Retry Count"+ retryCntr);
+                        logger.debug("Retrying to Read MDN Data From Stream Stage 9.0.4.0" + msg.getLogMsgID()+ " - Retry Count"+ retryCntr);
                     retryCntr ++;
                     bytesRemain = is.available();
 

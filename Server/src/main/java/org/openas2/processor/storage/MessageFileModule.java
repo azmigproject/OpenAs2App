@@ -40,13 +40,15 @@ public class MessageFileModule extends BaseStorageModule {
 
             if(options!=null) {
                 store(msgFile, in, options.get("queueName").toString(),strSenderID, options.get("blobContainer").toString(), Integer.parseInt(options.get("MaxFileSize_Queue").toString()));
+                msg.setLogMsg("stored message to  azure for file"+(msg.getPayloadFilename()!=null?msg.getPayloadFilename(): msgFile.getAbsolutePath())+" For Sender="+strSenderID+" "+msg.getLogMsgID());
             }
             else
             {
                 store(msgFile, in);
+                msg.setLogMsg("stored message for file"+(msg.getPayloadFilename()!=null?msg.getPayloadFilename(): msgFile.getAbsolutePath())+" For Sender="+strSenderID+" "+msg.getLogMsgID());
             }
 
-            logger.info("stored message to " + msgFile.getAbsolutePath()+msg.getLogMsgID());
+            logger.info(msg);
         } catch (Exception e) {
             throw new DispositionException(new DispositionType("automatic-action", "MDN-sent-automatically",
                     "processed", "Error", "Error storing transaction"), AS2ReceiverModule.DISP_STORAGE_FAILED, e);
@@ -59,7 +61,8 @@ public class MessageFileModule extends BaseStorageModule {
                 File headerFile = getFile(msg, headerFilename, action);
                 InputStream in = getHeaderStream(msg);
                 store(headerFile, in);
-                logger.info("stored headers to " + headerFile.getAbsolutePath()+msg.getLogMsgID());
+                msg.setLogMsg("stored request headers to " + headerFile.getAbsolutePath()+msg.getLogMsgID());
+                logger.info(msg);
             } catch (IOException ioe) {
                 throw new WrappedException(ioe);
             }

@@ -679,8 +679,9 @@ public class AS2Util {
 		msg.setStatus(Message.MSG_STATUS_MSG_CLEANUP);
 		// To support extended reporting via logging log info passing Message object
 		msg.setLogMsg("Message sent and MDN received successfully.");
- 		logger.info(msg);
 
+ 		logger.info(msg);
+        System.out.println("Processed MDN for "+msg.getPayloadFilename());
 		cleanupFiles(msg, false);
 
 	}
