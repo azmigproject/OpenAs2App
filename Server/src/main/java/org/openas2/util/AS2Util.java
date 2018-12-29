@@ -869,7 +869,10 @@ public class AS2Util {
 			if (!isMoved)
 			{
 				IOUtilOld.deleteFile(fPendingFile);
-	            if (logger.isInfoEnabled()) logger.info("deleted   " + fPendingFile.getAbsolutePath()+"For File="+msg.getPayloadFilename()+ "MessageId=" + msg.getLogMsgID());
+	            if (logger.isInfoEnabled()) {
+	                msg.setLogMsg("deleted   " + fPendingFile.getAbsolutePath() + "For File=" + msg.getPayloadFilename() + "MessageId=" + msg.getLogMsgID());
+                    logger.info(msg);
+                }
 			}
 		} catch (Exception e)
 		{
