@@ -123,12 +123,15 @@ public class QueueHelper {
                     
                     	 synchronized(fileQueue)
                     	 {
-                             CloudQueueMessage fileMessage=message;
+                    		
 	                        msgCounter++;
 	                        result = true;
 	                        // Do processing for all messages in less than 5 minutes,
 	                        // deleting each message after processing.
 	                        try {
+	                        	CloudQueueMessage fileMessage = new CloudQueueMessage(message.getMessageContentAsString());
+	                    		fileMessage = message;
+	                    		
 	                            queueMessage = fileMessage.getMessageContentAsString();
 	                            System.out.println("In GetMsgFromQueueTask" + queueMessage);
 	                            if(logger.isDebugEnabled())
@@ -146,7 +149,7 @@ public class QueueHelper {
 	                                if(logger.isDebugEnabled())
 		                                logger.debug("Deleting File From Queue in GetMsgFromQueue method " + file.getName() );
 	                                try {
-		                                queue.deleteMessage(message);
+		                                queue.deleteMessage(fileMessage);
 		                            } catch (Exception exp) {
 		                                System.out.println("Error occured in deleting queue mesage" + exp.getMessage());
 		                                logger.error(exp);
@@ -193,8 +196,9 @@ public class QueueHelper {
 	                                System.console().writer().write("FileName:" + queueMessage);
 	                            }
 	                            logger.error(e);
-	                        }
-//	                        } finally {
+	                        
+	                        } 
+//	                        finally {
 //	                            try {
 //	                                queue.deleteMessage(message);
 //	                            } catch (Exception exp) {
@@ -219,7 +223,7 @@ public class QueueHelper {
                 }*/
                 // Peek at the next message.
             }
-            return result;
+            //return result;
 
         } catch (Exception e) {
             // Output the stack trace.

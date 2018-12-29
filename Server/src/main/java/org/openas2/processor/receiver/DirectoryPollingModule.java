@@ -144,7 +144,8 @@ public abstract class DirectoryPollingModule extends PollingModule {
                             System.out.println(" Error in downloading file from queue" + (new Date()).toString() + "Exception" + ex.getMessage() + sw.toString());
                             logger.error("Error in downloading file from queue : " + outboxDir, ex);
                         } finally {
-                            QueueThreadCounter--;
+                        	if(QueueThreadCounter >=1)
+                                QueueThreadCounter--;
                         }
 
                     }
@@ -211,7 +212,8 @@ public abstract class DirectoryPollingModule extends PollingModule {
                             System.out.println(" Error in downloading file from queue" + (new Date()).toString() + "Exception" + ex.getMessage() + sw.toString());
                             logger.error("Error in downloading file from queue : " + outboxDir, ex);
                         } finally {
-                            DirWatcherThreadCounter--;
+                        	if(DirWatcherThreadCounter >=1)
+                               DirWatcherThreadCounter--;
                         }
                     }
                 };
@@ -370,7 +372,9 @@ public abstract class DirectoryPollingModule extends PollingModule {
                     logger.error("Error in Scan Directry : " + outboxDir, ex);
 //
                 } finally {
-                    --FileThreadCounter;
+                	
+                	if (FileThreadCounter >=1)
+                         --FileThreadCounter;
 
                     RunningQueueThreads.remove(ThreadName);
 
@@ -530,33 +534,33 @@ public abstract class DirectoryPollingModule extends PollingModule {
     }
 
 
-    private void trackFile(File file) {
-        String filePath = file.getAbsolutePath();
-        if (!FileBlockingQueue.contains(filePath)) {
-            synchronized (FileBlockingQueue) {
-                synchronized (FileProcessingBlockingQueue) {
-                    synchronized (RunningQueueThreads) {
-
-
-                        if (!FileProcessingBlockingQueue.contains(filePath) && !RunningQueueThreads.containsValue(filePath)) {
-
-                            FileBlockingQueue.AddPath(filePath);
-                            System.out.println("Track file and add it in  Tracked file list (trackFile)"+ filePath);
-                            logger.info("Track file and add it in  Tracked file list (trackFile)" + filePath);
-                            logger.info("FileTracked" + FileBlockingQueue.size() + "& file in processing (trackFile)" + FileProcessingBlockingQueue.size()+" "+filePath);
-
-
-                        } else {
-                            System.out.println("Track file and not add it in  Tracked file list" + filePath);
-                            logger.info("Track file and not add it in  Tracked file list" + filePath);
-                            logger.info("FileTracked" + FileBlockingQueue.size() + "& file in processing " + FileProcessingBlockingQueue.size());
-
-                        }
-                    }
-                }
-            }
-        }
-    }
+//    private void trackFile(File file) {
+//        String filePath = file.getAbsolutePath();
+//        if (!FileBlockingQueue.contains(filePath)) {
+//            synchronized (FileBlockingQueue) {
+//                synchronized (FileProcessingBlockingQueue) {
+//                    synchronized (RunningQueueThreads) {
+//
+//
+//                        if (!FileProcessingBlockingQueue.contains(filePath) && !RunningQueueThreads.containsValue(filePath)) {
+//
+//                            FileBlockingQueue.AddPath(filePath);
+//                            System.out.println("Track file and add it in  Tracked file list (trackFile)"+ filePath);
+//                            logger.info("Track file and add it in  Tracked file list (trackFile)" + filePath);
+//                            logger.info("FileTracked" + FileBlockingQueue.size() + "& file in processing (trackFile)" + FileProcessingBlockingQueue.size()+" "+filePath);
+//
+//
+//                        } else {
+//                            System.out.println("Track file and not add it in  Tracked file list" + filePath);
+//                            logger.info("Track file and not add it in  Tracked file list" + filePath);
+//                            logger.info("FileTracked" + FileBlockingQueue.size() + "& file in processing " + FileProcessingBlockingQueue.size());
+//
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
 
     private String GetFileFromQueue(String ThreadName) {
         String strFileName = "";
