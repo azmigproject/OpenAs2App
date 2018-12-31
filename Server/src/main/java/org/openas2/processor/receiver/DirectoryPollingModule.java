@@ -149,8 +149,8 @@ public abstract class DirectoryPollingModule extends PollingModule {
                         } catch (Exception ex) {
                             StringWriter sw = new StringWriter();
                             ex.printStackTrace(new PrintWriter(sw));
-                            System.out.println(" Error in downloading file from queue" + (new Date()).toString() + "Exception" + ex.getMessage() + sw.toString());
-                            logger.error("Error in downloading file from queue : " + outboxDir, ex);
+                            System.out.println(" Error in directoryWatcher in directoryScanPoll " + (new Date()).toString() + "Exception" + ex.getMessage() + sw.toString());
+                            logger.error("Error in directoryWatcher in directoryScanPoll : " + outboxDir, ex);
                         } finally {
                         	if(DirWatcherThreadCounter >=1)
                                DirWatcherThreadCounter--;
@@ -236,8 +236,8 @@ public abstract class DirectoryPollingModule extends PollingModule {
 
                             StringWriter sw = new StringWriter();
                             ex.printStackTrace(new PrintWriter(sw));
-                            System.out.println(" Error in downloading file from queue" + (new Date()).toString() + "Exception" + ex.getMessage() + sw.toString());
-                            logger.error("Error in downloading file from queue : " + outboxDir, ex);
+                            System.out.println(" Error in Producer thread for directory polling module " + (new Date()).toString() + "Exception" + ex.getMessage() + sw.toString());
+                            logger.error("Error in Producer thread for directory polling module  : " + outboxDir, ex);
                         } finally {
                             if(QueueThreadCounter >=1)
                                 QueueThreadCounter--;
@@ -377,8 +377,8 @@ public abstract class DirectoryPollingModule extends PollingModule {
                 } catch (Exception ex) {
                     StringWriter sw = new StringWriter();
                     ex.printStackTrace(new PrintWriter(sw));
-                    System.out.println(" Error in Scan Directry at" + (new Date()).toString() + "Exception" + ex.getMessage() + " " + sw.toString());
-                    logger.error("Error in Scan Directry : " + outboxDir, ex);
+                    System.out.println(" Error in Consumer thread to process file at" + (new Date()).toString() + "Exception" + ex.getMessage() + " " + sw.toString());
+                    logger.error("Error in Consumer thread to process file  : " + outboxDir, ex);
 //
                 } finally {
                 	
