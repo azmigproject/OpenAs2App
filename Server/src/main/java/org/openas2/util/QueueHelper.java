@@ -129,10 +129,9 @@ public class QueueHelper {
 	                        // Do processing for all messages in less than 5 minutes,
 	                        // deleting each message after processing.
 	                        try {
-	                        	CloudQueueMessage fileMessage = new CloudQueueMessage(message.getMessageContentAsString());
-	                    		fileMessage = message;
+
 	                    		
-	                            queueMessage = fileMessage.getMessageContentAsString();
+	                            queueMessage = message.getMessageContentAsString();
 	                            System.out.println("In GetMsgFromQueueTask" + queueMessage);
 	                            if(logger.isDebugEnabled())
 	                            logger.debug("In GetMsgFromQueueTask" + queueMessage);
@@ -149,7 +148,7 @@ public class QueueHelper {
 	                                if(logger.isDebugEnabled())
 		                                logger.debug("Deleting File From Queue in GetMsgFromQueue method " + file.getName() );
 	                                try {
-		                                queue.deleteMessage(fileMessage);
+		                                queue.deleteMessage(message);
 		                            } catch (Exception exp) {
 		                                System.out.println("Error occured in deleting queue mesage" + exp.getMessage());
 		                                logger.error(exp);
@@ -178,7 +177,7 @@ public class QueueHelper {
 	                                BlobHelper blob = new BlobHelper();
 	
 	                                String orgFileName = GetOriginalFileName(arr[0]);
-	                                if (blob.DownloadBlobInFile(Constants.BLOBCONTAINER, blobName, outDir, orgFileName,fileQueue, fileMessage, queue)) {
+	                                if (blob.DownloadBlobInFile(Constants.BLOBCONTAINER, blobName, outDir, orgFileName,fileQueue, message, queue)) {
 	                                	
                                         if(logger.isDebugEnabled())
 	                                    logger.debug("File copied from txt to downloaded From Blob "+blobName+" in GetMsgFromQueue method " +GetOriginalFileName(arr[0]));
