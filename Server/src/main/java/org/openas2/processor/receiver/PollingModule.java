@@ -24,6 +24,12 @@ public abstract class PollingModule extends MessageBuilderModule {
     private Timer timer;
     private boolean busy;
 
+    private Timer producerTimer;
+    private boolean producerBusy;
+
+    private Timer consumerTimer;
+    private boolean consumerBusy;
+
 
     public void init(Session session, Map<String, String> options) throws OpenAS2Exception
     {
@@ -38,16 +44,33 @@ public abstract class PollingModule extends MessageBuilderModule {
         return getParameterInt(PARAM_POLLING_INTERVAL, true);
     }
 
-    public abstract void poll();
+    public abstract void directoryScanPoll();
+
+    public abstract void producerPoll();
+
+
+    public abstract void consumerPoll();
 
 
     public void doStart() throws OpenAS2Exception
     {
-
-        timer = new Timer(getName(), false);
+        producerTimer = new Timer(getName()+".ProducerTimer", false);
 
         //timer.scheduleAtFixedRate(new PollTask(), 0, getInterval() * 1000);
-        timer.scheduleAtFixedRate(new PollTask(), 0, 1000);
+        producerTimer.scheduleAtFixedRate(new ProducerPollTask(), 0, 1000);
+
+        consumerTimer = new Timer(getName()+".ConsumerTimer", false);
+
+        //timer.scheduleAtFixedRate(new PollTask(), 0, getInterval() * 1000);
+        consumerTimer.scheduleAtFixedRate(new ConsumerPollTask(), 0, 1000);
+
+
+        timer = new Timer(getName()+".DirectoryScannerTimer", false);
+
+        //timer.scheduleAtFixedRate(new PollTask(), 0, getInterval() * 1000);
+        timer.scheduleAtFixedRate(new DirectoryScanPollTask(), 0, 1000);
+
+
 
     }
 
@@ -71,7 +94,30 @@ public abstract class PollingModule extends MessageBuilderModule {
         busy = b;
     }
 
-    private class PollTask extends TimerTask {
+
+    private boolean isProducerBusy()
+    {
+        return producerBusy;
+    }
+
+    protected void setProducerBusy(boolean b)
+    {
+        producerBusy = b;
+    }
+
+
+
+    private boolean isConsumerBusy()
+    {
+        return consumerBusy;
+    }
+
+    protected void setConsumerBusy(boolean b)
+    {
+        consumerBusy = b;
+    }
+
+    private class DirectoryScanPollTask extends TimerTask {
         public void run()
         {
 
@@ -80,14 +126,62 @@ public abstract class PollingModule extends MessageBuilderModule {
             {
                 setBusy(true);
                 //System.out.println("polled called @" +DateTime.now().toString());
-                poll();
+                directoryScanPoll();
 
                 setBusy(false);
 
 
             } else
             {
-                System.out.println("Miss tick");
+                System.out.println("Miss DirectoryScanner tick");
+            }
+
+
+        }
+    }
+
+    private class ProducerPollTask extends TimerTask {
+        public void run()
+        {
+
+
+            if (!isProducerBusy())
+            {
+                setProducerBusy(true);
+                //System.out.println("polled called @" +DateTime.now().toString());
+                producerPoll();
+
+                setProducerBusy(false);
+
+
+            } else
+            {
+                System.out.println("Miss Producer tick");
+            }
+
+
+        }
+    }
+
+
+
+    private class ConsumerPollTask extends TimerTask {
+        public void run()
+        {
+
+
+            if (!isConsumerBusy())
+            {
+                setConsumerBusy(true);
+                //System.out.println("polled called @" +DateTime.now().toString());
+                consumerPoll();
+
+                setConsumerBusy(false);
+
+
+            } else
+            {
+                System.out.println("Miss Consumer tick");
             }
 
 

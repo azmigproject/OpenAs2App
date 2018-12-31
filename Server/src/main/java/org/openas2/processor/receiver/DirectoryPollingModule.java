@@ -41,7 +41,7 @@ public abstract class DirectoryPollingModule extends PollingModule {
     private int FileThreadCounter = 0;
     private int QueueThreadCounter = 0;
     private int DirWatcherThreadCounter = 0;
-    private QueueHelper queueHelper;
+
     //BlockingQueue FileBlockingQueue;
     BlockingQueue<String> FileProcessingBlockingQueue;
     private int BlockingQueueSizeSize = 1000;
@@ -63,11 +63,6 @@ public abstract class DirectoryPollingModule extends PollingModule {
             BlockingQueueSizeSize = session.getBlockingQueueSizeSize();
             FileWatcherStalenessThresholdInSeconds = session.getFileWatcherStalenessThresholdInSeconds();
             RunningQueueThreads = new ConcurrentHashMap<String, String>();
-            /*FileBlockingQueue=new ArrayBlockingQueue(1000);
-            FileProcessingBlockingQueue=new ArrayBlockingQueue(1000);*/
-            /*FileBlockingQueue=new ArrayBlockingQueue(BlockingQueueSizeSize);
-            FileProcessingBlockingQueue=new ArrayBlockingQueue(BlockingQueueSizeSize);*/
-            /*FileBlockingQueue=new ArrayBlockingQueue(100000);*/
             FileProcessingBlockingQueue = new LinkedBlockingQueue<String>();
             FileBlockingQueue = new HighPerformanceBlockingQueue(BlockingQueueSizeSize);
             outboxDir = getParameter(PARAM_OUTBOX_DIRECTORY, true);
@@ -98,77 +93,22 @@ public abstract class DirectoryPollingModule extends PollingModule {
         return true;
     }
 
-    public void poll() {
+    public void directoryScanPoll() {
         // while (true) {
         try {
 
-            final int noOfFilesAllowedToDownload = 1;//32;
-            boolean isMsgInQueue = false;
-            queueHelper = new QueueHelper();
-            //System.out.println( "Polling started at" +outboxDir);
-            isMsgInQueue = queueHelper.GetMsgFromQueue(outboxDir, 1, FileBlockingQueue);
 
 
-            if (isMsgInQueue || FileBlockingQueue.size() > 0 || getFilesBasedOnFilter(IOUtilOld.getDirectoryFile(outboxDir), "downloaded").length > 0)
+            if (FileBlockingQueue.size() == 0 && getFilesBasedOnFilter(IOUtilOld.getDirectoryFile(outboxDir), "downloaded").length > 0)
 
             {
-
-                // System.out.println( "Threading condition validate");
-
-
-                Runnable producer = new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            boolean isMsgInQueue = true;
-                            while (isMsgInQueue) {
-
-                                isMsgInQueue = queueHelper.GetMsgFromQueue(outboxDir, noOfFilesAllowedToDownload, FileBlockingQueue);
-                                synchronized (this) {
-                                    try {
-                                        // Thread.currentThread().wait(100);
-                                        Thread.sleep(500);
-                                    } catch (InterruptedException e) {
-                                        // e.printStackTrace();
-
-                                    }
-                                }
-
-                            }
-
-
-                        } catch (Exception ex) {
-
-                            StringWriter sw = new StringWriter();
-                            ex.printStackTrace(new PrintWriter(sw));
-                            System.out.println(" Error in downloading file from queue" + (new Date()).toString() + "Exception" + ex.getMessage() + sw.toString());
-                            logger.error("Error in downloading file from queue : " + outboxDir, ex);
-                        } finally {
-                        	if(QueueThreadCounter >=1)
-                                QueueThreadCounter--;
-                        }
-
-                    }
-                };
 
 
                 Runnable directoryWatcher = new Runnable() {
                     @Override
                     public void run() {
                         try {
-                           /* if(FileBlockingQueue.remainingCapacity()<=BlockingQueueThreshold) {
 
-                                while(FileBlockingQueue.remainingCapacity()<=BlockingQueueThreshold) {
-                                    try {
-
-                                        Thread.sleep(2000);
-                                    } catch (InterruptedException e) {
-                                        // e.printStackTrace();
-
-                                    }
-                                }
-                            }
-                            else*/
                             if (FileBlockingQueue.size() == 0) {
                                 File[] Files = getFilesBasedOnFilterWithAge(IOUtilOld.getDirectoryFile(outboxDir), "downloaded",FileWatcherStalenessThresholdInSeconds);
                                 int dirFileLength = Files != null ? Files.length : 0;
@@ -219,66 +159,8 @@ public abstract class DirectoryPollingModule extends PollingModule {
                 };
 
 
-                 /*   Runnable consumer = new Runnable() {
 
 
-                        @Override
-                        public void run() {
-                            try {
-
-                                while (FileBlockingQueue.size() > 0) {
-                                    updateTracking();
-
-                                    System.out.println("BlockingQueue Length" + FileBlockingQueue.size());
-                                    logger.info("BlockingQueue Length" + FileBlockingQueue.size());
-                                    if (FileBlockingQueue.size() == 0) {
-                                        synchronized (this) {
-                                            try {
-                                              //  Thread.currentThread().wait(100);
-                                                Thread.sleep(500);
-                                            }
-                                            catch (InterruptedException e) {
-                                               // e.printStackTrace();
-
-                                            }
-                                        }
-
-                                    }
-                                }
-
-
-                            } catch (Exception ex) {
-                                StringWriter sw = new StringWriter();
-                                ex.printStackTrace(new PrintWriter(sw));
-                                System.out.println(" Error in Scan Directry at" + (new Date()).toString() + "Exception" + ex.getMessage() + " " + sw.toString());
-                                logger.error("Error in Scan Directry : " + outboxDir, ex);
-//
-                            }
-                            finally
-                            {
-                                DirWatcherThreadCounter--;
-                            }
-                        }
-                    };*/
-
-                while (QueueThreadCounter < MAX_QueueThread)
-
-                {
-                    Thread producerThread = new Thread(producer, "ProducerThread" + QueueThreadCounter);
-                    producerThread.setPriority(NORM_PRIORITY + 2); //QueueDownloader Max Thread
-                    producerThread.start();
-                    QueueThreadCounter++;
-                }
-
-                while (FileThreadCounter < MAX_FileThread)
-
-                {
-                    Thread consumerThread = new Thread(GetConsumer("ConsumerThread" + FileThreadCounter), "ConsumerThread" + FileThreadCounter);
-                    consumerThread.setPriority(NORM_PRIORITY + 1); //FileProcessor Max Thread
-                    RunningQueueThreads.putIfAbsent("ConsumerThread" + FileThreadCounter, "");
-                    consumerThread.start();
-                    FileThreadCounter++;
-                }
                 // Add conter values at too
                 // add finally in each runable deff and reduce the counter value
                 // instead of for conver it to while loop based on te couter value & max thread condition
@@ -290,9 +172,9 @@ public abstract class DirectoryPollingModule extends PollingModule {
                     dirWatcherThread.start();
                     DirWatcherThreadCounter++;
                 }
-                System.out.println("PollPool Executer Terminated at" + (new Date()).toString());
+                System.out.println("Directory Scan PollPool Executer Terminated at" + (new Date()).toString());
                 if(logger.isDebugEnabled())
-                logger.debug("PollPool Executer Terminated at" + (new Date()).toString());
+                logger.debug("Directory Scan PollPool Executer Terminated at" + (new Date()).toString());
             } else {
                 //System.out.println( "Threading condition invalidate in this poll");
             }
@@ -309,6 +191,133 @@ public abstract class DirectoryPollingModule extends PollingModule {
         // }
 
     }
+
+    public void producerPoll()
+    {
+        try {
+
+            final int noOfFilesAllowedToDownload = 1;//32;
+            boolean isMsgInQueue = false;
+            QueueHelper queueHelper=new QueueHelper();
+            //System.out.println( "Polling started at" +outboxDir);
+            isMsgInQueue = queueHelper.GetMsgFromQueue(outboxDir, 1, FileBlockingQueue);
+
+
+            if (isMsgInQueue)
+
+            {
+
+                // System.out.println( "Threading condition validate");
+
+
+                Runnable producer = new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            boolean isMsgInQueue = true;
+                            QueueHelper prodQueueHelper = new QueueHelper();
+                            while (isMsgInQueue) {
+
+                                isMsgInQueue = prodQueueHelper.GetMsgFromQueue(outboxDir, noOfFilesAllowedToDownload, FileBlockingQueue);
+                                synchronized (this) {
+                                    try {
+                                        // Thread.currentThread().wait(100);
+                                        Thread.sleep(500);
+                                    } catch (InterruptedException e) {
+                                        // e.printStackTrace();
+
+                                    }
+                                }
+
+                            }
+
+
+                        } catch (Exception ex) {
+
+                            StringWriter sw = new StringWriter();
+                            ex.printStackTrace(new PrintWriter(sw));
+                            System.out.println(" Error in downloading file from queue" + (new Date()).toString() + "Exception" + ex.getMessage() + sw.toString());
+                            logger.error("Error in downloading file from queue : " + outboxDir, ex);
+                        } finally {
+                            if(QueueThreadCounter >=1)
+                                QueueThreadCounter--;
+                        }
+
+                    }
+                };
+
+
+
+                while (QueueThreadCounter < MAX_QueueThread)
+
+                {
+                    Thread producerThread = new Thread(producer, "ProducerThread" + QueueThreadCounter);
+                    producerThread.setPriority(NORM_PRIORITY + 2); //QueueDownloader Max Thread
+                    producerThread.start();
+                    QueueThreadCounter++;
+                }
+
+
+                System.out.println("Producer PollPool Executer Terminated at" + (new Date()).toString());
+                if(logger.isDebugEnabled())
+                    logger.debug("Producer PollPool Executer Terminated at" + (new Date()).toString());
+            } else {
+                //System.out.println( "Threading condition invalidate in this poll");
+            }
+
+
+        } catch (Exception e) {
+            StringWriter sw = new StringWriter();
+            e.printStackTrace(new PrintWriter(sw));
+            System.out.println("Producer polled at" + (new Date()).toString() + "Exception" + e.getMessage() + "" + sw.toString());
+            System.out.println(e.getStackTrace().toString());
+            logger.error("Unexpected error occurred polling Producer Polling for files to send: " + outboxDir, e);
+        }
+    }
+
+
+    public void consumerPoll()
+    {
+        try {
+
+
+
+
+            if (FileBlockingQueue.size() > 0 )
+
+            {
+
+
+
+                while (FileThreadCounter < MAX_FileThread)
+
+                {
+                    Thread consumerThread = new Thread(GetConsumer("ConsumerThread" + FileThreadCounter), "ConsumerThread" + FileThreadCounter);
+                    consumerThread.setPriority(NORM_PRIORITY + 1); //FileProcessor Max Thread
+                    RunningQueueThreads.putIfAbsent("ConsumerThread" + FileThreadCounter, "");
+                    consumerThread.start();
+                    FileThreadCounter++;
+                }
+
+
+                System.out.println("Consumer PollPool Executer Terminated at" + (new Date()).toString());
+                if(logger.isDebugEnabled())
+                    logger.debug("Consumer PollPool Executer Terminated at" + (new Date()).toString());
+            } else {
+                //System.out.println( "Threading condition invalidate in this poll");
+            }
+
+
+        } catch (Exception e) {
+            StringWriter sw = new StringWriter();
+            e.printStackTrace(new PrintWriter(sw));
+            System.out.println("Consumer polled at" + (new Date()).toString() + "Exception" + e.getMessage() + "" + sw.toString());
+            System.out.println(e.getStackTrace().toString());
+            logger.error("Unexpected error occurred polling Consumer for files to send: " + outboxDir, e);
+        }
+    }
+
+
 
 
     protected void scanDirectory(File[] files) throws IOException, InvalidParameterException {
