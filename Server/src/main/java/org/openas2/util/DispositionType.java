@@ -127,7 +127,19 @@ public class DispositionType {
 
     protected void parseDisposition(String disposition)
         throws OpenAS2Exception {
-        StringTokenizer dispTokens = new StringTokenizer(disposition, "/;:", false);
+    	
+    	 StringTokenizer dispTokens = null;
+    	 
+    	int slashPos = disposition.split("/",2).length;
+    	if (slashPos >1)
+    	{
+    		 dispTokens = new StringTokenizer(disposition, "/;/:", false);
+    	}else
+    	{
+    		 dispTokens = new StringTokenizer(disposition, "/;:", false);
+    	}
+    	
+       // StringTokenizer dispTokens = new StringTokenizer(disposition, "/;:", false);
 
         try {
             setAction(dispTokens.nextToken().toLowerCase());

@@ -342,7 +342,10 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 		} finally {
 
 			// Process the received message
-			LogHttpHeadersInBlob(msg,data);
+			if (!( "true".equalsIgnoreCase(msg.getAttribute("isHealthCheck")))) {
+
+				LogHttpHeadersInBlob(msg, data);
+			}
 			if (out != null)
 			{
 				try {
