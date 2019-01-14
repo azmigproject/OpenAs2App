@@ -89,7 +89,7 @@ public class AzureUtil {
         FeedOptions queryOptions = new FeedOptions();
         queryOptions.setPageSize(-1);
         queryOptions.setEnableCrossPartitionQuery(true);
-        org.openas2.lib.dbUtils.Properties propertiesInfo=new org.openas2.lib.dbUtils.Properties();
+         org.openas2.lib.dbUtils.Properties propertiesInfo=new org.openas2.lib.dbUtils.Properties();
 
         String collectionLink = String.format("/dbs/%s/colls/%s", COSMOS_DB_NAME, NPTYAS2DEFAULTSETTINGS_TABLE_NAME);
         FeedResponse<Document> queryResults = this.documentClient.queryDocuments(collectionLink,

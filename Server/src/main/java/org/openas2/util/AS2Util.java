@@ -453,6 +453,7 @@ public class AS2Util {
 		try {
 			retries = Integer.parseInt(tries);
 		} catch (Exception e) {
+			
 			msg.setLogMsg("The retry count is not a valid integer value: " + tries);
 			logger.error(msg);
 		}
@@ -464,6 +465,7 @@ public class AS2Util {
             msg.setOption("STATE", Message.MSG_STATE_SEND_FAIL);
             msg.trackMsgState(session);
     		throw new OpenAS2Exception("Message abandoned after retry limit reached." + msg.getLogMsgID());
+  
     	}
 
     	if (useOriginalMsgObject)
@@ -615,11 +617,12 @@ public class AS2Util {
 		if (logger.isTraceEnabled()) logger.trace("Parsing MDN: " + mdn.toString() + msg.getLogMsgID());
 		AS2Util.parseMDN(msg, senderCert);
 				
-		if (isAsyncMDN)
-		{
+		//if (isAsyncMDN)
+		//{
 			getMetaData(msg, session);
-		}
+		//}
 
+		
 		String retries = (String) msg.getOption(ResenderModule.OPTION_RETRIES);
 
 		msg.setStatus(Message.MSG_STATUS_MDN_VERIFY);
@@ -647,41 +650,64 @@ public class AS2Util {
 			// If a disposition exception occurs then there must have been an
 			// error response in the disposition
 			//if (logger.isErrorEnabled()) logger.error("Disposition exception processing MDN ..." + msg.getLogMsgID(), de);
+			
 			if (logger.isErrorEnabled()) logger.error("Disposition exception processing MDN ..." + msg.getLogMsgID());
 			// Hmmmm... Error may require manual intervention but keep
 			// trying.... possibly change retry count to 1 or just fail????
-			//AS2Util.resend(session, sourceClass, SenderModule.DO_SEND, msg, de, retries, true);
+			try
+			{
+				AS2Util.resend(session, sourceClass, SenderModule.DO_SEND, msg, de, retries, true);
+			}catch(OpenAS2Exception oae1)
+			{
+				throw new OpenAS2Exception(oae1);
+			}finally
+			{
 			
-			//if(de.getDisposition().getStatusModifier().equalsIgnoreCase("error"))
-			//{
-			//	msg.setLogMsg("Message sent and MDN received with Error.");
-			//}
-			//else
-			//{
-				msg.setLogMsg("Message sent and MDN received with Error.");
-			//}
-			
-			msg.setOption("STATE", Message.MSG_STATE_MSG_SENT_MDN_RECEIVED_ERROR);
-			msg.trackMsgState(session);
-			
-			
-			
-			if (logger.isTraceEnabled()) logger.trace("MDN processed. \n\tPayload file name: "
-	                   + msg.getPayloadFilename() + "\n\tPersisting MDN report..." + msg.getLogMsgID());
-			Map<Object,Object> obMap=new HashMap<Object,Object>();
-			obMap.put("blobContainer",msg.getPartnership().getAttribute("blobContainer"));
-			//session.getProcessor().handle(StorageModule.DO_STOREMDN, msg, null);
-			session.getProcessor().handle(StorageModule.DO_STOREMDN, msg, obMap);
-			msg.setStatus(Message.MSG_STATUS_MSG_CLEANUP);
-			logger.info(msg);
-	       
-			cleanupFiles(msg, false);
-			
+				if(de.getDisposition().getStatus() != null)
+				{
+					if(de.getDisposition().getStatus().equalsIgnoreCase("processed"))
+					{
+						if(de.getDisposition().getStatusModifier().equalsIgnoreCase("error"))
+						{
+							msg.setLogMsg("Message sent and MDN received with Error.");
+							
+						}
+						else
+						{
+							msg.setLogMsg("Message sent and MDN received with Warning.");
+						}
+					}else
+					{
+						msg.setLogMsg("Message sent and MDN Disposition status indicates a problem.");
+					}
+				}else
+				{
+				  msg.setLogMsg("Message sent and MDN Disposition status is NULL. Cannot continue.");
+				}
+				
+				msg.setOption("STATE", Message.MSG_STATE_MSG_SENT_MDN_RECEIVED_ERROR);
+				msg.trackMsgState(session);
+				
+				
+				
+				if (logger.isTraceEnabled()) logger.trace("MDN processed. \n\tPayload file name: "
+		                   + msg.getPayloadFilename() + "\n\tPersisting MDN report..." + msg.getLogMsgID());
+				Map<Object,Object> obMap=new HashMap<Object,Object>();
+				obMap.put("blobContainer",msg.getPartnership().getAttribute("blobContainer"));
+				//session.getProcessor().handle(StorageModule.DO_STOREMDN, msg, null);
+				session.getProcessor().handle(StorageModule.DO_STOREMDN, msg, obMap);
+				msg.setStatus(Message.MSG_STATUS_MSG_CLEANUP);
+				logger.info(msg);
+		       
+				//cleanupFiles(msg, true);
+			}
 			
 			return;
 		} catch (OpenAS2Exception oae)
 		{
 			// Possibly MIC mismatch so resend
+			if (logger.isErrorEnabled()) logger.error("******* OpenAS2Exception 2nd Exceptions *********  "+ msg.getLogMsgID());
+			
 			if (isAsyncMDN)
 				HTTPUtil.sendHTTPResponse(out, HttpURLConnection.HTTP_OK, false);
 			OpenAS2Exception oae2 = new OpenAS2Exception(
@@ -690,9 +716,13 @@ public class AS2Util {
 			oae2.initCause(oae);
 			oae2.addSource(OpenAS2Exception.SOURCE_MESSAGE, msg);
 			oae2.terminate();
+			
 			AS2Util.resend(session, sourceClass, SenderModule.DO_SEND, msg, oae2, retries, true);
+			
+			//AS2Util.resend(session, sourceClass, SenderModule.DO_SEND, msg, oae2, retries, true);
 			msg.setOption("STATE", Message.MSG_STATE_MSG_SENT_MDN_RECEIVED_ERROR);
 			msg.trackMsgState(session);
+			
 			return;
 		}
 

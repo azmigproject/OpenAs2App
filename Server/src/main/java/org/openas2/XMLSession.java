@@ -195,20 +195,101 @@ public class XMLSession extends BaseSession {
    }
 
 
-    public   void loadReqData (AzureUtil azureUtil)  throws   OpenAS2Exception,Exception
+    public void loadReqData (AzureUtil azureUtil)  throws   OpenAS2Exception,Exception
     {
+    	
+        List<partner> pList = null;
+        Profile pProfile  = null;
+        ServersSettings sSettings = null;
+        Certificates pCerts = null;
+        org.openas2.lib.dbUtils.Processor pProcessor = null;
+        boolean loadPartnerShipValues = true;
+        
+    	
         LOGGER.info("start loadReqData function" );
-        this.stop();
+       // this.stop();
         LOGGER.info("start loading certificates function" );
-        loadCertificates(azureUtil.getCertificates());
+        //loadCertificates(azureUtil.getCertificates());
+	        try
+	        {
+	        	pCerts = azureUtil.getCertificates();
+	        	if(pCerts == null )
+	        		throw new Exception("No Certificates Found");
+	        }catch(Exception e1)
+	        {
+	        	loadPartnerShipValues = false;
+	        	System.out.println(e1.getMessage());
+	            LOGGER.error(e1);
+	        } 
         LOGGER.info("end loading certificates function" );
+        
         LOGGER.info("start loading Processor function" );
-        loadProcessor(azureUtil.getProcessor());
+        //loadProcessor(azureUtil.getProcessor());
+	        try
+	        {
+	        	pProcessor = azureUtil.getProcessor();
+	        	if(pProcessor == null)
+	        		throw new Exception("No Processors Found");
+	        }catch(Exception e2)
+	        {
+	        	loadPartnerShipValues = false;
+	        	System.out.println(e2.getMessage());
+	            LOGGER.error(e2);
+	        } 
         LOGGER.info("end loading Processor function" );
+        
         LOGGER.info("start loading Partnership function" );
-        loadPartnerships(azureUtil.getPartnerList(),azureUtil.getProfile(),azureUtil.getServersSettings().get(0));
+	        try
+	        {
+	        	pList = azureUtil.getPartnerList();
+	        	if(pList == null || pList.isEmpty())
+	        		throw new Exception("No Partners Found");
+	        	
+	        }catch(Exception e3)
+	        {
+	        	loadPartnerShipValues = false;
+	        	System.out.println(e3.getMessage());
+	            LOGGER.error(e3);
+	        } 
+	        
+	        try
+	        {
+	        	pProfile = azureUtil.getProfile();
+	        	if(pProfile == null)
+	        		throw new Exception("No Profiles Found");
+	        }catch(Exception e4)
+	        {
+	        	loadPartnerShipValues = false;
+	        	System.out.println(e4.getMessage());
+	            LOGGER.error(e4);
+	        } 
+	        
+	        try
+	        {
+	        	sSettings = (ServersSettings)azureUtil.getServersSettings().get(0);
+	        	if(sSettings == null)
+	        		throw new Exception("No Server Settings Found");
+	        	
+	        }catch(Exception e5)
+	        {
+	        	loadPartnerShipValues = false;
+	        	System.out.println(e5.getMessage());
+	            LOGGER.error(e5);
+	        } 
         LOGGER.info("end loading Partnership function" );
-        this.start();
+        
+       // loadPartnerships(azureUtil.getPartnerList(),azureUtil.getProfile(),azureUtil.getServersSettings().get(0));
+        if (loadPartnerShipValues)
+        {
+        	this.stop();
+        	loadCertificates(pCerts);
+        	loadProcessor(pProcessor);
+        	loadPartnerships(pList,pProfile,sSettings);
+        	this.start();
+        }
+        
+       
+       
         LOGGER.info("stop loadReqData function" );
 
     }

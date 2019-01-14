@@ -185,7 +185,8 @@ public abstract class DirectoryPollingModule extends PollingModule {
                     dirWatcherThread.start();
                     DirWatcherThreadCounter++;
                     ActiveDirWatcherThreadCounter = dirWatcherThreadGroup.activeCount();
-                    logger.info("**** ActiveDirWatcherThreadCounter" + ActiveDirWatcherThreadCounter +" QueueThreadCounter "+DirWatcherThreadCounter+ " :"+outboxDir);
+                    if(logger.isDebugEnabled())
+                    logger.debug("**** ActiveDirWatcherThreadCounter" + ActiveDirWatcherThreadCounter +" QueueThreadCounter "+DirWatcherThreadCounter+ " :"+outboxDir);
                 }
                 System.out.println("Directory Scan PollPool Executer Terminated at" + (new Date()).toString());
                 if(logger.isDebugEnabled())
@@ -277,7 +278,8 @@ public abstract class DirectoryPollingModule extends PollingModule {
                     producerThread.start();
                     QueueThreadCounter++;
                     ActiveQueueThreadCounter = producerThreadGroup.activeCount();
-                    logger.info("**** ActiveProducerThreadCounter" + ActiveQueueThreadCounter +" QueueThreadCounter "+QueueThreadCounter + " :"+outboxDir);
+                    if(logger.isDebugEnabled())
+                    logger.debug("**** ActiveProducerThreadCounter" + ActiveQueueThreadCounter +" QueueThreadCounter "+QueueThreadCounter + " :"+outboxDir);
                 }
 
 
@@ -325,7 +327,8 @@ public abstract class DirectoryPollingModule extends PollingModule {
                     consumerThread.start();
                     FileThreadCounter++;
                     ActiveFileThreadCounter = consumerThreadGroup.activeCount();
-                    logger.info("**** ActiveConsumerThreadCounter" + ActiveFileThreadCounter +" FileThreadCounter "+FileThreadCounter + " :"+outboxDir);
+                    if(logger.isDebugEnabled())
+                    logger.debug("**** ActiveConsumerThreadCounter" + ActiveFileThreadCounter +" FileThreadCounter "+FileThreadCounter + " :"+outboxDir);
                 }
 
 
