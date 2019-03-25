@@ -21,10 +21,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.joda.time.DateTime;
-import org.openas2.DispositionException;
-import org.openas2.OpenAS2Exception;
-import org.openas2.Session;
-import org.openas2.WrappedException;
+import org.openas2.*;
 import org.openas2.cert.CertificateFactory;
 import org.openas2.lib.helper.ICryptoHelper;
 import org.openas2.lib.util.MimeUtil;
@@ -200,9 +197,15 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 					// Extract AS2 ID's from header, find the message's partnership and update the message
 					try {
 						msg.getPartnership().setSenderID(AS2Partnership.PID_AS2, msg.getHeader("AS2-From"));
-						msg.getPartnership().setReceiverID(AS2Partnership.PID_AS2, msg.getHeader("AS2-To"));
+						//To do get the main profile ID and set ReceiverId as that id
+						//Main profile set in Constants class now replace it here
+
+						//msg.getPartnership().setReceiverID(AS2Partnership.PID_AS2, msg.getHeader("AS2-To"));
+						msg.getPartnership().setReceiverID(AS2Partnership.PID_AS2, Constants.MainProfile.getAS2Idenitfier());
 
 						getModule().getSession().getPartnershipFactory().updatePartnership(msg, false);
+						//To do write function to update the recevier Id options with given As2_to
+						Constants.UpdateMsgSenderPartnership(msg,msg.getHeader("AS2-From"));
 					} catch (OpenAS2Exception oae) {
 						System.out.println(AS2ReceiverModule.DISP_PARTNERSHIP_NOT_FOUND);
 						throw new DispositionException(new DispositionType("automatic-action", "MDN-sent-automatically",

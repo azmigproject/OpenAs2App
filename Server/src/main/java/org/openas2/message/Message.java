@@ -145,6 +145,7 @@ public interface Message extends Serializable {
 
     void setMessageID(String messageID);
 
+
     Partnership getPartnership();
 
     void setPartnership(Partnership partnership);

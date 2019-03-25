@@ -531,7 +531,7 @@ public class AS2SenderModule extends HttpSenderModule {
         OutputStream messageOut = null;
         // Note: closing this stream causes connection abort errors on some AS2
         // servers
-        while(retryAttempts < maxRetryAttempts) {
+        while(retryAttempts <  maxRetryAttempts) {
             ++retryAttempts;
             try {
                 messageOut = conn.getOutputStream();

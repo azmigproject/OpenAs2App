@@ -72,6 +72,18 @@ public class Profile {
     public void setUpdatedOn(DateTime updatedOn) {
         this._updatedOn = updatedOn;
     }
+    public boolean getIsMainProfile() {  return _isMainProfile;   }
+    public String getDescription() {  return _description; }
+    public String getOnPremHomeDirectory() {  return _onPremHomeDirectory; }
+    public String getOnPremHomeDirectoryLinux() { return _onPremHomeDirectoryLinux; }
+    public String getDataFolder() {  return _dataFolder;  }
+    public void setIsMainProfile(boolean isMainProfile) {  this._isMainProfile = isMainProfile;  }
+    public void setDescription(String description) { this._description = description;  }
+    public void setOnPremHomeDirectory(String onPremHomeDirectory) { this._onPremHomeDirectory = onPremHomeDirectory;}
+    public void setOnPremHomeDirectoryLinux(String onPremHomeDirectoryLinux) {  this._onPremHomeDirectoryLinux = onPremHomeDirectoryLinux; }
+    public void setDataFolder(String dataFolder) {  this._dataFolder = dataFolder;  }
+
+
 
     private String _id;
     private String _as2Idenitfier;
@@ -84,6 +96,11 @@ public class Profile {
     private String _createdBy;
     private DateTime _createdOn;
     private DateTime _updatedOn;
+    private String _description;
+    private boolean _isMainProfile;
+    private String _onPremHomeDirectory;
+    private String _onPremHomeDirectoryLinux;
+    private String _dataFolder;
 
 
 }

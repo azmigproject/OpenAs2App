@@ -48,6 +48,7 @@ public class LogManager {
         if (loggers.isEmpty())
         {
             DEFAULT_LOGGER.log(e, Level.ERROR, terminated);
+
         } else
         {
             for (Logger logger : loggers)

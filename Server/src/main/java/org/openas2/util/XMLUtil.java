@@ -111,7 +111,7 @@ public class XMLUtil {
         }
     }
 
-    public static Component getPartnerShipComponent(String className, Map<String,String>mapParms, List<partner> partnerList, Profile companyProfile, ServersSettings serversSettings,   Session session)
+    public static Component getPartnerShipComponent(String className, Map<String,String>mapParms, List<partner> partnerList, Profile companyProfile,List<Profile> profileList, ServersSettings serversSettings,   Session session)
             throws OpenAS2Exception
     {
         try
@@ -127,9 +127,9 @@ public class XMLUtil {
             org.openas2.partner.XMLPartnershipFactory obj = (org.openas2.partner.XMLPartnershipFactory) objClass.newInstance();
 
             Map<String, String> parameters = XMLUtil.mapAttributes(mapParms,true);
-
             updateDirectories(session.getBaseDirectory(), parameters);
             obj.setPartnersFromDB(partnerList);
+            obj.setProfileFromDB(profileList);
             obj.setCompanyProfile(companyProfile);
             obj.setServerSettings(serversSettings);
             obj.init(session, parameters);

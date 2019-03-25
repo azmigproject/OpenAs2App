@@ -357,9 +357,6 @@ public class HTTPUtil {
         if (data == null)
         {
         	String healthCheckUri = Properties.getProperty("health_check_uri", "healthcheck");
-            //logger.info("health_check_uri="+healthCheckUri);
-            //logger.info("MA_HTTP_REQ_URL="+request.get(1));
-            //logger.info("URL Match health_check_uri="+request.get(1).matches("^[/]{0,1}"+healthCheckUri+"*"));
         	if ("GET".equalsIgnoreCase(request.get(0)) && request.get(1).matches("^[/]{0,1}"+healthCheckUri+"*"))
         	{
         		if (outStream != null)

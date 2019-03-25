@@ -549,6 +549,7 @@ public class AS2Util {
     				+ newPendInfFile.getName() + msg.getLogMsgID());
     	try
     	{
+    	
     		newPendInfFile = IOUtilOld.moveFile(oldPendInfFile, newPendInfFile, false, true);
     		// Update the name of the file in the message object
     		msg.setAttribute(FileAttribute.MA_PENDINGINFO, newPendingInfoFileName);

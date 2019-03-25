@@ -147,7 +147,7 @@ public abstract class BaseStorageModule extends BaseProcessorModule implements S
 
 
 
-    protected void store(File msgFile, InputStream in, String queueName,String senderAS2Id, String blobContainer, int minByteLength) throws IOException, OpenAS2Exception, Exception
+    protected void store(File msgFile, InputStream in, String queueName,String senderAS2Id,String receiverAS2Id, String blobContainer, int minByteLength) throws IOException, OpenAS2Exception, Exception
     {
 
 
@@ -162,11 +162,11 @@ public abstract class BaseStorageModule extends BaseProcessorModule implements S
             BlobHelper blobHelper=new BlobHelper();
             blobHelper.UploadFileInBlob(blobContainer,senderAS2Id.toLowerCase()+"/incoming/"+msgFile.getName(),bytes);
 
-            queueMsg=msgFile.getName()+"|_B_|";
+            queueMsg=receiverAS2Id+"|_B_|"+msgFile.getName()+"|_B_|";
         }
        else {
             String str = new String(bytes, "UTF-8");
-            queueMsg=msgFile.getName()+"|__|"+str;
+            queueMsg=receiverAS2Id+"|__|"+msgFile.getName()+"|__|"+str;
 
         }
         QueueHelper queueHelper=new QueueHelper();

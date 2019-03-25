@@ -47,7 +47,7 @@ public class AzureUtil {
         CosmosDBAPI=Constants.APIURL;
        getNptyAS2DB(CosmosDBAPI);
         getLogDB();
-
+    Constants.AllProfiles=getAllProfile();
     }
 
     public void freeResources()
@@ -455,15 +455,15 @@ private partner GetPartnerFromDocument(Document doc)
 
 }
 
-    public Profile getProfile() {
+    public Profile getProfileById(String as2Identifier) {
         // Set some common query options
         FeedOptions queryOptions = new FeedOptions();
         queryOptions.setPageSize(-1);
         queryOptions.setEnableCrossPartitionQuery(true);
         List<Profile> profileInfo=new ArrayList<Profile>();
-        String collectionLink = String.format("/dbs/%s/colls/%s", COSMOS_DB_NAME, NPTYAS2DEFAULTSETTINGS_TABLE_NAME);
+        String collectionLink = String.format("/dbs/%s/colls/%s", COSMOS_DB_NAME, PROFILE_TABLE_NAME);
         FeedResponse<Document> queryResults = this.documentClient.queryDocuments(collectionLink,
-                "SELECT * FROM "+NPTYAS2DEFAULTSETTINGS_TABLE_NAME+" WHERE "+NPTYAS2DEFAULTSETTINGS_TABLE_NAME+".id='"+ PROFILE_TABLE_NAME+"'", queryOptions);
+                "SELECT * FROM "+PROFILE_TABLE_NAME+" WHERE "+PROFILE_TABLE_NAME+".AS2Identifier='"+as2Identifier+"'", queryOptions);
 
         for (Document doc : queryResults.getQueryIterable()) {
 
@@ -473,13 +473,85 @@ private partner GetPartnerFromDocument(Document doc)
             profile.setEemailAddress(objJSON.getString("EmailAddress"));
             profile.setAsynchronousMDNURL(objJSON.getString("AsynchronousMDNURL"));
             profile.setPrivateCertificate(objJSON.getString("PrivateCertificate"));
-
+            profile.setIsMainProfile((objJSON.getBoolean("IsMainProfile")));
+            profile.setDescription(objJSON.getString("Description"));
+            profile.setOnPremHomeDirectory(objJSON.getString("OnPremHomeDirectory"));
+            profile.setOnPremHomeDirectoryLinux(objJSON.getString("OnPremHomeDirectoryLinux"));
+            profile.setDataFolder(objJSON.getString("DataFolder"));
             profile.setPublicCertificate(objJSON.getString("PublicCertificate"));
             profile.setCertificatePassword(objJSON.getString("CertificatePassword"));
             profileInfo.add(profile);
         }
         //System.out.println("PublicCertificate"+profileInfo.get(0).getPublicCertificate());
         //System.out.println("PrivateCertificate"+profileInfo.get(0).getPrivateCertificate());
+        return profileInfo.get(0);
+
+    }
+
+    public List<Profile> getAllProfile() {
+        // Set some common query options
+        FeedOptions queryOptions = new FeedOptions();
+        queryOptions.setPageSize(-1);
+        queryOptions.setEnableCrossPartitionQuery(true);
+        List<Profile> profileInfo=new ArrayList<Profile>();
+        String collectionLink = String.format("/dbs/%s/colls/%s", COSMOS_DB_NAME, PROFILE_TABLE_NAME);
+        FeedResponse<Document> queryResults = this.documentClient.queryDocuments(collectionLink,
+                "SELECT * FROM "+PROFILE_TABLE_NAME, queryOptions);
+
+        for (Document doc : queryResults.getQueryIterable()) {
+
+            JSONObject objJSON=new JSONObject(doc.toJson());
+            Profile profile=new Profile();
+            profile.setAS2Idenitfier(objJSON.getString("AS2Identifier"));
+            profile.setEemailAddress(objJSON.getString("EmailAddress"));
+            profile.setAsynchronousMDNURL(objJSON.getString("AsynchronousMDNURL"));
+            profile.setPrivateCertificate(objJSON.getString("PrivateCertificate"));
+            profile.setIsMainProfile((objJSON.getBoolean("IsMainProfile")));
+            profile.setDescription(objJSON.getString("Description"));
+            profile.setOnPremHomeDirectory(objJSON.getString("OnPremHomeDirectory"));
+            profile.setOnPremHomeDirectoryLinux(objJSON.getString("OnPremHomeDirectoryLinux"));
+            profile.setDataFolder(objJSON.getString("DataFolder"));
+            profile.setPublicCertificate(objJSON.getString("PublicCertificate"));
+            profile.setCertificatePassword(objJSON.getString("CertificatePassword"));
+            profileInfo.add(profile);
+        }
+        //System.out.println("PublicCertificate"+profileInfo.get(0).getPublicCertificate());
+        //System.out.println("PrivateCertificate"+profileInfo.get(0).getPrivateCertificate());
+
+        return profileInfo;
+
+    }
+
+    public Profile getMainProfile() {
+        // Set some common query options
+        FeedOptions queryOptions = new FeedOptions();
+        queryOptions.setPageSize(-1);
+        queryOptions.setEnableCrossPartitionQuery(true);
+        List<Profile> profileInfo=new ArrayList<Profile>();
+        String collectionLink = String.format("/dbs/%s/colls/%s", COSMOS_DB_NAME, PROFILE_TABLE_NAME);
+        FeedResponse<Document> queryResults = this.documentClient.queryDocuments(collectionLink,
+                "SELECT * FROM "+PROFILE_TABLE_NAME+" WHERE "+PROFILE_TABLE_NAME+".IsMainProfile=true", queryOptions);
+
+        for (Document doc : queryResults.getQueryIterable()) {
+
+            JSONObject objJSON=new JSONObject(doc.toJson());
+            Profile profile=new Profile();
+            profile.setAS2Idenitfier(objJSON.getString("AS2Identifier"));
+            profile.setEemailAddress(objJSON.getString("EmailAddress"));
+            profile.setAsynchronousMDNURL(objJSON.getString("AsynchronousMDNURL"));
+            profile.setPrivateCertificate(objJSON.getString("PrivateCertificate"));
+            profile.setIsMainProfile((objJSON.getBoolean("IsMainProfile")));
+            profile.setDescription(objJSON.getString("Description"));
+            profile.setOnPremHomeDirectory(objJSON.getString("OnPremHomeDirectory"));
+            profile.setOnPremHomeDirectoryLinux(objJSON.getString("OnPremHomeDirectoryLinux"));
+            profile.setDataFolder(objJSON.getString("DataFolder"));
+            profile.setPublicCertificate(objJSON.getString("PublicCertificate"));
+            profile.setCertificatePassword(objJSON.getString("CertificatePassword"));
+            profileInfo.add(profile);
+        }
+        //System.out.println("PublicCertificate"+profileInfo.get(0).getPublicCertificate());
+        //System.out.println("PrivateCertificate"+profileInfo.get(0).getPrivateCertificate());
+        Constants.MainProfile=profileInfo.get(0);
         return profileInfo.get(0);
 
     }

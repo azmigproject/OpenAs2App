@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.openas2.BaseComponent;
 import org.openas2.OpenAS2Exception;
 import org.openas2.message.FileAttribute;
@@ -18,6 +20,7 @@ import org.openas2.params.ParameterParser;
 public abstract class BasePartnershipFactory extends BaseComponent implements PartnershipFactory {
     private List<Partnership> partnerships;
 
+    private Log logger = LogFactory.getLog(BasePartnershipFactory.class.getSimpleName());
     public Partnership getPartnership(Partnership p, boolean reverseLookup) throws OpenAS2Exception {
          Partnership ps = (p.getName() == null) ? null : getPartnership(p.getName());
 
@@ -36,7 +39,15 @@ public abstract class BasePartnershipFactory extends BaseComponent implements Pa
     }
 
     public void setPartnerships(List<Partnership> list) {
+       logger.info("Total Partnership created"+list.size());
         partnerships = list;
+        for(int i=0;i<list.size();i++)
+        {
+            logger.info("Details for PartnerShip"+i);
+            logger.info("name"+list.get(i).getName());
+            logger.info("sender"+list.get(i).getSenderIDs());
+            logger.info("reciever"+list.get(i).getReceiverIDs());
+        }
     }
 
     public List<Partnership> getPartnerships() {
@@ -47,11 +58,24 @@ public abstract class BasePartnershipFactory extends BaseComponent implements Pa
         return partnerships;
     }
 
-    public void updatePartnership(Message msg, boolean overwrite) throws OpenAS2Exception
+    public void   updatePartnership(Message msg, boolean overwrite) throws OpenAS2Exception
     {
         // Fill in any available partnership information
+
+
         Partnership partnership = getPartnership(msg.getPartnership(), false);
+        if(partnership!=null) {
+
+            logger.info("In updatePartnership after finding partnership" + partnership.getName());
+        }
+        else
+
+        {
+            logger.info("In updatePartnership no partnership found");
+        }
+
         msg.getPartnership().copy(partnership);
+
 		//  Now set dynamic parms based on file name if configured to
         String filename = msg.getAttribute(FileAttribute.MA_FILENAME);
 		String filenameToParmsList = msg.getPartnership().getAttribute(AS2Partnership.PA_ATTRIB_NAMES_FROM_FILENAME);

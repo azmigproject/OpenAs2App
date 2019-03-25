@@ -82,7 +82,8 @@ public class BlobHelper {
             File fl=new File(fileDownloadPath);
             //org.h2.store.fs.FileUtils.move(fileDownloadPath,fileDownloadPath+".downloaded");
             File NewFile=new File(fileDownloadPath+".downloaded");
-            IOUtilOld.moveFile(fl,NewFile,false, true);
+            fl.renameTo(NewFile);
+			//IOUtilOld.moveFile(fl,NewFile,false, true);
             synchronized (fileQueue) {
 
                     fileQueue.AddPath(fileDownloadPath + ".downloaded");

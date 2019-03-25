@@ -52,9 +52,13 @@ public class XMLPartnershipFactory extends BasePartnershipFactory{
     private Map<String, Object> partners;
 
     private List<partner>  _partnerFromDB;
+    private List<Profile>  _profileFromDB;
 
     public List<partner>  getPartnersFromDB(){return _partnerFromDB;}
     public void setPartnersFromDB(List<partner>  partners){this._partnerFromDB=partners;}
+
+    public List<Profile>  getProfileFromDB(){return _profileFromDB;}
+    public void setProfileFromDB(List<Profile>  profiles){this._profileFromDB=profiles;}
 
     private Profile _companyProfile;
 
@@ -92,12 +96,19 @@ public class XMLPartnershipFactory extends BasePartnershipFactory{
 
     private void setPartners(Map<String, Object> map)
     {
+
         partners = map;
+
     }
 
     public void init(Session session, Map<String, String> parameters) throws OpenAS2Exception
     {
         super.init(session, parameters);
+        if(_partnerFromDB!=null && _profileFromDB!=null)
+        {
+
+            refresh(_partnerFromDB,_profileFromDB);
+        }
         if(_partnerFromDB!=null)
         {
 
@@ -105,6 +116,133 @@ public class XMLPartnershipFactory extends BasePartnershipFactory{
         }
         else {
             refresh();
+        }
+    }
+
+    void refresh(List<partner>  partners,List<Profile>  profiles) throws OpenAS2Exception
+    {
+
+        try {
+            Map<String, Object> newPartners = new HashMap<String, Object>();
+            List<Partnership> newPartnerships = new ArrayList<Partnership>();
+            partner companyPartner=new partner();
+            companyPartner.setEmailAddress(_companyProfile.getEmailAddress());
+            companyPartner.setPartnerName(Profile.PROFILENAME);
+            companyPartner.setAS2Identifier(_companyProfile.getAS2Idenitfier());
+            //companyPartner.setPublicCertificate(_companyProfile.getPublicCertificate());
+            companyPartner.setPublicCertificate(_companyProfile.getPrivateCertificate());
+
+            loadPartner(newPartners, companyPartner);
+
+            Map<String ,String> PartnerToServer=new HashMap<String, String>();
+            PartnerToServer.put("receiver",Profile.PROFILENAME);
+            PartnerToServer.put("protocol","AS2");
+
+            PartnerToServer.put("blobContainer",_serverSettings.getBlobContainerName());
+            PartnerToServer.put("MaxFileSize_Queue",String.valueOf( _serverSettings.getMaxFileSize()));
+            PartnerToServer.put("content_transfer_encoding","8bit");
+            PartnerToServer.put("mdnsubject","Your requested MDN response from $receiver.as2_id$");
+            PartnerToServer.put("as2_mdn_to",companyPartner.getEmailAddress());
+            PartnerToServer.put("prevent_canonicalization_for_mic","false");
+            PartnerToServer.put("no_set_transfer_encoding_for_signing","false");
+            PartnerToServer.put("rename_digest_to_old_name","false");
+            PartnerToServer.put("emove_cms_algorithm_protection_attrib","false");
+
+
+            for (partner Partner : partners
+                    ) {
+
+
+                loadPartner(newPartners, Partner);
+
+
+            }
+            for (partner Partner : partners
+                    ) {
+                PartnerToServer.put("Inqueue",Partner.getIncomingQueue());
+                PartnerToServer.put("Outqueue",Partner.getOutgoingQueue());
+                PartnerToServer.put("SentQueue",Partner.getSentQueue());
+                PartnerToServer.put("InqueueError",Partner.getInErrorQueue());
+                //PartnerToServer.put("OutqueueError",Partner.getOutErrorQueue());
+                PartnerToServer.put("sender",Partner.getPartnerName());
+                PartnerToServer.put("name",Partner.getPartnerName()+"-to-"+Profile.PROFILENAME);
+                PartnerToServer.put("subject","AS2 Message From "+ Partner.getPartnerName() +" to serverProfile");
+                PartnerToServer.put("encrypt",Partner.getEncryptionAlgorithm());
+                PartnerToServer.put("sign",Partner.getSignatureAlgorithm());
+                PartnerToServer.put("resend_max_retries",String.valueOf(Partner.getMaxAttempts()));
+                if(Partner.getISMDNSigned())
+                {
+                    PartnerToServer.put("as2_mdn_options","signed-receipt-protocol=optional, pkcs7-signature; signed-receipt-micalg=optional, SHA1");
+                }
+                if(!Partner.getIsSyncronous())
+                {
+                    PartnerToServer.put("as2_url",_companyProfile.getAsynchronousMDNURL());
+                }
+
+                Map<String ,String> ServerToPartner=new HashMap<String, String>();
+                ServerToPartner.put("sender",Profile.PROFILENAME);
+                ServerToPartner.put("blobContainer",_serverSettings.getBlobContainerName());
+                ServerToPartner.put("MaxFileSize_Queue",String.valueOf( _serverSettings.getMaxFileSize()));
+                ServerToPartner.put("Inqueue",Partner.getIncomingQueue());
+                ServerToPartner.put("subject","AS2 Message From serverProfile to "+Partner.getPartnerName());
+                ServerToPartner.put("Outqueue",Partner.getOutgoingQueue());
+                ServerToPartner.put("SentQueue",Partner.getSentQueue());
+                ServerToPartner.put("InqueueError",Partner.getInErrorQueue());
+                //ServerToPartner.put("OutqueueError",Partner.getOutErrorQueue());
+                ServerToPartner.put("name",Profile.PROFILENAME+"-to-"+Partner.getPartnerName());
+                ServerToPartner.put("receiver",Partner.getPartnerName());
+                ServerToPartner.put("protocol","AS2");
+                ServerToPartner.put("content_transfer_encoding","8bit");
+                ServerToPartner.put("mdnsubject","Your requested MDN response from $receiver.as2_id$");
+                ServerToPartner.put("as2_mdn_to",Partner.getEmailAddress());
+                ServerToPartner.put("prevent_canonicalization_for_mic","false");
+                ServerToPartner.put("no_set_transfer_encoding_for_signing","false");
+                ServerToPartner.put("rename_digest_to_old_name","false");
+                ServerToPartner.put("emove_cms_algorithm_protection_attrib","false");
+                if(Partner.getISMDNSigned())
+                {
+                    ServerToPartner.put("as2_mdn_options","signed-receipt-protocol=optional, pkcs7-signature; signed-receipt-micalg=optional, SHA1");
+                }
+                if(!Partner.getIsSyncronous())
+                {
+                    ServerToPartner.put("as2_url",Partner.getPartnerUrl());
+                }
+                ServerToPartner.put("encrypt",Partner.getEncryptionAlgorithm());
+                ServerToPartner.put("sign",Partner.getSignatureAlgorithm());
+                ServerToPartner.put("resend_max_retries",String.valueOf(Partner.getMaxAttempts()));
+
+
+                loadPartnership(newPartners, newPartnerships, ServerToPartner);
+                loadPartnership(newPartners, newPartnerships, PartnerToServer);
+
+
+            }
+
+            for (Profile tempProfile : _profileFromDB
+                    ) {
+                if(tempProfile.getIsMainProfile()!=true) {
+
+                    partner profilesPartner=new partner();
+                    profilesPartner.setEmailAddress(tempProfile.getEmailAddress());
+                    profilesPartner.setPartnerName(tempProfile.getAS2Idenitfier());
+                    profilesPartner.setAS2Identifier(tempProfile.getAS2Idenitfier());
+                    //companyPartner.setPublicCertificate(_companyProfile.getPublicCertificate());
+                    profilesPartner.setPublicCertificate(tempProfile.getPrivateCertificate());
+                    loadPartner(newPartners, profilesPartner);
+                }
+
+
+            }
+            synchronized (this)
+            {
+                setPartners(newPartners);
+                setPartnerships(newPartnerships);
+
+            }
+        }
+        catch (Exception e)
+        {
+            throw new WrappedException(e);
         }
     }
 

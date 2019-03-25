@@ -18,9 +18,11 @@ import javax.mail.internet.MimeBodyPart;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.openas2.Constants;
 import org.openas2.OpenAS2Exception;
 import org.openas2.Session;
 import org.openas2.WrappedException;
+import org.openas2.lib.dbUtils.Profile;
 import org.openas2.message.FileAttribute;
 import org.openas2.message.InvalidMessageException;
 import org.openas2.message.Message;
@@ -51,27 +53,53 @@ public abstract class MessageBuilderModule extends BaseReceiverModule {
 		super.init(session, options);
 	}
 
-	protected Message processDocument(InputStream ip, String filename) throws OpenAS2Exception, FileNotFoundException
+	//protected Message processDocument(InputStream ip, String filename, File sourceFile) throws OpenAS2Exception, FileNotFoundException
+	protected Message  processDocument(String filename,String AssosiatedAs2Id, File sourceFile) throws OpenAS2Exception, FileNotFoundException
 	{
 		Message msg = buildMessageMetadata(filename);
 
+        File destFile = new File(sourceFile.getAbsolutePath()+".start."+msg.getMessageID());
+             
+        try
+		{
+        	sourceFile.renameTo(destFile);
+			
+		} catch (Exception ex1)
+		{
+			throw new OpenAS2Exception("Could not rename file to Start with UUID: " + destFile, ex1);
+		}
+        
+        
+        
 		String pendingFile = msg.getAttribute(FileAttribute.MA_PENDINGFILE);
 		// Persist the file that has been passed in
 		File doc = new File(pendingFile);
 		FileOutputStream fo = null;
+		
+		FileInputStream ip = new FileInputStream(destFile);
+		//FileOutputStream so = null;
+		
 		try
 		{
+	      //  so = new FileOutputStream(destFile);    
 			fo = new FileOutputStream(doc);
 		} catch (FileNotFoundException e1)
 		{
 			throw new OpenAS2Exception("Could not create file in pending folder: " + pendingFile, e1);
 		}
+		
+		
 		try
 		{
+			//org.openas2.util.IOUtil.moveFile(sourceFile, destFile, true);
+			//IOUtils.copy(ip, so);
+			
 			IOUtils.copy(ip, fo);
+			
 		} catch (IOException e1)
 		{
 			fo = null;
+			//so = null;
 			throw new OpenAS2Exception("Could not write file to pending folder: " + pendingFile, e1);
 		}
 		try
@@ -86,12 +114,14 @@ public abstract class MessageBuilderModule extends BaseReceiverModule {
 		try
 		{
 			fo.close();
+			//so.close();
 		} catch (IOException e1)
 		{
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		fo = null;
+		//so = null;
 
 		FileInputStream fis = new FileInputStream(doc);
 		try 
@@ -192,6 +222,7 @@ public abstract class MessageBuilderModule extends BaseReceiverModule {
 			} catch (Exception e){}
 		try
 		{
+			Constants.UpdateMsgSenderPartnership(msg,AssosiatedAs2Id);
 			msg.setStatus(Message.MSG_STATUS_MSG_SEND);
 			// Transmit the message
 			getSession().getProcessor().handle(SenderModule.DO_SEND, msg, options);
@@ -205,12 +236,15 @@ public abstract class MessageBuilderModule extends BaseReceiverModule {
 		
 	}
 
+
 	protected abstract Message createMessage();
 
 	public Message buildMessageMetadata(String filename) throws OpenAS2Exception
 	{
 		Message msg = createMessage();
 		msg.setAttribute(FileAttribute.MA_FILENAME, filename);
+
+
 		msg.setPayloadFilename(filename);
 		MessageParameters params = new MessageParameters(msg);
 

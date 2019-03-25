@@ -128,7 +128,14 @@ public class DbLogger extends BaseLogger {
         objLog.setId(UUID.randomUUID().toString());
         objLog.setProcessLevel(level.getName());
         objLog.setIsnptyAS2ServerLog(true);
-        objLog.setIsSuccessfull(true);
+        if(level==Level.ERROR) {
+            objLog.setIsSuccessfull(false);
+        }
+        else
+        {
+            objLog.setIsSuccessfull(true);
+        }
+
         objLog.setIsErrorMailSend(false);
         if(as2Msg!=null) {
             if(as2Msg.getPartnership()!=null) {
@@ -160,10 +167,22 @@ public class DbLogger extends BaseLogger {
         }
      if(as2Msg!=null && as2Msg.getLogMsg()!=null && as2Msg.getLogMsg()!="")
      {
-         objLog.setLogMessage(as2Msg.getLogMsg());
+         if(level==Level.ERROR) {
+             objLog.setExceptionOrErrorDetails(as2Msg.getLogMsg());
+         }
+         else {
+             objLog.setLogMessage(as2Msg.getLogMsg());
+         }
      }
      else {
-         objLog.setLogMessage(msgText);
+         if(level==Level.ERROR) {
+             objLog.setExceptionOrErrorDetails(msgText);
+         }
+         else
+
+         {
+             objLog.setLogMessage(msgText);
+         }
      }
 
 

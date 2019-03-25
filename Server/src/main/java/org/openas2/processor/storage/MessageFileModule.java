@@ -36,10 +36,11 @@ public class MessageFileModule extends BaseStorageModule {
 
             File msgFile = getFile(msg, getParameter(PARAM_FILENAME, true), action);
             String strSenderID=msg.getPartnership().getSenderID(AS2Partnership.PID_AS2);
+            String strReceiverID=msg.getHeader("AS2-To");
             InputStream in = msg.getData().getInputStream();
 
             if(options!=null) {
-                store(msgFile, in, options.get("queueName").toString(),strSenderID, options.get("blobContainer").toString(), Integer.parseInt(options.get("MaxFileSize_Queue").toString()));
+                store(msgFile, in, options.get("queueName").toString(),strSenderID,strReceiverID, options.get("blobContainer").toString(), Integer.parseInt(options.get("MaxFileSize_Queue").toString()));
                 msg.setLogMsg("stored message to  azure for file"+(msg.getPayloadFilename()!=null?msg.getPayloadFilename(): msgFile.getAbsolutePath())+" For Sender="+strSenderID+" "+msg.getLogMsgID());
             }
             else

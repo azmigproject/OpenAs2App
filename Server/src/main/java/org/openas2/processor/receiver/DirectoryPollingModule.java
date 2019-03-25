@@ -14,6 +14,8 @@ import org.joda.time.DateTime;
 import org.openas2.OpenAS2Exception;
 import org.openas2.Session;
 import org.openas2.XMLSession;
+import org.openas2.logging.Level;
+import org.openas2.logging.LogManager;
 import org.openas2.message.Message;
 import org.openas2.message.SimpleLogMessage;
 import org.openas2.params.InvalidParameterException;
@@ -48,7 +50,7 @@ public abstract class DirectoryPollingModule extends PollingModule {
     BlockingQueue<String> FileProcessingBlockingQueue;
     private int BlockingQueueSizeSize = 1000;
     private int FileWatcherStalenessThresholdInSeconds = 90;
-
+    
     private ThreadGroup consumerThreadGroup = null;
     private ThreadGroup producerThreadGroup  = null;
     private ThreadGroup dirWatcherThreadGroup = null;
@@ -57,6 +59,7 @@ public abstract class DirectoryPollingModule extends PollingModule {
     HighPerformanceBlockingQueue FileBlockingQueue;
 
     private Log logger = LogFactory.getLog(DirectoryPollingModule.class.getSimpleName());
+
 
     public void init(Session session, Map<String, String> options) throws OpenAS2Exception {
         super.init(session, options);
@@ -82,8 +85,46 @@ public abstract class DirectoryPollingModule extends PollingModule {
             IOUtilOld.getDirectoryFile(pendingInfoFolder);
             String pendingFolder = getSession().getProcessor().getParameters().get("pendingmdn");
             IOUtilOld.getDirectoryFile(pendingFolder);
+            
+            File[] fList = getFilesBasedOnFilter(IOUtilOld.getDirectoryFile(outboxDir), "processing");
+            for(int i=0; i<fList.length; i++)
+            {
+            	String renameFile = fList[i].getAbsolutePath().replace(".processing", ".downloaded");
+            	File desFile = new File(renameFile);
+            	fList[i].renameTo(desFile);
+            }
+            
+            File[] fUUIDList = getFilesWithoutExtFilter(IOUtilOld.getDirectoryFile(outboxDir));
+            if (fUUIDList != null)
+            {
+	            for(int i=0; i<fUUIDList.length; i++)
+	            {
+	            	//Move Pre-Sent files to Error Folder This is only necessary due to a system crash while processing.
+	            	File errPath = new File(errorDir,fUUIDList[i].getName());
+	            	fUUIDList[i].renameTo(errPath);
+                    //LogManager.getLogManager().log(Level.ERROR,DirectoryPollingModule.class.getSimpleName(),"Error! Crash or Service Stop! Verify Delivery with Customer!" + " FileName:" +errPath.getAbsolutePath());
+	            	logger.error("Error! Crash or Service Stop! Verify Delivery with Customer!" + " FileName:" +errPath.getAbsolutePath());
+	            	
+	            	String uuIDMsg = fUUIDList[i].getName().substring(fUUIDList[i].getName().lastIndexOf('.')+1);
+	            	System.out.println("***Pending File Removal Substring : " + uuIDMsg);
+	            	
+	            	//Remove MDN PendingInfo Messages 
+	            	File[] pndInfoFileLst = getFilesWithMsgIDtFilter(IOUtilOld.getDirectoryFile(pendingInfoFolder), uuIDMsg);
+	            	for(int pi=0; pi<pndInfoFileLst.length; pi++)
+	                {
+	            		pndInfoFileLst[pi].delete();
+	                }
+	            	
+	            	//Remove MDN Pending Messages 
+	            	File[] pndFileLst = getFilesWithMsgIDtFilter(IOUtilOld.getDirectoryFile(pendingFolder), uuIDMsg);
+	            	for(int p=0; p<pndFileLst.length; p++)
+	                {
+	            		pndFileLst[p].delete();
+	                }
+	            }
+            }
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new OpenAS2Exception("Failed to initialise directory poller.", e);
         }
     }
@@ -102,15 +143,30 @@ public abstract class DirectoryPollingModule extends PollingModule {
     public void directoryScanPoll() {
         // while (true) {
         try {
+        	
+        	
+        	
+        	if (dirWatcherThreadGroup == null)
+        		dirWatcherThreadGroup = new ThreadGroup("DirWatcher-"+outboxDir); 
+        	
+              ActiveDirWatcherThreadCounter = dirWatcherThreadGroup.activeCount();
 
-
-
-            if (dirWatcherThreadGroup == null)
-                dirWatcherThreadGroup = new ThreadGroup("DirWatcher-"+outboxDir);
-
-            ActiveDirWatcherThreadCounter = dirWatcherThreadGroup.activeCount();
-
-
+              File[] fNotProcessedList = getFilesWithoutProperExt(IOUtilOld.getDirectoryFile(outboxDir));
+            
+              if(fNotProcessedList != null)
+              {
+	              for(int i=0; i<fNotProcessedList.length; i++)
+	              {
+	              	//Rename files not moved to download due to system crash.
+	            	  
+	            	  
+	            	String newDwnldFile = fNotProcessedList[i].getAbsolutePath()+File.separatorChar+".downloaded";
+	              	File dwnldPath = new File(newDwnldFile);  
+	              	
+	              	//File dwnldPath = new File(outboxDir,fNotProcessedList[i].getName()+".downloaded");
+	              	fNotProcessedList[i].renameTo(dwnldPath);
+	              }
+              }
             if (FileBlockingQueue.size() == 0 && getFilesBasedOnFilter(IOUtilOld.getDirectoryFile(outboxDir), "downloaded").length > 0)
 
             {
@@ -142,8 +198,8 @@ public abstract class DirectoryPollingModule extends PollingModule {
                                         }
 
                                         System.out.println(" Scan Directry  for" + dirFileLength + "  Files" + "in dir" + outboxDir);
-                                        if(logger.isDebugEnabled())
-                                            logger.debug(" Scan Directry  for" + dirFileLength + "  Files" + "in dir" + outboxDir);
+                                       if(logger.isDebugEnabled())
+                                        logger.debug(" Scan Directry  for" + dirFileLength + "  Files" + "in dir" + outboxDir);
                                         dirFileCounter++;
                                         //if (dirFileCounter == dirFileLength) {
 
@@ -164,8 +220,8 @@ public abstract class DirectoryPollingModule extends PollingModule {
                             System.out.println(" Error in directoryWatcher in directoryScanPoll " + (new Date()).toString() + "Exception" + ex.getMessage() + sw.toString());
                             logger.error("Error in directoryWatcher in directoryScanPoll : " + outboxDir, ex);
                         } finally {
-                            if(DirWatcherThreadCounter >=1)
-                                DirWatcherThreadCounter--;
+                        	if(DirWatcherThreadCounter >=1)
+                               DirWatcherThreadCounter--;
                         }
                     }
                 };
@@ -177,10 +233,10 @@ public abstract class DirectoryPollingModule extends PollingModule {
                 // add finally in each runable deff and reduce the counter value
                 // instead of for conver it to while loop based on te couter value & max thread condition
                 //while (DirWatcherThreadCounter < MAX_DirectoryThread)
-                while (ActiveDirWatcherThreadCounter < MAX_DirectoryThread)
+                while (ActiveDirWatcherThreadCounter < MAX_DirectoryThread)	
                 {
                     //Thread dirWatcherThread = new Thread(directoryWatcher, "DirWatcherThread" + DirWatcherThreadCounter);
-                    Thread dirWatcherThread = new Thread(dirWatcherThreadGroup, directoryWatcher, "DirWatcherThread" + DirWatcherThreadCounter);
+                	Thread dirWatcherThread = new Thread(dirWatcherThreadGroup, directoryWatcher, "DirWatcherThread" + DirWatcherThreadCounter);
                     dirWatcherThread.setPriority(NORM_PRIORITY);  //DirWatcher Max Thread
                     dirWatcherThread.start();
                     DirWatcherThreadCounter++;
@@ -212,11 +268,11 @@ public abstract class DirectoryPollingModule extends PollingModule {
     {
         try {
 
-            if (producerThreadGroup == null)
-                producerThreadGroup = new ThreadGroup("Producer-"+outboxDir);
-
-            ActiveQueueThreadCounter = producerThreadGroup.activeCount();
-
+        	if (producerThreadGroup == null)
+        		producerThreadGroup = new ThreadGroup("Producer-"+outboxDir);
+        	
+        	 ActiveQueueThreadCounter = producerThreadGroup.activeCount();
+        	
             final int noOfFilesAllowedToDownload = 1;//32;
             boolean isMsgInQueue = false;
             QueueHelper queueHelper=new QueueHelper();
@@ -273,7 +329,7 @@ public abstract class DirectoryPollingModule extends PollingModule {
                 while (ActiveQueueThreadCounter < MAX_QueueThread)
                 {
                     //Thread producerThread = new Thread(producer, "ProducerThread" + QueueThreadCounter);
-                    Thread producerThread = new Thread(producerThreadGroup, producer, "ProducerThread" + QueueThreadCounter);
+                	Thread producerThread = new Thread(producerThreadGroup, producer, "ProducerThread" + QueueThreadCounter);
                     producerThread.setPriority(NORM_PRIORITY + 2); //QueueDownloader Max Thread
                     producerThread.start();
                     QueueThreadCounter++;
@@ -306,11 +362,11 @@ public abstract class DirectoryPollingModule extends PollingModule {
         try {
 
 
-            if (consumerThreadGroup == null)
-                consumerThreadGroup = new ThreadGroup("Consumer-"+outboxDir);
+        	if (consumerThreadGroup == null)
+        	    consumerThreadGroup = new ThreadGroup("Consumer-"+outboxDir);
 
-            ActiveFileThreadCounter = consumerThreadGroup.activeCount();
-
+        	 ActiveFileThreadCounter = consumerThreadGroup.activeCount();
+        	 
             if (FileBlockingQueue.size() > 0 )
 
             {
@@ -318,10 +374,10 @@ public abstract class DirectoryPollingModule extends PollingModule {
 
 
                 //while (FileThreadCounter < MAX_FileThread)
-                while (FileBlockingQueue.size() > 0 && (ActiveFileThreadCounter == FileBlockingQueue.size() || ActiveFileThreadCounter < MAX_FileThread))
+            	while (FileBlockingQueue.size() > 0 && (ActiveFileThreadCounter == FileBlockingQueue.size() || ActiveFileThreadCounter < MAX_FileThread))
                 {
                     //Thread consumerThread = new Thread(GetConsumer("ConsumerThread" + FileThreadCounter), "ConsumerThread" + FileThreadCounter);
-                    Thread consumerThread = new Thread(consumerThreadGroup, GetConsumer("ConsumerThread" + FileThreadCounter), "ConsumerThread" + FileThreadCounter);
+            		Thread consumerThread = new Thread(consumerThreadGroup, GetConsumer("ConsumerThread" + FileThreadCounter), "ConsumerThread" + FileThreadCounter);
                     consumerThread.setPriority(NORM_PRIORITY + 1); //FileProcessor Max Thread
                     RunningQueueThreads.putIfAbsent("ConsumerThread" + FileThreadCounter, "");
                     consumerThread.start();
@@ -392,7 +448,7 @@ public abstract class DirectoryPollingModule extends PollingModule {
 
                         System.out.println("BlockingQueue Length" + FileBlockingQueue.size());
                         if(logger.isDebugEnabled())
-                            logger.debug("BlockingQueue Length" + FileBlockingQueue.size());
+                        logger.debug("BlockingQueue Length" + FileBlockingQueue.size());
                         if (FileBlockingQueue.size() > 0) {
                             synchronized (this) {
                                 try {
@@ -413,15 +469,15 @@ public abstract class DirectoryPollingModule extends PollingModule {
                     logger.error("Error in Consumer thread to process file  : " + outboxDir, ex);
 //
                 } finally {
-
-                    if (FileThreadCounter >=1)
-                        --FileThreadCounter;
+                	
+                	if (FileThreadCounter >=1)
+                         --FileThreadCounter;
 
                     RunningQueueThreads.remove(ThreadName);
 
                     System.out.println("Finally executed in conumser thread now the FileThreadCounter value is " + FileThreadCounter);
-                    if(logger.isDebugEnabled())
-                        logger.debug("Finally executed in conumser thread now the RunningQueueThreads value is " + RunningQueueThreads.size());
+                   if(logger.isDebugEnabled())
+                    logger.debug("Finally executed in conumser thread now the RunningQueueThreads value is " + RunningQueueThreads.size());
                 }
             }
         };
@@ -443,6 +499,81 @@ public abstract class DirectoryPollingModule extends PollingModule {
             });
         } catch (Exception exp) {
             System.out.println("Error occured in getFilesBasedOnFilter for dir=" + dir + "; for ext.filter=" + extensionFilter + "; Error=" + exp.getMessage());
+            return null;
+        }
+    }
+    
+    
+    private File[] getFilesWithoutExtFilter(File dir) {
+        try {
+            return dir.listFiles(new FileFilter() {
+                public boolean accept(File f) {
+                	if(f.isFile())
+                	{
+	                    if (f.getName().toLowerCase().contains(".start.")) 
+	                    {
+	                        return true;
+	                    } else
+	                    {
+	                        return false;
+	                    }
+                	}else
+                	{
+                		return false;
+                	}
+                }
+            });
+        } catch (Exception exp) {
+            System.out.println("Error occured in getFilesWithoutExtFilter for dir=" + dir + " Error=" + exp.getMessage());
+            return null;
+        }
+    }
+    
+    
+    private File[] getFilesWithoutProperExt(File dir) {
+        try {
+            return dir.listFiles(new FileFilter() {
+                public boolean accept(File f) {
+                	
+                	if(f.isFile())
+                	{
+	                	String extName = f.getName().substring(f.getName().lastIndexOf('.')+1);
+	                	System.out.println("******* Searching for Left over files with Ext: " +extName);
+	                	
+	                    if (!extName.toLowerCase().equalsIgnoreCase("downloaded") && !extName.toLowerCase().equalsIgnoreCase("processing") && !f.getName().toLowerCase().contains(".start.")) 
+	                    {
+	                        return true;
+	                    }else
+	                    {
+	                        return false;
+	                    }
+                	}else
+                	{
+                		return false;
+                	}
+                }
+            });
+        } catch (Exception exp) {
+            System.out.println("Error occured in getFilesWithoutProperExt for dir=" + dir + " Error=" + exp.getMessage());
+            return null;
+        }
+    }
+    
+    private File[] getFilesWithMsgIDtFilter(File dir, final String msgID) {
+        try {
+            return dir.listFiles(new FilenameFilter() {
+                public boolean accept(File dir, String name) {
+                    if (!name.toLowerCase().contains("error")) {
+                        return name.contains(msgID);
+                    } else
+
+                    {
+                        return false;
+                    }
+                }
+            });
+        } catch (Exception exp) {
+            System.out.println("Error occured in getFilesWithMsgIDtFilter for dir=" + dir + " Error=" + exp.getMessage());
             return null;
         }
     }
@@ -539,7 +670,7 @@ public abstract class DirectoryPollingModule extends PollingModule {
                                                 sm.setLogMessage("Track file and add it in  Tracked file list  (checkFileAndTrack)" + filePath);
                                                 logger.info(sm);
                                                 if(logger.isDebugEnabled())
-                                                    logger.debug("FileTracked" + FileBlockingQueue.size() + "& file in processing  (checkFileAndTrack)" + FileProcessingBlockingQueue.size()+ " "+filePath);
+                                                logger.debug("FileTracked" + FileBlockingQueue.size() + "& file in processing  (checkFileAndTrack)" + FileProcessingBlockingQueue.size()+ " "+filePath);
 
 
                                             } else {
@@ -547,7 +678,7 @@ public abstract class DirectoryPollingModule extends PollingModule {
                                                 sm.setLogMessage("Track file and not add it in  Tracked file list (checkFileAndTrack)" + filePath);
                                                 logger.info(sm);
                                                 if(logger.isDebugEnabled())
-                                                    logger.debug(" (checkFileAndTrack) FileTracked" + FileBlockingQueue.size() + "& file in processing " + FileProcessingBlockingQueue.size());
+                                                logger.debug(" (checkFileAndTrack) FileTracked" + FileBlockingQueue.size() + "& file in processing " + FileProcessingBlockingQueue.size());
 
                                             }
                                         }
@@ -629,15 +760,15 @@ public abstract class DirectoryPollingModule extends PollingModule {
 
                                     sm.setFileName(file.getName());
                                     sm.setReceiverId(file.getParentFile().getParentFile().getName());
-                                    // System.out.println("Get file from queue for procesing" + strFileName);
+                                   // System.out.println("Get file from queue for procesing" + strFileName);
                                     //System.out.println("Add file in FileProcessingBlockingQueue " + strFileName);
-                                    // System.out.println("Thread " + ThreadName + "Process file " + strFileName);
+                                   // System.out.println("Thread " + ThreadName + "Process file " + strFileName);
                                     sm.setLogMessage("Get file from queue for procesing" + strFileName);
                                     logger.info(sm);
                                     sm.setLogMessage("Add file in FileProcessingBlockingQueue " + strFileName);
                                     logger.info(sm);
                                     if(logger.isDebugEnabled())
-                                        logger.debug("Thread " + ThreadName + "Process file " + strFileName);
+                                    logger.debug("Thread " + ThreadName + "Process file " + strFileName);
 
                                     File newFile = new File(strFileName.replace(".downloaded", ".processing"));
                                     file.renameTo(newFile);
@@ -652,7 +783,7 @@ public abstract class DirectoryPollingModule extends PollingModule {
                                 {
                                     System.out.println("File Already in processing so not get the file " + strFileName);
                                     if(logger.isDebugEnabled())
-                                        logger.debug("File Already in processing so not get the file " + strFileName);
+                                    logger.debug("File Already in processing so not get the file " + strFileName);
                                     strFileName = "";
                                 }
                             } else {
@@ -690,7 +821,7 @@ public abstract class DirectoryPollingModule extends PollingModule {
                 synchronized (FileProcessingBlockingQueue) {
                     System.out.println("Remove from FileProcessingBlockingQueue" + strFile);
                     if(logger.isDebugEnabled())
-                        logger.debug("Removeing from FileProcessingBlockingQueue" + strFile);
+                    logger.debug("Removeing from FileProcessingBlockingQueue" + strFile);
                     FileProcessingBlockingQueue.remove(strFile.replace(".processing", ".downloaded"));
                     SimpleLogMessage sm=new SimpleLogMessage();
                     sm.setLogMessage(" remove file " + strFile + "FileProcessingBlockingQueue ");
@@ -769,14 +900,20 @@ public abstract class DirectoryPollingModule extends PollingModule {
             sm.setFileName(file.getName());
             sm.setReceiverId(file.getParentFile().getName());
             logger.info(sm);
-            processDocument(new FileInputStream(file), file.getName().replace(".processing", "").trim());
+            String[] fileandAs2Id=file.getName().replace(".processing", "").trim().split("-_-");
+            Message cmpltMsg = processDocument(fileandAs2Id[1],fileandAs2Id[0], file);
+			//processDocument(new FileInputStream(file), fileandAs2Id[1],fileandAs2Id[0]);
             System.out.println("Document processing completed " + file.getAbsolutePath());
             sm.setLogMessage("Document processing completed " + file.getAbsolutePath());
             logger.info(sm);
-            try {
-                IOUtilOld.deleteFile(file);
+            try
+            {
+            	File delFile = new File(file.getAbsolutePath()+".start."+cmpltMsg.getMessageID());
+            	
+                IOUtilOld.deleteFile(delFile);
+               // IOUtilOld.deleteFile(file);
                 System.out.println("Document processing deleted " + file.getAbsolutePath());
-                sm.setLogMessage("Document processing deleted " + file.getAbsolutePath());
+                 sm.setLogMessage("Document processing deleted " + file.getAbsolutePath());
                 logger.info(sm);
             } catch (IOException e) {
                 throw new OpenAS2Exception("Failed to delete file handed off for processing:" + file.getAbsolutePath(), e);

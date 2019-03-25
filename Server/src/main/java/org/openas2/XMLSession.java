@@ -14,19 +14,13 @@ import javax.annotation.Nullable;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-
-import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
-import javafx.util.converter.IntegerStringConverter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormatter;
-import org.openas2.app.OpenAS2Server;
 import org.openas2.cert.CertificateFactory;
 import org.openas2.cmd.CommandManager;
 import org.openas2.cmd.CommandRegistry;
 import org.openas2.cmd.processor.BaseCommandProcessor;
-import org.openas2.lib.dbUtils.Properties;
 import org.openas2.logging.DbLogger;
 import org.openas2.logging.FileLogger;
 import org.openas2.logging.LogManager;
@@ -185,13 +179,17 @@ public class XMLSession extends BaseSession {
 
    protected  void load (AzureUtil azureUtil)  throws   OpenAS2Exception,Exception
    {
+
        loadProperties(azureUtil.getProperties());
        loadCertificates(azureUtil.getCertificates());
-       loadProcessor(azureUtil.getProcessor());
+
        loadCommandProcessors(azureUtil.getCommandProcessors());
-       loadPartnerships(azureUtil.getPartnerList(),azureUtil.getProfile(),azureUtil.getServersSettings().get(0));
+       LOGGER.info("MainProfile"+azureUtil.getMainProfile().getAS2Idenitfier());
+       loadPartnerships(azureUtil.getPartnerList(),azureUtil.getMainProfile(),azureUtil.getAllProfile(),azureUtil.getServersSettings().get(0));
        loadCommands(azureUtil.getCommand());
        loadLoggers(azureUtil);
+       loadProcessor(azureUtil.getProcessor());
+
    }
 
 
@@ -200,6 +198,7 @@ public class XMLSession extends BaseSession {
     	
         List<partner> pList = null;
         Profile pProfile  = null;
+        List<Profile> profileList = null;
         ServersSettings sSettings = null;
         Certificates pCerts = null;
         org.openas2.lib.dbUtils.Processor pProcessor = null;
@@ -254,17 +253,29 @@ public class XMLSession extends BaseSession {
 	        
 	        try
 	        {
-	        	pProfile = azureUtil.getProfile();
+	        	pProfile = azureUtil.getMainProfile();
 	        	if(pProfile == null)
-	        		throw new Exception("No Profiles Found");
+	        		throw new Exception("No Main Profiles Found");
 	        }catch(Exception e4)
 	        {
 	        	loadPartnerShipValues = false;
 	        	System.out.println(e4.getMessage());
 	            LOGGER.error(e4);
-	        } 
-	        
-	        try
+	        }
+
+            try
+            {
+                profileList = azureUtil.getAllProfile();
+                if(profileList == null)
+                    throw new Exception("No Profiles Found");
+            }catch(Exception e4)
+            {
+                loadPartnerShipValues = false;
+                System.out.println(e4.getMessage());
+                LOGGER.error(e4);
+            }
+
+        try
 	        {
 	        	sSettings = (ServersSettings)azureUtil.getServersSettings().get(0);
 	        	if(sSettings == null)
@@ -284,7 +295,7 @@ public class XMLSession extends BaseSession {
         	this.stop();
         	loadCertificates(pCerts);
         	loadProcessor(pProcessor);
-        	loadPartnerships(pList,pProfile,sSettings);
+        	loadPartnerships(pList,pProfile,profileList,sSettings);
         	this.start();
         }
         
@@ -365,7 +376,7 @@ public class XMLSession extends BaseSession {
         Component component = XMLUtil.getCommandComponent(commands.getClassName(),parameters,commandMap, this);
         commandRegistry = (CommandRegistry) component;
     }
-    private void loadPartnerships(List<partner> partnerList,Profile companyProfile,ServersSettings serverSetting) throws OpenAS2Exception
+    private void loadPartnerships(List<partner> partnerList,Profile companyProfile,List<Profile> profileList, ServersSettings serverSetting) throws OpenAS2Exception
     {
         LOGGER.info("Loading partnerships...");
         Map<String, String> parameters =  new HashMap<String, String>();
@@ -375,7 +386,7 @@ public class XMLSession extends BaseSession {
          //TODO ADD UPDATES TO PASS PARTNER DATA FROM partnerList
 
         XMLPartnershipFactory partnerFx = (XMLPartnershipFactory) XMLUtil
-                .getPartnerShipComponent("org.openas2.partner.XMLPartnershipFactory",parameters, partnerList,companyProfile,serverSetting,this);
+                .getPartnerShipComponent("org.openas2.partner.XMLPartnershipFactory",parameters, partnerList,companyProfile,profileList,serverSetting,this);
 
         setComponent(PartnershipFactory.COMPID_PARTNERSHIP_FACTORY, partnerFx);
     }
@@ -411,7 +422,7 @@ public class XMLSession extends BaseSession {
     }
 
 
-    private void loadProcessor(org.openas2.lib.dbUtils.Processor processor) throws OpenAS2Exception
+    private void   loadProcessor(org.openas2.lib.dbUtils.Processor processor) throws OpenAS2Exception
     {
         Map<String, String> parameters =  new HashMap<String, String>();
         parameters.put("classname", processor.getClassName());

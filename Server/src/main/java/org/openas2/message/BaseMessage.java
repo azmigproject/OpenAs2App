@@ -36,6 +36,7 @@ public abstract class BaseMessage implements Message {
     private MessageMDN MDN;
     private MimeBodyPart data;
     private Partnership partnership;
+    private String oldMsgID;
 	private String compressionType = ICryptoHelper.COMPRESSION_NONE;
 	private boolean rxdMsgWasSigned = false;
 	private boolean rxdMsgWasEncrypted = false;
