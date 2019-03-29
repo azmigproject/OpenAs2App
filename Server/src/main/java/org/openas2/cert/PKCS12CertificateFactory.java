@@ -59,7 +59,7 @@ public class PKCS12CertificateFactory extends BaseCertificateFactory implements
         {
             throw new CertificateNotFoundException(partnershipType, null);
         }
-
+        //logger.info("Alias from getAlias method in12" +alias);
         return alias;
     }
 

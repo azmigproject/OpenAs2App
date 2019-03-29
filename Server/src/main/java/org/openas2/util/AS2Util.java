@@ -915,7 +915,7 @@ public class AS2Util {
 					tgtFile = IOUtilOld.moveFile(fPendingFile, tgtFile, false, true);
 					isMoved = true;
 
-					if (logger.isInfoEnabled())
+					if (logger.isDebugEnabled())
 						logger.info("moved " + fPendingFile.getAbsolutePath() + " to " + tgtFile.getAbsolutePath()
 								+ msg.getLogMsgID());
 
@@ -928,7 +928,7 @@ public class AS2Util {
 			if (!isMoved)
 			{
 				IOUtilOld.deleteFile(fPendingFile);
-	            if (logger.isInfoEnabled()) {
+	            if (logger.isDebugEnabled()) {
 	                msg.setLogMsg("deleted   " + fPendingFile.getAbsolutePath() + "For File=" + msg.getPayloadFilename() + "MessageId=" + msg.getLogMsgID());
                     logger.info(msg);
                 }

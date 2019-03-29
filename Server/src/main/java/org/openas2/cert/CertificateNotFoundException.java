@@ -14,7 +14,8 @@ public class CertificateNotFoundException extends OpenAS2Exception {
     private String partnershipType;
 
     public CertificateNotFoundException(String partnershipType, String alias) {
-        super("Type: " + partnershipType + ", Alias: " + alias);
+        //super("Type: " + partnershipType + ", Alias: " + alias);
+        super("Certificate not found for Alias: " + alias + "and Partnership Type is "+partnershipType);
         this.partnershipType = partnershipType;
         this.alias = alias;
     }

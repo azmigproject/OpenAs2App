@@ -57,7 +57,7 @@ public abstract class MessageBuilderModule extends BaseReceiverModule {
 	protected Message  processDocument(String filename,String AssosiatedAs2Id, File sourceFile) throws OpenAS2Exception, FileNotFoundException
 	{
 		Message msg = buildMessageMetadata(filename);
-
+		
         File destFile = new File(sourceFile.getAbsolutePath()+".start."+msg.getMessageID());
              
         try
@@ -228,8 +228,17 @@ public abstract class MessageBuilderModule extends BaseReceiverModule {
 			getSession().getProcessor().handle(SenderModule.DO_SEND, msg, options);
 		} catch (Exception e)
 		{
-			msg.setLogMsg("Fatal error sending message: " + org.openas2.logging.Log.getExceptionMsg(e));
-			logger.error(msg, e);
+			if(e.getMessage().contains("Certificate not found for Alias")) {
+				msg.setLogMsg("Fatal error while sending message: Certificate not found for given Alias");
+				logger.error(msg, e);
+			}
+			else {
+				if (logger.isDebugEnabled()) {
+					msg.setLogMsg("Fatal error while sending message: " + org.openas2.logging.Log.getExceptionMsg(e));
+					logger.error(msg, e);
+				}
+			}
+
 			AS2Util.cleanupFiles(msg, true);
 		}
 		return msg;

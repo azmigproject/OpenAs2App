@@ -40,6 +40,7 @@ public class OpenAS2Server {
         //argtmp[0]="http://localhost:64418/api/partnerapi";
         ThreadCleanUP cleanUP=new ThreadCleanUP();
         cleanUP.start();
+
         new OpenAS2Server.Builder()
                 .registerShutdownHook()
                 .run(args);
@@ -107,6 +108,7 @@ public class OpenAS2Server {
             registerShutdownHookIfNeeded(server);
 
             server.start();
+
             return server;
         }
 

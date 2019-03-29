@@ -151,15 +151,24 @@ public class Log implements org.apache.commons.logging.Log {
 	/* (non-Javadoc)
 	 * @see org.apache.commons.logging.Log#trace(java.lang.Object)
 	 */
+
 	public void trace(Object message) {
 		trace(message, null);
 	}
 
+
 	public void trace(Object message, Throwable t) {
 		if (isLevelEnabled(LOG_LEVEL_TRACE))
 		{
-			lm.log(Level.FINEST, clazzname, message);
-			if (t != null) lm.log(t, false);
+
+			if (t != null) {
+				lm.log(t, false);
+			}
+			else
+
+			{
+				lm.log(Level.FINEST, clazzname, message);
+			}
 		}
 	}
 
@@ -170,27 +179,40 @@ public class Log implements org.apache.commons.logging.Log {
 		debug(message, null);
 	}
 
-	public void debug(Object message, Throwable t) {
+
+	public void debug(Object message, Throwable t ) {
 		if (isLevelEnabled(LOG_LEVEL_DEBUG))
 		{
-			lm.log(Level.FINER, clazzname, message);
-			if (t != null) lm.log(t, false);
+
+			if (t != null){ lm.log(t, false);}
+			else
+			{
+				lm.log(Level.FINER, clazzname, message);
+			}
 		}
 	}
 
 	/* (non-Javadoc)
 	 * @see org.apache.commons.logging.Log#info(java.lang.Object)
 	 */
+
 	public void info(Object message) {
 		info(message, null);
 
 	}
 
+
+
+
 	public void info(Object message, Throwable t) {
 		if (isLevelEnabled(LOG_LEVEL_INFO))
 		{
-		  lm.log(Level.FINE, clazzname, message);
-		  if (t != null) lm.log(t, false);
+
+		  if (t != null){ lm.log(t, false);}
+		  else
+		  {
+			  lm.log(Level.FINE, clazzname, message);
+		  }
 		}
 	}
 
@@ -202,11 +224,19 @@ public class Log implements org.apache.commons.logging.Log {
 
 	}
 
+
+
 	public void warn(Object message, Throwable t) {
 		if (isLevelEnabled(LOG_LEVEL_WARN))
 		{
-		  lm.log(Level.WARNING, clazzname, message);
-		  if (t != null) lm.log(t, false);
+
+		  if (t != null) {
+			  lm.log(t, false);
+		  }
+		  else
+		  {
+			  lm.log(Level.WARNING, clazzname, message);
+		  }
 		}
 	}
 
@@ -222,12 +252,19 @@ public class Log implements org.apache.commons.logging.Log {
 	/* (non-Javadoc)
 	 * @see org.apache.commons.logging.Log#error(java.lang.Object, java.lang.Throwable)
 	 */
+
 	public void error(Object message, Throwable t) {
 		if (isLevelEnabled(LOG_LEVEL_ERROR))
 		{
-			lm.log(Level.ERROR, clazzname, message);
+
 			System.out.println(message.toString());
-			if (t != null) lm.log(t, false);			
+			if (t != null) {
+				lm.log(t, false);
+			}
+			else
+			{
+				lm.log(Level.ERROR, clazzname, message);
+			}
 		}
 
 	}
@@ -240,11 +277,16 @@ public class Log implements org.apache.commons.logging.Log {
 
 	}
 
+
+
 	public void fatal(Object message, Throwable t) {
 		if (isLevelEnabled(LOG_LEVEL_FATAL))
 		{
-		  lm.log(Level.ERROR, clazzname, message);
-		  if (t != null) lm.log(t, true);
+
+		  if (t != null){ lm.log(t, true);}
+		  else {
+			  lm.log(Level.ERROR, clazzname, message);
+		  }
 		}
 	}
 

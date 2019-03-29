@@ -121,8 +121,18 @@ public class AS2SenderModule extends HttpSenderModule {
             storePendingInfo((AS2Message) msg, isResend);
         } catch (Exception e)
         {
-            msg.setLogMsg(org.openas2.logging.Log.getExceptionMsg(e));
-            logger.error(msg, e);
+            if(e.getMessage().contains("Certificate not found for Alias")|| e.getMessage().contains("Key Not Found For Certificate"))
+            {
+
+                msg.setLogMsg("Error. "+e.getMessage());
+            }
+
+            else
+
+            {
+                msg.setLogMsg(org.openas2.logging.Log.getExceptionMsg(e));
+            }
+            if(logger.isDebugEnabled())  logger.error(msg, e);
             // Log significant msg state
             msg.setOption("STATE", Message.MSG_STATE_SEND_EXCEPTION);
             msg.trackMsgState(getSession());
@@ -168,6 +178,8 @@ public class AS2SenderModule extends HttpSenderModule {
                 logger.info(msg);
             } catch (HttpResponseException hre)
             {
+                msg.setLogMsg("(Error) Sending Message over AS2 For File"+msg.getPayloadFilename()+" MessageID=" +msg.getLogMsgID()+hre.getMessage());
+                logger.info(msg);
                 if(logger.isDebugEnabled())
                     logger.debug("Error over AS2 Stage 2.1" +msg.getLogMsgID());
                 // Will have been logged so just resend
@@ -267,76 +279,9 @@ public class AS2SenderModule extends HttpSenderModule {
                         msg.trackMsgState(getSession());
                         throw e1;
                     }
-                    // ByteArrayOutputStream mdnStream = new ByteArrayOutputStream();//TODO changed to a ByteArray and called a convertion method below
 
-                    // byte[] mdnStream = null;
-//                    try
-//                    {
                     if(logger.isDebugEnabled())
                         logger.debug("Copy MDN Stag 4" +msg.getLogMsgID());
-                    //byte[] mdnStream = null;
-
-//                        String contentLength = mdn.getHeader("Content-Length");
-                    // Retrieve the message content
-//                       if (contentLength != null)//TODO remove if/else as it was not relevant
-//                        {
-//                        	logger.info("Copy MDN Stag 5" +msg.getLogMsgID());
-//                            try
-//                            {
-
-////                                IOUtils.copy(connIn, mdnStream);
-//                            } catch (IOException nfe)//TODO changed from NumberFormatException to IOException cause copy only returns IOException
-//                            {
-//////                                IOUtils.copy(connIn, mdnStream);
-//                            }
-//                        } else
-//                        {
-//                            //IOUtils.copy(connIn, mdnStream);
-//                        }
-                    //TODO Convert from InputStream directly to byteArray
-                    // mdnStream = IOUtils.toByteArray(connIn);
-
-                    // byte[] bytes = mdnStream.toByteArray();
-
-                        /*try {
-
-                            //blobHelper.UploadFileInBlob(msg.getPartnership().getAttribute("blobContainer"), msg.getMDN().getMessageID(), bytes);
-                        }
-                        catch (Exception exp)
-                        {
-                            msg.setLogMsg("IO exception receiving MDN: "
-                                    + org.openas2.logging.Log.getExceptionMsg(exp));
-                            logger.error(msg, exp);
-                            // What to do???
-                            resend(msg, new OpenAS2Exception(org.openas2.logging.Log.getExceptionMsg(exp)), retries);
-                        }*/
-//                    } catch (Exception ioe)
-//                    {
-//                    	logger.info("Copy MDN Stag 6.0" +msg.getLogMsgID());
-//                        msg.setLogMsg("IO exception receiving MDN: "
-//                                + org.openas2.logging.Log.getExceptionMsg(ioe));
-//                        logger.error(msg, ioe);
-//                        // What to do???
-//                        //resend(msg, new OpenAS2Exception(org.openas2.logging.Log.getExceptionMsg(ioe)), retries);
-//                        // Log significant msg state
-//                        msg.setOption("STATE", Message.MSG_STATE_MDN_RECEIVING_EXCEPTION);
-//                        msg.trackMsgState(getSession());
-//
-//                    }finally
-//                    {
-//                    	logger.info("Finally Child MDN Stag 6.1" +msg.getLogMsgID());
-//                        try
-//                        {
-//                            if (connIn != null)
-//                            {
-//                            	logger.info("Finally Child MDN Stag 7" +msg.getLogMsgID());
-//                                connIn.close();
-//                            }
-//                        } catch (IOException e)
-//                        {
-//                        	logger.info("Finally Child MDN Connection Close Stag 8" +msg.getLogMsgID());
-//                        }
-//                    }
 
                     if (logger.isInfoEnabled())
                     {
@@ -377,7 +322,19 @@ public class AS2SenderModule extends HttpSenderModule {
                              * is apart from do nothing
                              */
                             if(logger.isDebugEnabled()) logger.debug("MDN Exception" +msg.getLogMsgID()+ " - "+e.getMessage());
-                            msg.setLogMsg("Unhandled error condition receiving synchronous MDN. Message and asociated files cleanup will be attempted but may be in an unknown state.");
+                            if(e.getMessage().contains("Failed to verify signature of received MDN"))
+                            {
+
+                                msg.setLogMsg("Error. Failed to verify signature of received MDN.");
+                            }
+                            else if(e.getMessage().contains("Certificate not found for Alias")|| e.getMessage().contains("Key Not Found For Certificate"))
+                            {
+
+                                msg.setLogMsg("Error. "+e.getMessage());
+                            }
+                            else {
+                                msg.setLogMsg("Error due to Unhandled condition receiving synchronous MDN. Message and asociated files cleanup will be attempted but may be in an unknown state.");
+                            }
                             logger.error(msg, e);
                         }
                         /*
@@ -420,7 +377,7 @@ public class AS2SenderModule extends HttpSenderModule {
                  * is apart from do nothing
                  */
                 logger.info("MDN Exception" +msg.getLogMsgID()+ " - "+e2.getMessage());
-                msg.setLogMsg("Unhandled error condition receiving synchronous MDN. Message and asociated files cleanup will be attempted but may be in an unknown state.");
+                msg.setLogMsg("Unhandled error condition receiving synchronous MDN E2. Message and asociated files cleanup will be attempted but may be in an unknown state.");
                 logger.error(msg, e2);
             }
             /*
@@ -431,7 +388,7 @@ public class AS2SenderModule extends HttpSenderModule {
             else
             {
                 // Must have received MDN successfully
-                msg.setLogMsg("Exception receiving synchronous MDN. Message and asociated files cleanup will be attempted but may be in an unknown state.");
+                msg.setLogMsg("Exception receiving synchronous MDN E2. Message and asociated files cleanup will be attempted but may be in an unknown state.");
                 logger.error(msg, e2);
 
             }
@@ -482,6 +439,8 @@ public class AS2SenderModule extends HttpSenderModule {
             }
         }
     }
+
+
 
     protected void checkRequired(Message msg) throws InvalidParameterException
     {
@@ -538,6 +497,12 @@ public class AS2SenderModule extends HttpSenderModule {
                 retryAttempts = maxRetryAttempts;
             } catch (Exception ex){
                 Thread.sleep(retryIntervalInSeconds * 1000);
+                if(retryAttempts==maxRetryAttempts)
+                {
+                    msg.setLogMsg("Error. Unable to connect to "+conn.getURL()+ex.getMessage());
+                    logger.error(msg,ex);
+                    return;
+                }
             }
         }
         retryAttempts = 0;
@@ -572,11 +537,15 @@ public class AS2SenderModule extends HttpSenderModule {
         {
             try
             {
-                messageIn.close();
-                messageIn = null;
-
-                messageOut.flush();
-                messageOut.close();
+                if(messageIn!=null) {
+                    messageIn.close();
+                    messageIn = null;
+                }
+                if(messageOut!=null) {
+                    messageOut.flush();
+                    messageOut.close();
+                    messageOut=null;
+                }
 
             }catch(IOException ioe2)//TODO added catch to manage errors from close statement
             {
@@ -611,9 +580,12 @@ public class AS2SenderModule extends HttpSenderModule {
         logger.info("AS2 Sending is complete **** For File"+msg.getPayloadFilename()+" MessageID=" + msg.getLogMsgID());
     }
 
+
+
+
     private void resend(Message msg, OpenAS2Exception cause, String tries) throws OpenAS2Exception
     {
-        AS2Util.resend(getSession(), this, SenderModule.DO_SEND, msg, cause, tries, false);
+        AS2Util.resend(getSession(), this, SenderModule.DO_SEND, msg, cause, tries, true);
     }
 
     /**

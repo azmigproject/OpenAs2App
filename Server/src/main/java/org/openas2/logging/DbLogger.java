@@ -236,6 +236,7 @@ public class DbLogger extends BaseLogger {
                                         try {
                                             TableOperation insertLog = TableOperation.insert(objLog);
                                             cloudTable.execute(insertLog);
+
                                             maxattempt=0;
                                         }
                                         catch (StorageException exp) {

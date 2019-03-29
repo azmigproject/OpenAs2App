@@ -167,8 +167,9 @@ public class XMLPartnershipFactory extends BasePartnershipFactory{
                 PartnerToServer.put("sender",Partner.getPartnerName());
                 PartnerToServer.put("name",Partner.getPartnerName()+"-to-"+Profile.PROFILENAME);
                 PartnerToServer.put("subject","AS2 Message From "+ Partner.getPartnerName() +" to serverProfile");
+               if(Partner.getIncomingMessageRequireEncryption())
                 PartnerToServer.put("encrypt",Partner.getEncryptionAlgorithm());
-                PartnerToServer.put("sign",Partner.getSignatureAlgorithm());
+                if(Partner.getIncomingMessageRequireSignature()) PartnerToServer.put("sign",Partner.getSignatureAlgorithm());
                 PartnerToServer.put("resend_max_retries",String.valueOf(Partner.getMaxAttempts()));
                 if(Partner.getISMDNSigned())
                 {
@@ -207,8 +208,8 @@ public class XMLPartnershipFactory extends BasePartnershipFactory{
                 {
                     ServerToPartner.put("as2_url",Partner.getPartnerUrl());
                 }
-                ServerToPartner.put("encrypt",Partner.getEncryptionAlgorithm());
-                ServerToPartner.put("sign",Partner.getSignatureAlgorithm());
+                if(Partner.getEncryptOutgoingMessage())ServerToPartner.put("encrypt",Partner.getEncryptionAlgorithm());
+                if(Partner.getSignOutgoingMessage())ServerToPartner.put("sign",Partner.getSignatureAlgorithm());
                 ServerToPartner.put("resend_max_retries",String.valueOf(Partner.getMaxAttempts()));
 
 
