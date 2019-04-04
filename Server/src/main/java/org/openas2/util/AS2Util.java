@@ -670,16 +670,16 @@ public class AS2Util {
 					{
 						if(de.getDisposition().getStatusModifier().equalsIgnoreCase("error"))
 						{
-							msg.setLogMsg("Message sent and MDN received with (Error).");
+							msg.setLogMsg("Message sent and MDN received with Error.");
 							
 						}
 						else
 						{
-							msg.setLogMsg("Message sent and MDN received with (Warning).");
+							msg.setLogMsg("Message sent and MDN received with Warning.");
 						}
 					}else
 					{
-						msg.setLogMsg("Message sent and MDN Disposition status indicates a problem (Error).");
+						msg.setLogMsg("Message sent and MDN Disposition status indicates a problem.");
 					}
 				}else
 				{
@@ -737,7 +737,7 @@ public class AS2Util {
 		session.getProcessor().handle(StorageModule.DO_STOREMDN, msg, obMap);
 		msg.setStatus(Message.MSG_STATUS_MSG_CLEANUP);
 		// To support extended reporting via logging log info passing Message object
-		msg.setLogMsg("Message sent and MDN received (Successfully).");
+		msg.setLogMsg("Message sent and MDN received successfully.");
 
  		logger.info(msg);
         System.out.println("Processed MDN for "+msg.getPayloadFilename());

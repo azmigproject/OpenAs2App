@@ -45,23 +45,14 @@ public class LogManager {
 
     public void log(@Nonnull Throwable e, boolean terminated)
     {
-
-
-
         if (loggers.isEmpty())
         {
             DEFAULT_LOGGER.log(e, Level.ERROR, terminated);
-
         } else
         {
-            //int count=0;
             for (Logger logger : loggers)
             {
-                //count++;
-                //Message tempmsg=null;
-                    //logger.log(Level.FINE,"Logging in"+logger.getName()+ "and Count is"+count,tempmsg);
-                    logger.log(e, Level.ERROR, terminated); // might want to pass LEVEL in from caller
-
+                logger.log(e, Level.ERROR, terminated); // might want to pass LEVEL in from caller
             }
         }
     }
@@ -75,28 +66,27 @@ public class LogManager {
     public void log(Level level, String clazzName, @Nonnull Object msg)
     {
        Message tempmsg=null;
-
         if (loggers.isEmpty())
         {
 
             DEFAULT_LOGGER.log(level, clazzName + ": " + msg.toString(), tempmsg);
         } else
         {
-            //int count=0;
             for (Logger logger : loggers)
             {
-                //count++;
-                //logger.log(Level.FINE,"Logging in"+logger.getName()+ "and Count is"+count,tempmsg);
-                 if (msg instanceof Message) {
+                if (msg instanceof Message)
+                {
 
-                     logger.log(level, clazzName + ": " + ((Message) msg).getLogMsg(), (Message) msg);
-                 } else if (msg instanceof SimpleLogMessage) {
-                     tempmsg = ((SimpleLogMessage) msg).getMessageObject();
-                     logger.log(level, clazzName + ": " + ((SimpleLogMessage) msg).getLogMessage(), tempmsg);
-                 } else {
-                     logger.log(level, clazzName + ": " + msg.toString(), tempmsg);
-                 }
-
+                    logger.log(level, clazzName + ": " + ((Message) msg).getLogMsg(), (Message) msg);
+                }
+                else if (msg instanceof SimpleLogMessage)
+                {
+                    tempmsg=((SimpleLogMessage) msg).getMessageObject();
+                    logger.log(level, clazzName + ": " + ((SimpleLogMessage) msg).getLogMessage(), tempmsg);
+                } else
+                {
+                    logger.log(level, clazzName + ": " + msg.toString(), tempmsg);
+                }
             }
         }
     }

@@ -866,11 +866,14 @@ public abstract class DirectoryPollingModule extends PollingModule {
                     processFile(file);
                 } catch (OpenAS2Exception e) {
                     System.out.println("Error occured in UpdateTrackingTask" + e.getMessage());
-                    logger.error("Error occured in UpdateTrackingTask" + e.getMessage());
+                    //logger.error("Error occured in UpdateTrackingTask" + e.getMessage());
                     e.terminate();
                     try {
                         //IOUtilOld.handleError(file, errorDir);
-                        IOUtilOld.handleError(file, errorDir);
+	                      if (file.exists())
+	                      {
+                    		IOUtilOld.handleError(file, errorDir);
+	                      }
                     } catch (OpenAS2Exception e1) {
                         logger.error("Error handling file error for file: " + file.getAbsolutePath(), e1);
                         System.out.println("Error occured in UpdateTrackingTask" + e1.getMessage());
@@ -901,7 +904,7 @@ public abstract class DirectoryPollingModule extends PollingModule {
             sm.setReceiverId(file.getParentFile().getName());
             logger.info(sm);
             String[] fileandAs2Id=file.getName().replace(".processing", "").trim().split("-_-");
-            Message cmpltMsg = processDocument(fileandAs2Id[1],fileandAs2Id[0], file);
+            Message cmpltMsg = processDocument(fileandAs2Id[1],fileandAs2Id[0], file,errorDir);
 			//processDocument(new FileInputStream(file), fileandAs2Id[1],fileandAs2Id[0]);
             System.out.println("Document processing completed " + file.getAbsolutePath());
             sm.setLogMessage("Document processing completed " + file.getAbsolutePath());

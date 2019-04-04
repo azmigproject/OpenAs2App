@@ -351,7 +351,7 @@ public class HTTPUtil {
 	public static byte[] readData(InputStream inStream, OutputStream outStream, Message msg) throws IOException, MessagingException {
         List<String> request = new ArrayList<String>(2);
     	byte[] data = readHTTP(inStream, outStream, msg.getHeaders(), request);
-        Log logger = LogFactory.getLog(HTTPUtil.class.getSimpleName());
+        //Log logger = LogFactory.getLog(HTTPUtil.class.getSimpleName());
         msg.setAttribute(MA_HTTP_REQ_TYPE, request.get(0));
         msg.setAttribute(MA_HTTP_REQ_URL, request.get(1));
         if (data == null)
@@ -369,7 +369,7 @@ public class HTTPUtil {
         	else
         	{
     			HTTPUtil.sendHTTPResponse(outStream, HttpURLConnection.HTTP_LENGTH_REQUIRED, false);
-
+                Log logger = LogFactory.getLog(HTTPUtil.class.getSimpleName());
             	logger.error("Inbound HTTP request does not provide means to determine data length: "
                      + request.get(0) + " " + request.get(1)
                      + "\n\tHeaders: " + printHeaders(msg.getHeaders().getAllHeaders(), "==", ";;")

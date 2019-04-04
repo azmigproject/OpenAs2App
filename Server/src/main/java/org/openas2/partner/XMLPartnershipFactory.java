@@ -179,7 +179,10 @@ public class XMLPartnershipFactory extends BasePartnershipFactory{
                 {
                     PartnerToServer.put("as2_url",_companyProfile.getAsynchronousMDNURL());
                 }
-
+                if(logger.isDebugEnabled())
+                logger.info ("PartnerCreated"+Partner.getPartnerName()+"-to-"+Profile.PROFILENAME + "IsEncomingEncrypt"
+                        +(Partner.getIncomingMessageRequireEncryption()? PartnerToServer.get("encrypt"):"false")+
+                         "IsEncomingsign"+(Partner.getIncomingMessageRequireSignature()? PartnerToServer.get("sign"):"false") );
                 Map<String ,String> ServerToPartner=new HashMap<String, String>();
                 ServerToPartner.put("sender",Profile.PROFILENAME);
                 ServerToPartner.put("blobContainer",_serverSettings.getBlobContainerName());
@@ -211,7 +214,9 @@ public class XMLPartnershipFactory extends BasePartnershipFactory{
                 if(Partner.getEncryptOutgoingMessage())ServerToPartner.put("encrypt",Partner.getEncryptionAlgorithm());
                 if(Partner.getSignOutgoingMessage())ServerToPartner.put("sign",Partner.getSignatureAlgorithm());
                 ServerToPartner.put("resend_max_retries",String.valueOf(Partner.getMaxAttempts()));
-
+                if(logger.isDebugEnabled())
+                logger.info("ServerToPartnerCreated"+ServerToPartner.get("name") + "IsoutgoingEncrypt"+
+                        (Partner.getEncryptOutgoingMessage()?ServerToPartner.get("encrypt"):"false")+ "Isoutgoingsign"+(Partner.getSignOutgoingMessage()? ServerToPartner.get("sign"):"false") );
 
                 loadPartnership(newPartners, newPartnerships, ServerToPartner);
                 loadPartnership(newPartners, newPartnerships, PartnerToServer);

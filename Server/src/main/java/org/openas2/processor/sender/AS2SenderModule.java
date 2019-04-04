@@ -132,11 +132,12 @@ public class AS2SenderModule extends HttpSenderModule {
             {
                 msg.setLogMsg(org.openas2.logging.Log.getExceptionMsg(e));
             }
-            if(logger.isDebugEnabled())  logger.error(msg, e);
+
+           //logger.error(msg, e);
             // Log significant msg state
             msg.setOption("STATE", Message.MSG_STATE_SEND_EXCEPTION);
             msg.trackMsgState(getSession());
-            throw new OpenAS2Exception("Error setting up message for sending.", e);
+            throw new OpenAS2Exception(e.getMessage()+" while sending to Partner: "+msg.getPartnership().getName(), e);
         }
         if (logger.isTraceEnabled())
         {
@@ -321,7 +322,7 @@ public class AS2SenderModule extends HttpSenderModule {
                              * state so not sure what the best course of action
                              * is apart from do nothing
                              */
-                            if(logger.isDebugEnabled()) logger.debug("MDN Exception" +msg.getLogMsgID()+ " - "+e.getMessage());
+                            if(logger.isDebugEnabled()){ logger.debug("MDN Exception" +msg.getLogMsgID()+ " - "+e.getMessage());}
                             if(e.getMessage().contains("Failed to verify signature of received MDN"))
                             {
 
@@ -336,6 +337,7 @@ public class AS2SenderModule extends HttpSenderModule {
                                 msg.setLogMsg("Error due to Unhandled condition receiving synchronous MDN. Message and asociated files cleanup will be attempted but may be in an unknown state.");
                             }
                             logger.error(msg, e);
+                            logger.error(msg);
                         }
                         /*
                          * Most likely a resend abort of max resend reached if
@@ -347,7 +349,7 @@ public class AS2SenderModule extends HttpSenderModule {
                             // Must have received MDN successfully
                             msg.setLogMsg("Exception receiving synchronous MDN. Message and asociated files cleanup will be attempted but may be in an unknown state.");
                             logger.error(msg, e);
-
+                            //logger.error(msg);
                         }
                         // Log significant msg state
                         msg.setOption("STATE", Message.MSG_STATE_SEND_FAIL);
@@ -439,6 +441,9 @@ public class AS2SenderModule extends HttpSenderModule {
             }
         }
     }
+
+
+
 
 
 
@@ -585,7 +590,7 @@ public class AS2SenderModule extends HttpSenderModule {
 
     private void resend(Message msg, OpenAS2Exception cause, String tries) throws OpenAS2Exception
     {
-        AS2Util.resend(getSession(), this, SenderModule.DO_SEND, msg, cause, tries, true);
+        AS2Util.resend(getSession(), this, SenderModule.DO_SEND, msg, cause, tries, false);
     }
 
     /**
@@ -594,7 +599,7 @@ public class AS2SenderModule extends HttpSenderModule {
      * @return The secured mimebodypart
      * @throws Exception some unforseen issue has occurred
      */
-    protected MimeBodyPart secure(Message msg) throws Exception
+    protected MimeBodyPart  secure(Message msg) throws Exception
     {
         // Set up encrypt/sign variables
         MimeBodyPart dataBP = msg.getData();
@@ -749,7 +754,8 @@ public class AS2SenderModule extends HttpSenderModule {
 
     protected void addCustomOuterMimeHeaders(Message msg, MimeBodyPart dataBP) throws MessagingException
     {
-        if (logger.isTraceEnabled())
+    	   	
+    	if (logger.isTraceEnabled())
         {
             logger.trace("Adding custom headers to outer MBP...." + msg.getLogMsgID());
         }

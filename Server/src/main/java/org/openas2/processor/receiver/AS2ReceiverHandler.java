@@ -21,7 +21,10 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.joda.time.DateTime;
-import org.openas2.*;
+import org.openas2.DispositionException;
+import org.openas2.OpenAS2Exception;
+import org.openas2.Session;
+import org.openas2.WrappedException;
 import org.openas2.cert.CertificateFactory;
 import org.openas2.lib.helper.ICryptoHelper;
 import org.openas2.lib.util.MimeUtil;
@@ -36,7 +39,7 @@ import org.openas2.processor.sender.SenderModule;
 import org.openas2.processor.storage.StorageModule;
 import org.openas2.util.*;
 import org.openas2.util.Properties;
-
+import org.openas2.Constants;
 import java.util.*;
 
 public class AS2ReceiverHandler implements NetModuleHandler {
@@ -104,7 +107,7 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 				if ("true".equalsIgnoreCase(msg.getAttribute("isHealthCheck")))
 				{
 					msg.setLogMsg("");
-				    if (logger.isInfoEnabled())
+				    if (logger.isDebugEnabled())
 
 						logger.info("Healthcheck ping detected" + " [" + getClientInfo(s) + "]"
 								+ msg.getLogMsgID());

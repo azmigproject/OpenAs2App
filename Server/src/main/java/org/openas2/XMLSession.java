@@ -182,12 +182,12 @@ public class XMLSession extends BaseSession {
 
        loadProperties(azureUtil.getProperties());
        loadCertificates(azureUtil.getCertificates());
-
+       loadLoggers(azureUtil);
        loadCommandProcessors(azureUtil.getCommandProcessors());
        LOGGER.info("MainProfile"+azureUtil.getMainProfile().getAS2Idenitfier());
        loadPartnerships(azureUtil.getPartnerList(),azureUtil.getMainProfile(),azureUtil.getAllProfile(),azureUtil.getServersSettings().get(0));
        loadCommands(azureUtil.getCommand());
-       loadLoggers(azureUtil);
+
        loadProcessor(azureUtil.getProcessor());
 
    }
@@ -637,7 +637,7 @@ public class XMLSession extends BaseSession {
         }
     }
 
-    private void loadProcessorModule(Processor proc, Node moduleNode)
+    private void  loadProcessorModule(Processor proc, Node moduleNode)
             throws OpenAS2Exception
     {
         ProcessorModule procmod = (ProcessorModule) XMLUtil.getComponent(

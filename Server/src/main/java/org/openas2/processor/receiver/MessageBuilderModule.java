@@ -34,7 +34,7 @@ import org.openas2.partner.Partnership;
 import org.openas2.processor.resender.ResenderModule;
 import org.openas2.processor.sender.SenderModule;
 import org.openas2.util.AS2Util;
-
+import org.openas2.util.IOUtilOld;
 
 public abstract class MessageBuilderModule extends BaseReceiverModule {
 
@@ -54,7 +54,7 @@ public abstract class MessageBuilderModule extends BaseReceiverModule {
 	}
 
 	//protected Message processDocument(InputStream ip, String filename, File sourceFile) throws OpenAS2Exception, FileNotFoundException
-	protected Message  processDocument(String filename,String AssosiatedAs2Id, File sourceFile) throws OpenAS2Exception, FileNotFoundException
+	protected Message  processDocument(String filename,String AssosiatedAs2Id, File sourceFile,String errorDir) throws OpenAS2Exception, FileNotFoundException,Exception
 	{
 		Message msg = buildMessageMetadata(filename);
 		
@@ -69,7 +69,8 @@ public abstract class MessageBuilderModule extends BaseReceiverModule {
 			throw new OpenAS2Exception("Could not rename file to Start with UUID: " + destFile, ex1);
 		}
         
-        
+        try
+		{
         
 		String pendingFile = msg.getAttribute(FileAttribute.MA_PENDINGFILE);
 		// Persist the file that has been passed in
@@ -228,20 +229,32 @@ public abstract class MessageBuilderModule extends BaseReceiverModule {
 			getSession().getProcessor().handle(SenderModule.DO_SEND, msg, options);
 		} catch (Exception e)
 		{
-			if(e.getMessage().contains("Certificate not found for Alias")) {
+			//if(e.getMessage().contains("Certificate not found for Alias")) {
 				msg.setLogMsg("Fatal error while sending message: Certificate not found for given Alias");
 				logger.error(msg, e);
-			}
-			else {
-				if (logger.isDebugEnabled()) {
-					msg.setLogMsg("Fatal error while sending message: " + org.openas2.logging.Log.getExceptionMsg(e));
-					logger.error(msg, e);
-				}
-			}
-
+			//}
+//			else {
+//				if (logger.isDebugEnabled()) {
+//					msg.setLogMsg("Fatal error while sending message: " + org.openas2.logging.Log.getExceptionMsg(e));
+//					logger.error(msg, e);
+//				}
+//			}
 			AS2Util.cleanupFiles(msg, true);
 		}
 		return msg;
+		}catch(Exception e1)
+		{
+			 try {
+                 //IOUtilOld.handleError(file, errorDir);
+
+				 IOUtilOld.handleError(destFile, errorDir);
+
+             } catch (OpenAS2Exception e2) {
+                 logger.error("Error handling file error for file: " + destFile.getAbsolutePath(), e2);
+              }
+			 
+			throw e1;
+		}
 		
 	}
 
