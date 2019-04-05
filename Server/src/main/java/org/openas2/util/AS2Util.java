@@ -12,6 +12,7 @@ import java.security.cert.X509Certificate;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.ToIntFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -683,7 +684,7 @@ public class AS2Util {
 					}
 				}else
 				{
-				  msg.setLogMsg("Message sent and MDN Disposition status is NULL (Error). Cannot continue.");
+				  msg.setLogMsg("Error. Message sent and MDN Disposition status is NULL. Cannot continue.");
 				}
 				
 				msg.setOption("STATE", Message.MSG_STATE_MSG_SENT_MDN_RECEIVED_ERROR);
@@ -912,10 +913,28 @@ public class AS2Util {
 					{
 						tgtFile = new File(tgtDir + "/" + fPendingFile.getName());
 					}
-					tgtFile = IOUtilOld.moveFile(fPendingFile, tgtFile, false, true);
-					isMoved = true;
+                        if (tgtFile.exists())
+                        {
 
-					if (logger.isDebugEnabled())
+                        	    //Check to see if a list of files with this name has an extension.
+                        	    File testFile = tgtFile;
+                        	    
+                        	    for(int i=1; testFile.exists(); i++)
+                        	    {
+                        	       testFile= new File(tgtFile.getAbsoluteFile()+"_"+i);
+                        	    }
+
+                        	
+                        	File origFile = tgtFile;
+                        	tgtFile.renameTo(testFile);
+                        	tgtFile = origFile;   
+                        }
+                        
+                        tgtFile = IOUtilOld.moveFile(fPendingFile, tgtFile, false, true);
+									
+						isMoved = true;
+
+					if (logger.isInfoEnabled())
 						logger.info("moved " + fPendingFile.getAbsolutePath() + " to " + tgtFile.getAbsolutePath()
 								+ msg.getLogMsgID());
 
@@ -928,7 +947,7 @@ public class AS2Util {
 			if (!isMoved)
 			{
 				IOUtilOld.deleteFile(fPendingFile);
-	            if (logger.isDebugEnabled()) {
+	            if (logger.isInfoEnabled()) {
 	                msg.setLogMsg("deleted   " + fPendingFile.getAbsolutePath() + "For File=" + msg.getPayloadFilename() + "MessageId=" + msg.getLogMsgID());
                     logger.info(msg);
                 }
