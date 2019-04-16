@@ -1,5 +1,7 @@
 package org.openas2.logging;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.joda.time.DateTime;
 import org.openas2.Constants;
@@ -7,12 +9,13 @@ import org.openas2.OpenAS2Exception;
 import org.openas2.Session;
 import org.openas2.message.Message;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.io.*;
 import java.lang.instrument.ClassDefinition;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
@@ -25,6 +28,9 @@ import com.microsoft.azure.storage.table.*;
 import com.microsoft.azure.storage.table.TableQuery.*;
 import org.openas2.partner.AS2Partnership;
 import org.openas2.util.AzureUtil;
+import org.openas2.util.IOUtilOld;
+import org.openas2.util.Profiler;
+import org.openas2.util.ProfilerStub;
 
 public class DbLogger extends BaseLogger {
 
@@ -211,8 +217,115 @@ public class DbLogger extends BaseLogger {
     }
 
 
+    private void AddLogInTable(DBLogInfo  objLog)
+    {
+        OutputStream messageOut = null;
+        InputStream messageIn = null;
+        try {
+           //System.out.println("Sending log data to API");
+            //System.out.println("API URL is "+Constants.APIURL);
+            ObjectMapper mapperObj = new ObjectMapper();
+            String jsonStr = mapperObj.writeValueAsString(objLog);
+            URL url = new URL(Constants.APIURL);//your url i.e fetch data from .
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("POST");
+            conn.setDoOutput( true );
+            conn.setInstanceFollowRedirects( false );
+            conn.setRequestMethod( "POST" );
+            conn.setRequestProperty( "charset", "utf-8");
+            conn.setRequestProperty( "Content-Length", Integer.toString(jsonStr.getBytes().length));
+            conn.setUseCaches( false );
+            conn.setRequestProperty("Content-Type", "application/json");
+            //System.out.println("JSON String of DBLogInfo object");
+            //System.out.println(jsonStr);
+            int maxRetryAttempts = 5;
+            int retryIntervalInSeconds = 2;
+            int retryAttempts = 0;
 
-    private void  AddLogInTable(DBLogInfo  objLog) {
+            // Note: closing this stream causes connection abort errors on some AS2
+            // servers
+            while(retryAttempts <  maxRetryAttempts) {
+                ++retryAttempts;
+                try {
+                    messageOut = conn.getOutputStream();
+                    retryAttempts = maxRetryAttempts;
+                } catch (Exception ex){
+                    Thread.sleep(retryIntervalInSeconds * 1000);
+                    if(retryAttempts==maxRetryAttempts)
+                    {
+                        System.out.println("unable to get the outputstream");
+                        return;
+                    }
+                }
+            }
+            retryAttempts = 0;
+
+            // Transfer the data
+            while (retryAttempts < maxRetryAttempts) {
+                ++retryAttempts;
+                try {
+                    messageIn = new ByteArrayInputStream(jsonStr.getBytes());;
+                    retryAttempts = maxRetryAttempts;
+                } catch (Exception ex){
+                    Thread.sleep(retryIntervalInSeconds * 1000);
+                }
+            }
+            try
+            {
+                ProfilerStub transferStub = Profiler.startProfile();
+
+                int bytes = IOUtils.copy(messageIn, messageOut);
+                //int bytes = messageIn.available();
+
+
+                Profiler.endProfile(transferStub);
+                //System.out.println("transferred " + IOUtilOld.getTransferRate(bytes, transferStub) + " to log api");
+
+            }catch(Exception e3) //TODO added catch to manage errors from above
+            {
+                System.out.println("Error while sending data to log table ");
+                e3.printStackTrace();
+            } finally
+            {
+                try
+                {
+                    if(messageIn!=null) {
+                        messageIn.close();
+                        messageIn = null;
+                    }
+                    if(messageOut!=null) {
+                        messageOut.flush();
+                        messageOut.close();
+                        messageOut=null;
+                    }
+
+                }catch(IOException ioe2)//TODO added catch to manage errors from close statement
+                {
+                    System.out.println("Error while closing  streams after sending data ");
+                    ioe2.printStackTrace();
+                }
+            }
+            if (conn.getResponseCode() != 200) {
+
+                throw new RuntimeException("Failed : HTTP Error code : "
+                        + conn.getResponseMessage()+conn.getResponseCode());
+            }
+            else
+            {
+                System.out.println("Successfull"+conn.getResponseCode());
+            }
+
+            conn.disconnect();
+        }
+        catch (Exception exp )
+        {
+            System.out.println("Error in wrting file to azure table ");
+            exp.printStackTrace();
+        }
+
+    }
+
+    private void  AddLogInTable2(DBLogInfo  objLog) {
         try {
             // Create an operation to add the new customer to the people table.
             // Create a cloud table object for the table.
