@@ -274,13 +274,15 @@ public abstract class DirectoryPollingModule extends PollingModule {
         	 ActiveQueueThreadCounter = producerThreadGroup.activeCount();
         	
             final int noOfFilesAllowedToDownload = 1;//32;
-            boolean isMsgInQueue = false;
+            int MsgInQueue = 0;
             QueueHelper queueHelper=new QueueHelper();
             //System.out.println( "Polling started at" +outboxDir);
-            isMsgInQueue = queueHelper.GetMsgFromQueue(outboxDir, 1, FileBlockingQueue);
+
+            MsgInQueue = queueHelper.GetMsgFromQueue(outboxDir, 1, FileBlockingQueue);
 
 
-            if (isMsgInQueue)
+
+            if (MsgInQueue==1)
 
             {
 
@@ -290,26 +292,28 @@ public abstract class DirectoryPollingModule extends PollingModule {
                 Runnable producer = new Runnable() {
                     @Override
                     public void run() {
+                        int MsgInQueue = 0;
                         try {
-                            boolean isMsgInQueue = true;
+
                             QueueHelper prodQueueHelper = new QueueHelper();
-                            while (isMsgInQueue) {
+                            while (MsgInQueue==1) {
 
-                                isMsgInQueue = prodQueueHelper.GetMsgFromQueue(outboxDir, noOfFilesAllowedToDownload, FileBlockingQueue);
-                                synchronized (this) {
-                                    try {
-                                        // Thread.currentThread().wait(100);
-                                        Thread.sleep(500);
-                                    } catch (InterruptedException e) {
-                                        // e.printStackTrace();
+                                    MsgInQueue = prodQueueHelper.GetMsgFromQueue(outboxDir, noOfFilesAllowedToDownload, FileBlockingQueue);
+                                    synchronized (this) {
+                                        try {
+                                            // Thread.currentThread().wait(100);
+                                            Thread.sleep(500);
+                                        } catch (InterruptedException e) {
+                                            // e.printStackTrace();
 
+                                        }
                                     }
-                                }
 
                             }
 
 
                         } catch (Exception ex) {
+
 
                             StringWriter sw = new StringWriter();
                             ex.printStackTrace(new PrintWriter(sw));
@@ -344,15 +348,22 @@ public abstract class DirectoryPollingModule extends PollingModule {
                     logger.debug("Producer PollPool Executer Terminated at" + (new Date()).toString());
             } else {
                 //System.out.println( "Threading condition invalidate in this poll");
+
+                if(MsgInQueue==-1) {
+                    this.doStop();
+                    super.forceStop(new Exception("Partner not found. Stopping the Directory polling module for"+ outboxDir));
+                }
             }
 
 
         } catch (Exception e) {
-            StringWriter sw = new StringWriter();
-            e.printStackTrace(new PrintWriter(sw));
-            System.out.println("Producer polled at" + (new Date()).toString() + "Exception" + e.getMessage() + "" + sw.toString());
-            System.out.println(e.getStackTrace().toString());
-            logger.error("Unexpected error occurred polling Producer Polling for files to send: " + outboxDir, e);
+
+                StringWriter sw = new StringWriter();
+                e.printStackTrace(new PrintWriter(sw));
+                System.out.println("Producer polled at" + (new Date()).toString() + "Exception" + e.getMessage() + "" + sw.toString());
+                System.out.println(e.getStackTrace().toString());
+                logger.error("Unexpected error occurred polling Producer Polling for files to send: " + outboxDir, e);
+
         }
     }
 

@@ -12,7 +12,7 @@ import java.security.cert.X509Certificate;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.ToIntFunction;
+//import java.util.function.ToIntFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -50,11 +50,15 @@ import org.openas2.params.RandomParameters;
 import org.openas2.partner.AS2Partnership;
 import org.openas2.partner.ASXPartnership;
 import org.openas2.partner.Partnership;
+import org.openas2.partner.SecurePartnership;
 import org.openas2.processor.Processor;
 import org.openas2.processor.msgtracking.BaseMsgTrackingModule;
+import org.openas2.processor.receiver.AS2ReceiverModule;
 import org.openas2.processor.resender.ResenderModule;
 import org.openas2.processor.sender.SenderModule;
 import org.openas2.processor.storage.StorageModule;
+
+import edu.umd.cs.findbugs.log.Logger;
 
 public class AS2Util {
     private static ICryptoHelper ch;
@@ -100,13 +104,19 @@ public class AS2Util {
         
         // get the MDN partnership info
         // not sure that it should be this way since the config should relfect the inbound original message settings but ...
-        mdn.getPartnership().setSenderID(AS2Partnership.PID_AS2, mdn.getHeader("AS2-From"));
-        mdn.getPartnership().setReceiverID(AS2Partnership.PID_AS2, mdn.getHeader("AS2-To"));
-        session.getPartnershipFactory().updatePartnership(mdn, true);
-
-        mdn.setHeader("From", msg.getPartnership().getReceiverID(Partnership.PID_EMAIL));
-        String subject = mdn.getPartnership().getAttribute(ASXPartnership.PA_MDN_SUBJECT);
-
+       
+        String subject = null;
+       System.out.print ("Message Status = "+msg.getOption("STATE"));
+        if(msg.getOption("STATE") != "Partnership Not Found!")
+        {
+	        mdn.getPartnership().setSenderID(AS2Partnership.PID_AS2, mdn.getHeader("AS2-From"));
+	        mdn.getPartnership().setReceiverID(AS2Partnership.PID_AS2, mdn.getHeader("AS2-To"));
+	        session.getPartnershipFactory().updatePartnership(mdn, true);
+	        
+	        mdn.setHeader("From", msg.getPartnership().getReceiverID(Partnership.PID_EMAIL));
+	        subject = mdn.getPartnership().getAttribute(ASXPartnership.PA_MDN_SUBJECT);
+        }
+        
         if (subject != null) {
             mdn.setHeader("Subject", ParameterParser.parse(subject, new MessageParameters(msg)));
         } else {
@@ -187,18 +197,24 @@ public class AS2Util {
 
             try {
             	// The receiver of the original message is the sender of the MDN....
-            	X509Certificate senderCert = certFx.getCertificate(mdn,
-                        Partnership.PTYPE_RECEIVER);                
-                PrivateKey senderKey = certFx.getPrivateKey(mdn, senderCert);
-        		Partnership p = mdn.getPartnership();
-                String contentTxfrEncoding =  p.getAttribute(Partnership.PA_CONTENT_TRANSFER_ENCODING);
-                boolean isRemoveCmsAlgorithmProtectionAttr = "true".equalsIgnoreCase(p.getAttribute(Partnership.PA_REMOVE_PROTECTION_ATTRIB));
-        		if (contentTxfrEncoding == null)
-        			contentTxfrEncoding = Session.DEFAULT_CONTENT_TRANSFER_ENCODING;
-                // sign the data using CryptoHelper
-                MimeBodyPart signedReport = getCryptoHelper().sign(report, senderCert,
-                        senderKey, micAlg, contentTxfrEncoding, false, isRemoveCmsAlgorithmProtectionAttr);
-                mdn.setData(signedReport);
+            	if((mdn.getPartnership().getReceiverID(SecurePartnership.PID_X509_ALIAS) != null) && (mdn.getPartnership().getReceiverID(SecurePartnership.PID_X509_ALIAS) != null))
+            	{	
+	            	X509Certificate senderCert = certFx.getCertificate(mdn,
+	                        Partnership.PTYPE_RECEIVER);                
+	                PrivateKey senderKey = certFx.getPrivateKey(mdn, senderCert);
+	        		Partnership p = mdn.getPartnership();
+	                String contentTxfrEncoding =  p.getAttribute(Partnership.PA_CONTENT_TRANSFER_ENCODING);
+	                boolean isRemoveCmsAlgorithmProtectionAttr = "true".equalsIgnoreCase(p.getAttribute(Partnership.PA_REMOVE_PROTECTION_ATTRIB));
+	        		if (contentTxfrEncoding == null)
+	        			contentTxfrEncoding = Session.DEFAULT_CONTENT_TRANSFER_ENCODING;
+	                // sign the data using CryptoHelper
+	                MimeBodyPart signedReport = getCryptoHelper().sign(report, senderCert,
+	                        senderKey, micAlg, contentTxfrEncoding, false, isRemoveCmsAlgorithmProtectionAttr);
+	                mdn.setData(signedReport);
+            	}else
+            	{
+            		 mdn.setData(report);
+            	}
             } catch (CertificateNotFoundException cnfe) {
                 cnfe.terminate();
                 mdn.setData(report);
@@ -684,7 +700,7 @@ public class AS2Util {
 					}
 				}else
 				{
-				  msg.setLogMsg("Error. Message sent and MDN Disposition status is NULL. Cannot continue.");
+				  msg.setLogMsg("Message sent and MDN Disposition status is NULL. Cannot continue.");
 				}
 				
 				msg.setOption("STATE", Message.MSG_STATE_MSG_SENT_MDN_RECEIVED_ERROR);
@@ -930,10 +946,12 @@ public class AS2Util {
                         	tgtFile = origFile;   
                         }
                         
-                        tgtFile = IOUtilOld.moveFile(fPendingFile, tgtFile, false, true);
-									
-						isMoved = true;
-
+                        if(fPendingFile.exists())
+                        {
+                          tgtFile = IOUtilOld.moveFile(fPendingFile, tgtFile, false, true);							
+						  isMoved = true;
+                        }
+                        
 					if (logger.isInfoEnabled())
 						logger.info("moved " + fPendingFile.getAbsolutePath() + " to " + tgtFile.getAbsolutePath()
 								+ msg.getLogMsgID());
@@ -946,7 +964,9 @@ public class AS2Util {
 
 			if (!isMoved)
 			{
-				IOUtilOld.deleteFile(fPendingFile);
+				if(fPendingFile.exists())
+					IOUtilOld.deleteFile(fPendingFile);
+				
 	            if (logger.isInfoEnabled()) {
 	                msg.setLogMsg("deleted   " + fPendingFile.getAbsolutePath() + "For File=" + msg.getPayloadFilename() + "MessageId=" + msg.getLogMsgID());
                     logger.info(msg);

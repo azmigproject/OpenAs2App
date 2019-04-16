@@ -173,6 +173,15 @@ public class AzureUtil {
                 tempModule[i].setFormat(objTemp.getString("format"));
                 tempModule[i].setDefaults(objTemp.getString("defaults"));
                 tempModule[i].setQueueName(objTemp.getString("queuename"));
+                if(tempModule[i].getProtocol().trim().equalsIgnoreCase("https") ) {
+
+                    tempModule[i].setSSLProtocol(objTemp.getString("ssl_protocol"));
+                    tempModule[i].setSSLKeyStore(objTemp.getString("ssl_keystore"));
+                    tempModule[i].setSSLKeyStorePassword(objTemp.getString("ssl_keystore_password"));
+
+                }
+
+
             }
             processor.setModules(tempModule);
 

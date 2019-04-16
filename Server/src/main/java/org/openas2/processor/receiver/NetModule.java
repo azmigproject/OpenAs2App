@@ -24,6 +24,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
 
+import com.microsoft.azure.storage.core.Logger;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -157,9 +158,9 @@ public abstract class NetModule extends BaseReceiverModule {
             fOut.close();
 
             // make sure an error of this event is logged
-            InvalidMessageException im = new InvalidMessageException("Stored invalid message to " +
-                    msgFile.getAbsolutePath());
-            im.terminate();
+            //InvalidMessageException im = new InvalidMessageException("Stored invalid message to " +
+            //        msgFile.getAbsolutePath());
+           // im.terminate();
         } catch (OpenAS2Exception oae2)
         {
             oae2.addSource(OpenAS2Exception.SOURCE_MESSAGE, msg);
@@ -319,14 +320,26 @@ public abstract class NetModule extends BaseReceiverModule {
                 }
             } else
             {
-                socket = new ServerSocket();
-                if (address != null)
-                {
-                    socket.bind(new InetSocketAddress(address, port));
-                } else
-                {
-                    socket.bind(new InetSocketAddress(port));
+                //Added by Rupesh logger info and trycatch
+                logger.info("In http protocol setting implementation");
+                try {
+                    socket = new ServerSocket();
+                    if (address != null) {
+                        socket.bind(new InetSocketAddress(address, port));
+                    } else {
+                        socket.bind(new InetSocketAddress(port));
+                    }
                 }
+                //Added by Rupesh
+                catch (Exception exp)
+                {
+
+                    logger.error("Unable to set socket for http connection");
+
+                    throw new IOException("Unable to set socket for http connection");
+
+                }
+                //Added by Rupesh
             }
         }
 

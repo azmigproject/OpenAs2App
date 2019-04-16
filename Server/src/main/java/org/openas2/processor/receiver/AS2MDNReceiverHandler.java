@@ -67,6 +67,15 @@ public class AS2MDNReceiverHandler implements NetModuleHandler {
 								+ msg.getLogMsgID());
 					return;
 				}
+				else if("true".equalsIgnoreCase(msg.getAttribute("isRobotTxt")))
+				{
+
+					if (logger.isDebugEnabled())
+
+						logger.info("Robots.Txt ping detected" + " [" + getClientInfo(s) + "]"
+								+ msg.getLogMsgID());
+					return;
+				}
 				else
 				{
 					try

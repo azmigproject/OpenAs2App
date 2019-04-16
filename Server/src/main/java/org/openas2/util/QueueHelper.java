@@ -10,6 +10,7 @@ import org.openas2.Constants;
 import org.openas2.lib.dbUtils.ServersSettings;
 import org.openas2.lib.dbUtils.partner;
 import org.openas2.partner.Partnership;
+import org.openas2.processor.ActiveModule;
 
 
 import java.io.File;
@@ -73,7 +74,10 @@ public class QueueHelper {
 
 
 
-    public boolean GetMsgFromQueue(String outDir, int NoOffiledownload,  HighPerformanceBlockingQueue fileQueue) {
+    public int GetMsgFromQueue(String outDir, int NoOffiledownload, HighPerformanceBlockingQueue fileQueue)
+
+
+    {
 
         String queueMessage = "";
         String as2NewIdentifier = "";
@@ -81,7 +85,7 @@ public class QueueHelper {
         CloudStorageAccount storageAccount = null;
         CloudQueueClient queueClient = null;
         CloudQueue queue = null;
-        boolean result=false;
+        int result=0;
         try {
             azureUtil = new AzureUtil();
             as2NewIdentifier = this.GetAS2Identifier(outDir);
@@ -91,6 +95,8 @@ public class QueueHelper {
             if (Partners == null) {
                 Exception e = new Exception("Partner Found Null for" + as2NewIdentifier + "query:" + "SELECT * FROM PARTNER WHERE LOWER(PARTNER.AS2Identifier)=\"" + as2NewIdentifier.toLowerCase());
                 logger.error(e);
+                result=-1;
+                return result ;
             }
             if (Partners != null && Partners.getIsActive()) {
 
@@ -125,7 +131,7 @@ public class QueueHelper {
                     	 {
                     		
 	                        msgCounter++;
-	                        result = true;
+	                        result = 1;
 	                        // Do processing for all messages in less than 5 minutes,
 	                        // deleting each message after processing.
 	                        try {

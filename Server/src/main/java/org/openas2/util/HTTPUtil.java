@@ -351,12 +351,13 @@ public class HTTPUtil {
 	public static byte[] readData(InputStream inStream, OutputStream outStream, Message msg) throws IOException, MessagingException {
         List<String> request = new ArrayList<String>(2);
     	byte[] data = readHTTP(inStream, outStream, msg.getHeaders(), request);
-        //Log logger = LogFactory.getLog(HTTPUtil.class.getSimpleName());
+        
         msg.setAttribute(MA_HTTP_REQ_TYPE, request.get(0));
         msg.setAttribute(MA_HTTP_REQ_URL, request.get(1));
         if (data == null)
         {
         	String healthCheckUri = Properties.getProperty("health_check_uri", "healthcheck");
+            String robotsTxtUri ="robots";
         	if ("GET".equalsIgnoreCase(request.get(0)) && request.get(1).matches("^[/]{0,1}"+healthCheckUri+"*"))
         	{
         		if (outStream != null)
@@ -366,6 +367,27 @@ public class HTTPUtil {
         		}
         		return null;
         	}
+
+        	//To to add  code to handle the robot.txt requests
+            else if ("GET".equalsIgnoreCase(request.get(0)) && request.get(1).contains(robotsTxtUri))
+            {
+                if (outStream != null)
+                {
+                    HTTPUtil.sendHTTPRobotTxtResponse(outStream, HttpURLConnection.HTTP_OK, false);
+                    msg.setAttribute("isRobotTxt", "true"); // provide means for caller to know what happened
+                }
+                return null;
+            }
+            else if ("GET".equalsIgnoreCase(request.get(0)) && request.get(1).contains("favicon"))
+            {
+                if (outStream != null)
+                {
+                    HTTPUtil.sendHTTPResponse(outStream, HttpURLConnection.HTTP_OK, false);
+                    msg.setAttribute("isFavIcon", "true"); // provide means for caller to know what happened
+                }
+                return null;
+            }
+
         	else
         	{
     			HTTPUtil.sendHTTPResponse(outStream, HttpURLConnection.HTTP_LENGTH_REQUIRED, false);
@@ -415,6 +437,7 @@ public class HTTPUtil {
     }
 
     public static String[] readRequest(InputStream in) throws IOException {
+        Log logger = LogFactory.getLog(HTTPUtil.class.getSimpleName());
         int byteBuf = in.read();
         StringBuffer strBuf = new StringBuffer();
 
@@ -426,7 +449,7 @@ public class HTTPUtil {
         if (byteBuf != -1) {
             in.read(); // read in the \n
         }
-
+        logger.info("Request saved"+strBuf.toString());
         StringTokenizer tokens = new StringTokenizer(strBuf.toString(), " ");
         int tokenCount = tokens.countTokens();
 
@@ -462,6 +485,27 @@ public class HTTPUtil {
             out.write("\r\n".getBytes());
             out.write(httpResponse.toString().getBytes());
         }
+    }
+    private static void sendHTTPRobotTxtResponse(OutputStream out, int responseCode, boolean hasData)
+            throws IOException {
+        StringBuffer httpResponse = new StringBuffer();
+        // httpResponse.append(Integer.toString(responseCode)).append(" ");
+        //httpResponse.append(HTTPUtil.getHTTPResponseMessage(responseCode));
+        //httpResponse.append("\r\n");
+        httpResponse.append("User-agent: *");
+        httpResponse.append("\n");
+        httpResponse.append("Disallow: /");
+        httpResponse.append("\r\n");
+        StringBuffer response = new StringBuffer("HTTP/1.1 ");
+        response.append(httpResponse);
+        out.write(response.toString().getBytes());
+        out.write("\r\n".getBytes());
+        out.write(httpResponse.toString().getBytes());
+        httpResponse = new StringBuffer();
+         httpResponse.append(Integer.toString(responseCode)).append(" ");
+        httpResponse.append(HTTPUtil.getHTTPResponseMessage(responseCode));
+        out.write(httpResponse.toString().getBytes());
+
     }
 
     public static String printHeaders(Enumeration<Header> hdrs, String nameValueSeparator, String valuePairSeparator)

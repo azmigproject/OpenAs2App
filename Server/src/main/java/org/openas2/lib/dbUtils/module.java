@@ -10,6 +10,24 @@ public class   module {
     public void setProtocol(String protocol) {
         this._protocol = protocol;
     }
+    public String getSSLProtocol() {
+        return ssl_protocol;
+    }
+    public void setSSLProtocol(String protocol) {
+        this.ssl_protocol = protocol;
+    }
+    public String getSSLKeyStore() {
+        return ssl_keystore;
+    }
+    public void setSSLKeyStore(String keystore) {
+        this.ssl_keystore = keystore;
+    }
+    public String getSSLKeyStorePassword() {
+        return ssl_keystore_password;
+    }
+    public void setSSLKeyStorePassword(String keypassword) {
+        this.ssl_keystore_password = keypassword;
+    }
    /* public String getUpdatedBy() {
         return _updatedBy;
     }
@@ -186,6 +204,9 @@ public class   module {
     private String _queuename;
     private int _readtimeout;
     private int _connectiontimeout;
+    private String ssl_protocol;
+    private String ssl_keystore;
+    private String ssl_keystore_password;
     /*private String _updatedBy;
     private String _createdBy;
     private DateTime _createdOn;

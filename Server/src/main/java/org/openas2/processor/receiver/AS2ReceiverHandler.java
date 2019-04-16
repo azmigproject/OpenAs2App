@@ -64,7 +64,7 @@ public class AS2ReceiverHandler implements NetModuleHandler {
     }
 
     public void handle(NetModule owner, Socket s) {
-
+    	boolean partnershipFound = true;
         if (logger.isDebugEnabled()) logger.debug("incoming connection"+getClientInfo(s));
 
 
@@ -93,11 +93,14 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 				data = HTTPUtil.readData(s.getInputStream(), s.getOutputStream(), msg);
 
 			} catch (Exception e) {
-				msg.setLogMsg("HTTP connection error on inbound message.");
-				System.out.println("HTTP connection error on inbound message."+e.getMessage());
-				logger.error(msg, e);
-				NetException ne = new NetException(s.getInetAddress(), s.getPort(), e);
-				ne.terminate();
+				if( !(e instanceof IOException))
+				{
+					msg.setLogMsg("HTTP connection error on inbound message.");
+					System.out.println("HTTP connection error on inbound message."+e.getMessage());
+					logger.error(msg, e);
+					NetException ne = new NetException(s.getInetAddress(), s.getPort(), e);
+					ne.terminate();
+				}
 			}
 			Profiler.endProfile(transferStub);
             msg.setPayloadFilename(msg.getHeader("AS2-From"));
@@ -107,10 +110,31 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 				if ("true".equalsIgnoreCase(msg.getAttribute("isHealthCheck")))
 				{
 					msg.setLogMsg("");
-				    if (logger.isDebugEnabled())
-
+				    if (logger.isInfoEnabled())
+				    {
 						logger.info("Healthcheck ping detected" + " [" + getClientInfo(s) + "]"
 								+ msg.getLogMsgID());
+				    }
+					return;
+				}
+				else if("true".equalsIgnoreCase(msg.getAttribute("isRobotTxt")))
+				{
+					msg.setLogMsg("");
+					if (logger.isDebugEnabled())
+					{
+						logger.info("Robots.Txt ping detected" + " [" + getClientInfo(s) + "]"
+								+ msg.getLogMsgID());
+					}
+					return;
+				}
+				else if("true".equalsIgnoreCase(msg.getAttribute("isFavIcon")))
+				{
+					msg.setLogMsg("");
+					if (logger.isDebugEnabled())
+					{
+						logger.info("FavIcon ping detected" + " [" + getClientInfo(s) + "]"
+								+ msg.getLogMsgID());
+					}
 					return;
 				}
 				else
@@ -121,8 +145,9 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 					} catch (IOException e1)
 					{
 					}
-					OpenAS2Exception oe = new OpenAS2Exception("Missing data in AS2 request.");
+					//OpenAS2Exception oe = new OpenAS2Exception("Missing data in AS2 request.");
 					msg.setLogMsg("Error receiving message for inbound AS2 request. There is no data.");
+					logger.error(msg);
 					System.out.println("Error receiving message for inbound AS2 request. There is no data.");
 					return;
 				}
@@ -210,10 +235,12 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 						//To do write function to update the recevier Id options with given As2_to
 						Constants.UpdateMsgSenderPartnership(msg,msg.getHeader("AS2-From"));
 					} catch (OpenAS2Exception oae) {
+						partnershipFound = false;
 						System.out.println(AS2ReceiverModule.DISP_PARTNERSHIP_NOT_FOUND);
 						throw new DispositionException(new DispositionType("automatic-action", "MDN-sent-automatically",
 								"processed", "Error", "authentication-failed"),
 								AS2ReceiverModule.DISP_PARTNERSHIP_NOT_FOUND, oae);
+
 
 					}
 					// Log significant msg state
@@ -302,10 +329,20 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 
 				} catch (DispositionException de) {
 					// Log significant msg state
-					msg.setOption("STATE", Message.MSG_STATE_MSG_SENT_MDN_RECEIVED_ERROR);
-					System.out.println("STATE"+ Message.MSG_STATE_MSG_SENT_MDN_RECEIVED_ERROR);
+					if (!partnershipFound)
+					{
+						msg.setOption("STATE", "Partnership Not Found!");
+						System.out.println("STATE Partnership Not Found!");						
+					}else
+					{
+						msg.setOption("STATE", Message.MSG_STATE_MSG_SENT_MDN_RECEIVED_ERROR);
+						System.out.println("STATE"+ Message.MSG_STATE_MSG_SENT_MDN_RECEIVED_ERROR);
+					}
 					msg.trackMsgState(getModule().getSession());
+					
+                    logger.error("Message Status = "+msg.getOption("STATE"));
 					sendMDNResponse(msg, out, de.getDisposition(), mic, de.getText());
+
 	                //if asyncMDN requested, close connection and initiate separate MDN send 
 	                if (msg.isRequestingAsynchMDN() ) {
 	                	try {
@@ -348,9 +385,13 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 		} finally {
 
 			// Process the received message
-			if (!( "true".equalsIgnoreCase(msg.getAttribute("isHealthCheck")))) {
-
-				LogHttpHeadersInBlob(msg, data);
+			if (!( "true".equalsIgnoreCase(msg.getAttribute("isHealthCheck")))
+                    &&  !( "true".equalsIgnoreCase(msg.getAttribute("isFavIcon")))
+                    &&  !( "true".equalsIgnoreCase(msg.getAttribute("isRobotTxt")))) {
+				if(data != null)
+				{
+					LogHttpHeadersInBlob(msg, data);
+				}
 			}
 			if (out != null)
 			{
@@ -694,8 +735,14 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 				out.flush();
                 // Save sent MDN  for later examination
 				Map<Object,Object> optMap =new HashMap<Object,Object>();
-				optMap.put("blobContainer",msg.getPartnership().getAttribute("blobContainer"));
-				getModule().getSession().getProcessor().handle(StorageModule.DO_STOREMDN, msg, optMap);
+				
+
+				if(msg.getOption("STATE") != "Partnership Not Found!")
+				{
+					optMap.put("blobContainer",msg.getPartnership().getAttribute("blobContainer"));
+					getModule().getSession().getProcessor().handle(StorageModule.DO_STOREMDN, msg, optMap);
+				}
+				
 				if (logger.isInfoEnabled()) 
 					//logger.info("sent MDN [" + disposition.toString() + "]" + msg.getLogMsgID());
 

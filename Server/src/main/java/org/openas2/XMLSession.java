@@ -182,14 +182,14 @@ public class XMLSession extends BaseSession {
 
        loadProperties(azureUtil.getProperties());
        loadCertificates(azureUtil.getCertificates());
-       loadLoggers(azureUtil);
+
        loadCommandProcessors(azureUtil.getCommandProcessors());
        LOGGER.info("MainProfile"+azureUtil.getMainProfile().getAS2Idenitfier());
        loadPartnerships(azureUtil.getPartnerList(),azureUtil.getMainProfile(),azureUtil.getAllProfile(),azureUtil.getServersSettings().get(0));
        loadCommands(azureUtil.getCommand());
 
        loadProcessor(azureUtil.getProcessor());
-
+       loadLoggers(azureUtil);
    }
 
 
@@ -456,6 +456,14 @@ public class XMLSession extends BaseSession {
         parameters.put("mimetype", mod.getMimetype());
         parameters.put("outboxdir", mod.getOutboxDir());
         parameters.put("protocol", mod.getProtocol());
+        if(mod.getProtocol().trim().equalsIgnoreCase("https"))
+        {
+
+            parameters.put("ssl_protocol", mod.getSSLProtocol());
+            parameters.put("ssl_keystore", mod.getSSLKeyStore());
+            parameters.put("ssl_keystore_password", mod.getSSLKeyStorePassword());
+
+        }
         parameters.put("resenddir", mod.getResendDir());
         parameters.put("sendfilename", mod.getSendFileName());
         parameters.put("tempdir", mod.getTempDir());
