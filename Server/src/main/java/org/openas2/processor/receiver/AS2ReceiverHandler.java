@@ -247,11 +247,13 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 					msg.setOption("STATE", Message.MSG_STATE_RECEIVE_START);
 					msg.trackMsgState(getModule().getSession());
 					// Decrypt and verify signature of the data, and attach data to the message
+
 					mic = decryptAndVerify(msg);
 					try
 					{
 						// Extract and Store the received filename of the payload
 						msg.setPayloadFilename(msg.extractPayloadFilename());
+
 					} catch (ParseException e1)
 					{
 						System.out.println("Failed to extract the file name from received content-disposition");
@@ -388,10 +390,9 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 			if (!( "true".equalsIgnoreCase(msg.getAttribute("isHealthCheck")))
                     &&  !( "true".equalsIgnoreCase(msg.getAttribute("isFavIcon")))
                     &&  !( "true".equalsIgnoreCase(msg.getAttribute("isRobotTxt")))) {
-				if(data != null)
-				{
+
 					LogHttpHeadersInBlob(msg, data);
-				}
+
 			}
 			if (out != null)
 			{
@@ -414,11 +415,11 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 			if(logger.isDebugEnabled())
 			logger.debug("Log Http Headers In Blob during receiving file ");
 			StringBuilder ReqBulider = new StringBuilder();
-			Partnership partnership = msg.getPartnership();
+			Partnership partnership =(msg!=null)? msg.getPartnership():null;
 			ReqBulider.append("In-Coming Request Details");
 			ReqBulider.append("\n");
 
-            ReqBulider.append("User-Agent:=" + msg.getAppTitle() + " (AS2Sender)");
+            ReqBulider.append("User-Agent:=" +( (msg!=null)?msg.getAppTitle():"") + " (AS2Sender)");
             ReqBulider.append("\n");
             // Ensure date is formatted in english so there are only USASCII chars to avoid error
 			ReqBulider.append("Date:=" + DateTime.now().toString("dd MMM yyyy HH:mm:ss Z",Locale.ENGLISH));
@@ -433,11 +434,11 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 			//ReqBulider.append("\n");
 
 
-			ReqBulider.append("Recipient-Address:=" + partnership.getAttribute(AS2Partnership.PA_AS2_URL));
+			ReqBulider.append("Recipient-Address:=" + ((partnership!=null)?partnership.getAttribute(AS2Partnership.PA_AS2_URL):"not found"));
 			ReqBulider.append("\n");
-            ReqBulider.append("Sender-Address:=" + msg.getAttribute("HTTP_REQUEST_URL"));
+            ReqBulider.append("Sender-Address:=" + ((msg!=null)?msg.getAttribute("HTTP_REQUEST_URL"):""));
             ReqBulider.append("\n");
-            ReqBulider.append("Request-Type:=" + msg.getAttribute("MA_HTTP_REQ_TYPE"));
+            ReqBulider.append("Request-Type:=" + ((msg!=null)?msg.getAttribute("MA_HTTP_REQ_TYPE"):""));
             ReqBulider.append("\n");
 
 
@@ -448,10 +449,10 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 			//ReqBulider.append("AS2-From:=" + partnership.getSenderID(AS2Partnership.PID_AS2));
 			//ReqBulider.append("\n");
 
-			ReqBulider.append("Subject:=" + msg.getSubject());
+			ReqBulider.append("Subject:=" +((msg!=null)? msg.getSubject():""));
 			ReqBulider.append("\n");
 
-			ReqBulider.append("From:=" + partnership.getSenderID(Partnership.PID_EMAIL));
+			ReqBulider.append("From:=" + ((partnership!=null)? partnership.getSenderID(Partnership.PID_EMAIL):""));
 			ReqBulider.append("\n");
 			//String dispTo = partnership.getAttribute(AS2Partnership.PA_AS2_MDN_TO);
 
@@ -469,7 +470,7 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 			//	ReqBulider.append("\n");
 			//}
 
-			String receiptOption = partnership.getAttribute(AS2Partnership.PA_AS2_RECEIPT_OPTION);
+			String receiptOption =((partnership!=null)? partnership.getAttribute(AS2Partnership.PA_AS2_RECEIPT_OPTION):null);
 			if (receiptOption != null) {
 
 				ReqBulider.append("Receipt-Delivery-Option:=" + receiptOption);
@@ -482,34 +483,39 @@ public class AS2ReceiverHandler implements NetModuleHandler {
            // ReqBulider.append("Content-Length:=" + msg.getHeader("Content-Length"));
             //ReqBulider.append("\n");
 
-			if ("true".equalsIgnoreCase((partnership.getAttribute(AS2Partnership.PA_ADD_CUSTOM_MIME_HEADERS_TO_HTTP)))) {
+			if ("true".equalsIgnoreCase((partnership!=null)?(partnership.getAttribute(AS2Partnership.PA_ADD_CUSTOM_MIME_HEADERS_TO_HTTP)):"")) {
 				if (logger.isTraceEnabled()) {
 					logger.trace("Adding custom headers to HTTP..." + msg.getLogMsgID());
 				}
-				for (Map.Entry<String, String> entry : msg.getCustomOuterMimeHeaders().entrySet()) {
+				if((msg!=null) && msg.getCustomOuterMimeHeaders()!=null) {
+					for (Map.Entry<String, String> entry : msg.getCustomOuterMimeHeaders().entrySet()) {
 
-					ReqBulider.append(entry.getKey() + ":=" + entry.getValue());
-					ReqBulider.append("\n");
+						ReqBulider.append(entry.getKey() + ":=" + entry.getValue());
+						ReqBulider.append("\n");
+					}
+
 				}
-
 			}
             ReqBulider.append("\n");
-            ReqBulider.append(HTTPUtil.printHeaders(msg.getHeaders().getAllHeaders()));
-            ReqBulider.append("\n");
-			ReqBulider.append("Connection:="+msg.getHeader("Connection"));
+			if(msg!=null && msg.getHeaders()!=null) {
+				ReqBulider.append(HTTPUtil.printHeaders(msg.getHeaders().getAllHeaders()));
+				ReqBulider.append("\n");
+			}
+			ReqBulider.append("Connection:="+((msg!=null)?msg.getHeader("Connection"):""));
 			ReqBulider.append("\n");
 			ReqBulider.append("Data");
 			ReqBulider.append("\n");
-			ReqBulider.append(HTTPUtil.getBody(msg.getData().getInputStream()));
-			ReqBulider.append("\n");
-
+			if(msg!=null && msg.getData()!=null && msg.getData().getInputStream()!=null ) {
+				ReqBulider.append(HTTPUtil.getBody(msg.getData().getInputStream()));
+				ReqBulider.append("\n");
+			}
 
 			// Log Request in blob
 			BlobHelper blobHelper = new BlobHelper();
 			try {
-				blobHelper.UploadFileInBlob(msg.getPartnership().getAttribute("blobContainer"), msg.getMessageID().replace("<","").replace(">","").trim() + ".req", ReqBulider.toString().getBytes());
-				if(logger.isDebugEnabled())
-					logger.debug("LogHttpHeadersInBlob 6 upload content in blob "+msg.getMessageID().replace("<","").replace(">","").trim() + ".req in container "+msg.getPartnership().getAttribute("blobContainer") );
+				blobHelper.UploadFileInBlob((msg!=null && msg.getPartnership()!=null)?msg.getPartnership().getAttribute("blobContainer"):Constants.BLOBCONTAINER, (msg!=null)?msg.getMessageID().replace("<","").replace(">","").trim():DateTime.now().millisOfSecond() + ".req", ReqBulider.toString().getBytes());
+				//if(logger.isDebugEnabled())
+					logger.info("LogHttpHeadersInBlob 6 upload content in blob "+((msg!=null)? msg.getMessageID().replace("<","").replace(">","").trim():DateTime.now().millisOfSecond()) + ".req in container "+((msg!=null && msg.getPartnership()!=null)?msg.getPartnership().getAttribute("blobContainer"):Constants.BLOBCONTAINER));
 			} catch (Exception exp) {
 				logger.error(exp);
 			}
@@ -518,6 +524,8 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 		catch (Exception exp)
 		{
 			logger.error(exp);
+			System.out.println(exp.getMessage());
+			exp.printStackTrace();
 		}
 	}
 
@@ -565,6 +573,15 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 							+ "\n" + MimeUtil.toString(msg.getData(), true));
 				}
             }
+
+			if(msg.getPartnership().getAttribute("encrypt")!=null && msg.getPartnership().getAttribute("encrypt").trim()!="") {
+				if (!msg.isRxdMsgWasEncrypted()) {
+					throw new DispositionException(new DispositionType("automatic-action", "MDN-sent-automatically",
+
+							"processed", "Error", "Message not encrypted."), AS2ReceiverModule.DISP_DECRYPTION_ERROR, new Exception("Message was not encrypted"));
+				}
+			}
+
         } catch (Exception e) {
         	msg.setLogMsg("Error extracting received message: " + e.getCause());
 			System.out.println("Error extracting received message: " + e.getCause());
@@ -583,6 +600,14 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 				{
 					logger.trace("Received MimeBodyPart for inbound message after decompression: " + msg.getLogMsgID()
 							+ "\n" + MimeUtil.toString(msg.getData(), true));
+				}
+			}
+			else
+			{
+				if(msg.getPartnership().getAttribute("compression_type")!=null)
+				{
+					throw new DispositionException(new DispositionType("automatic-action", "MDN-sent-automatically",
+							"processed", "Error", "Message not compressed."), AS2ReceiverModule.DISP_DECRYPTION_ERROR, new Exception("Message was not compressed"));
 				}
 			}
 		} catch (Exception e1) {
@@ -606,6 +631,15 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 							+ "\n" + MimeUtil.toString(msg.getData(), true));
 				}
             }
+			logger.info("Sign Status is "+msg.getPartnership().getAttribute("sign"));
+			logger.info("msg.isRxdMsgWasSigned Status is "+msg.isRxdMsgWasSigned());
+			if(msg.getPartnership().getAttribute("sign")!=null && msg.getPartnership().getAttribute("sign").trim()!="") {
+				if (!msg.isRxdMsgWasSigned()) {
+					throw new DispositionException(new DispositionType("automatic-action", "MDN-sent-automatically",
+							"processed", "Error", "Message not signed."), AS2ReceiverModule.DISP_DECRYPTION_ERROR, new Exception("Message was not signed"));
+				}
+			}
+
         } catch (Exception e) {
         	msg.setLogMsg("Error decrypting received message: " + org.openas2.logging.Log.getExceptionMsg(e));
 			System.out.println("Error decrypting received message: " + org.openas2.logging.Log.getExceptionMsg(e));
@@ -735,13 +769,17 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 				out.flush();
                 // Save sent MDN  for later examination
 				Map<Object,Object> optMap =new HashMap<Object,Object>();
-				
 
-				if(msg.getOption("STATE") != "Partnership Not Found!")
+
+
+				/*if(msg.getOption("STATE") != "Partnership Not Found!")
 				{
 					optMap.put("blobContainer",msg.getPartnership().getAttribute("blobContainer"));
 					getModule().getSession().getProcessor().handle(StorageModule.DO_STOREMDN, msg, optMap);
-				}
+				}*/
+
+				optMap.put("blobContainer",Constants.BLOBCONTAINER);
+				getModule().getSession().getProcessor().handle(StorageModule.DO_STOREMDN, msg, optMap);
 				
 				if (logger.isInfoEnabled()) 
 					//logger.info("sent MDN [" + disposition.toString() + "]" + msg.getLogMsgID());

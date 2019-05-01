@@ -174,6 +174,7 @@ public class XMLPartnershipFactory extends BasePartnershipFactory{
                 if(Partner.getISMDNSigned())
                 {
                     PartnerToServer.put("as2_mdn_options","signed-receipt-protocol=optional, pkcs7-signature; signed-receipt-micalg=optional, SHA1");
+                    //PartnerToServer.put("as2_mdn_options","signed-receipt-protocol=required, pkcs7-signature; signed-receipt-micalg=required, SHA1,MD5");
                 }
                 if(!Partner.getIsSyncronous())
                 {
@@ -206,6 +207,7 @@ public class XMLPartnershipFactory extends BasePartnershipFactory{
                 if(Partner.getISMDNSigned())
                 {
                     ServerToPartner.put("as2_mdn_options","signed-receipt-protocol=optional, pkcs7-signature; signed-receipt-micalg=optional, SHA1");
+                    //ServerToPartner.put("as2_mdn_options","signed-receipt-protocol=required, pkcs7-signature; signed-receipt-micalg=required, SHA1,MD5");
                 }
                 if(!Partner.getIsSyncronous())
                 {

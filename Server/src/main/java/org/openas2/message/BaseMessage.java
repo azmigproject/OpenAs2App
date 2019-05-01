@@ -15,6 +15,7 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.ParseException;
 
 import org.apache.commons.logging.LogFactory;
+import org.joda.time.DateTime;
 import org.openas2.OpenAS2Exception;
 import org.openas2.Session;
 import org.openas2.WrappedException;
@@ -473,14 +474,36 @@ public abstract class BaseMessage implements Message {
 	public String extractPayloadFilename() throws ParseException
 	{
 		String s = getContentDisposition();
-		if (s == null || s.length() < 1)
-			return null;
-			// TODO: This should be a case insensitive lookup per RFC6266
-            String tmpFilename = null;
+        String tmpFilename = null;
+        String tempNewFileName=null;
+
+            String SenderID=getHeader("AS2-From");
+            long ticks=DateTime.now().getMillis();
+            String ctnType=getContentType();
+        tempNewFileName=((SenderID!=null)?SenderID:"")+ticks ;
+            if ("application/edi-x12".equals(ctnType.toLowerCase()) || "application/edifact".equals(ctnType.toLowerCase()) ) {
+                tempNewFileName+=".edi";
+            }
+            else if("application/xml".equals(ctnType.toLowerCase()))
+            {
+                tempNewFileName+=".xml";
+            }
+            else
+            {
+                tempNewFileName+=".txt";
+            }
+
+
+		if (s == null || s.length() < 1) {
+
+
+            return tempNewFileName;
+            // TODO: This should be a case insensitive lookup per RFC6266
+        }
 
 			ContentDisposition cd = new ContentDisposition(s);
 			tmpFilename = cd.getParameter("filename");
-			
+
 			if (tmpFilename == null || tmpFilename.length() < 1)
 			{
 				/* Try to extract manually */
@@ -504,6 +527,10 @@ public abstract class BaseMessage implements Message {
 						tmpFilename = s.substring(pos + 1);
 				}
 			}
+			if(tmpFilename==null)
+            {
+                tmpFilename=tempNewFileName;
+            }
 			return tmpFilename;
 	}
 }

@@ -305,17 +305,33 @@ public class DbLogger extends BaseLogger {
                     ioe2.printStackTrace();
                 }
             }
-            if (conn.getResponseCode() != 200) {
+            int ResponseCode=conn.getResponseCode();
+            String ResponseMsg=conn.getResponseMessage();
+            conn.disconnect();
+            conn=null;
+            if ( ResponseCode!= 200) {
 
+               FileLogger objFileLogger=new FileLogger();
+                objFileLogger.doLog(Level.ERROR,"Error adding logs via API"+ ResponseMsg +ResponseCode+"\nJSON String of DBLogInfo object:"+jsonStr,objLog);
+                System.out.println("JSON String of DBLogInfo object");
+                System.out.println(jsonStr);
+                objFileLogger.destroy();
+                objFileLogger=null;
                 throw new RuntimeException("Failed : HTTP Error code : "
-                        + conn.getResponseMessage()+conn.getResponseCode());
+                        + ResponseMsg +ResponseCode);
+
+
             }
             else
             {
-                System.out.println("Successfull"+conn.getResponseCode());
+                //System.out.println("Successfull"+conn.getResponseCode());
+                FileLogger objFileLogger=new FileLogger();
+                objFileLogger.doLog(Level.FINE,"Successfully adding logs via API. Response Code got 200",objLog);
+                objFileLogger.destroy();
+                objFileLogger=null;
             }
 
-            conn.disconnect();
+
         }
         catch (Exception exp )
         {

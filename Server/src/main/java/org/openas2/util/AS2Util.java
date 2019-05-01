@@ -788,6 +788,9 @@ public class AS2Util {
 		Log logger = LogFactory.getLog(AS2Util.class.getSimpleName());
 		// use original message ID to open the pending information file from pendinginfo folder.
 		String originalMsgId = msg.getMDN().getAttribute(AS2MessageMDN.MDNA_ORIG_MESSAGEID);
+		//Added to remove characters returned around the original msgID in the MDN from the recipient.
+		originalMsgId = originalMsgId.replace("<", "");
+		originalMsgId = originalMsgId.replace(">", "");
 		// TODO: CB: Think we are supposed to verify the MDN received msg Id with what we sent
 		msg.setMessageID(originalMsgId); 
 		String pendinginfofile = buildPendingFileName(msg, session.getProcessor(), "pendingmdninfo");

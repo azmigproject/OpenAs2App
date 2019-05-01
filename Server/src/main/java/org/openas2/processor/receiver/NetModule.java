@@ -1,12 +1,10 @@
 package org.openas2.processor.receiver;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
@@ -15,16 +13,11 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Map;
-
 import javax.annotation.Nullable;
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLServerSocketFactory;
-import javax.net.ssl.TrustManagerFactory;
-
-import com.microsoft.azure.storage.core.Logger;
+import javax.net.ssl.*;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -101,38 +94,38 @@ public abstract class NetModule extends BaseReceiverModule {
     }
 
     @Override
-	public boolean healthcheck(List<String> failures)
-	{
-    	try
-		{
-			String hcHost = getParameter(PARAM_ADDRESS, Properties.getProperty("ssl_host_name", "localhost"));
-			String hcPort = getParameter(PARAM_PORT, true);
-	    	String hcProtocol = getParameter(PARAM_PROTOCOL, "http");
-	    	String urlString = hcProtocol + "://" + hcHost + ":" + hcPort + "/" + Properties.getProperty("health_check_uri", "healthcheck");
+    public boolean healthcheck(List<String> failures)
+    {
+        try
+        {
+            String hcHost = getParameter(PARAM_ADDRESS, Properties.getProperty("ssl_host_name", "localhost"));
+            String hcPort = getParameter(PARAM_PORT, true);
+            String hcProtocol = getParameter(PARAM_PROTOCOL, "http");
+            String urlString = hcProtocol + "://" + hcHost + ":" + hcPort + "/" + Properties.getProperty("health_check_uri", "healthcheck");
 
-	    	if (logger.isTraceEnabled())
-	    		logger.trace("Helthcheck about to try URL: " + urlString);
-	    	Map<String, String> responseWrapper = null;
-	    	if ("https".equalsIgnoreCase(hcProtocol))
-			{
-	    		responseWrapper = HTTPUtil.querySite(urlString, "GET", null, null);
-	    		//responseWrapper =HTTPUtil.querySiteSSLVerifierOverride(urlString, "GET", null, null);
-			}
-	    	else responseWrapper = HTTPUtil.querySite(urlString, "GET", null, null);
-	    	if (!"200".equals(responseWrapper.get("response_code")))
-	    	{
-	    		failures.add(this.getClass().getSimpleName() + " - Error making HTTP connection. Rsponse code: " + responseWrapper.get("response_code"));
-				return false;
-	    	}
-		} catch (Exception e)
-		{
-			logger.error("Failed to execute healthcheck.", e);
-			failures.add(this.getClass().getSimpleName() + " - Failed to execute HTTP connection to listener: " + e.getMessage());
-			return false;
-		}
-		return true;
-	}
-    
+            if (logger.isTraceEnabled())
+                logger.trace("Helthcheck about to try URL: " + urlString);
+            Map<String, String> responseWrapper = null;
+            if ("https".equalsIgnoreCase(hcProtocol))
+            {
+                responseWrapper = HTTPUtil.querySite(urlString, "GET", null, null);
+                //responseWrapper =HTTPUtil.querySiteSSLVerifierOverride(urlString, "GET", null, null);
+            }
+            else responseWrapper = HTTPUtil.querySite(urlString, "GET", null, null);
+            if (!"200".equals(responseWrapper.get("response_code")))
+            {
+                failures.add(this.getClass().getSimpleName() + " - Error making HTTP connection. Rsponse code: " + responseWrapper.get("response_code"));
+                return false;
+            }
+        } catch (Exception e)
+        {
+            logger.error("Failed to execute healthcheck.", e);
+            failures.add(this.getClass().getSimpleName() + " - Failed to execute HTTP connection to listener: " + e.getMessage());
+            return false;
+        }
+        return true;
+    }
+
     protected abstract NetModuleHandler getHandler();
 
     protected void handleError(Message msg, OpenAS2Exception oae)
@@ -158,9 +151,9 @@ public abstract class NetModule extends BaseReceiverModule {
             fOut.close();
 
             // make sure an error of this event is logged
-            //InvalidMessageException im = new InvalidMessageException("Stored invalid message to " +
-            //        msgFile.getAbsolutePath());
-           // im.terminate();
+            InvalidMessageException im = new InvalidMessageException("Stored invalid message to " +
+                    msgFile.getAbsolutePath());
+            im.terminate();
         } catch (OpenAS2Exception oae2)
         {
             oae2.addSource(OpenAS2Exception.SOURCE_MESSAGE, msg);
@@ -225,20 +218,28 @@ public abstract class NetModule extends BaseReceiverModule {
             String sslProtocol = "TLS";
             try
             {
+                logger.info("NetModule Details");
+                logger.info("Name"+owner.getName());
+
                 protocol = owner.getParameter(PARAM_PROTOCOL, "http");
                 sslProtocol = owner.getParameter(PARAM_SSL_PROTOCOL, "TLS");
+                logger.info("protocol"+protocol);
+                logger.info("sslProtocol"+sslProtocol);
             } catch (InvalidParameterException e)
             {
                 // Do nothing
             }
             if ("https".equalsIgnoreCase(protocol))
             {
+                logger.info("In https protocol sets");
                 String ksName;
                 char[] ksPass;
                 try
                 {
                     ksName = owner.getParameter(PARAM_SSL_KEYSTORE, true);
                     ksPass = owner.getParameter(PARAM_SSL_KEYSTORE_PASSWORD, true).toCharArray();
+                    logger.info("keystoreName"+ksName);
+                    logger.info("keystorePWD"+ksPass);
                 } catch (InvalidParameterException e)
                 {
                     logger.error("Required SSL parameter missing.", e);
@@ -248,6 +249,7 @@ public abstract class NetModule extends BaseReceiverModule {
                 try
                 {
                     ks = KeyStore.getInstance("JKS");
+                    logger.info("Initiate keystore object");
                 } catch (KeyStoreException e)
                 {
                     logger.error("Failed to initialise SSL keystore.", e);
@@ -256,6 +258,7 @@ public abstract class NetModule extends BaseReceiverModule {
                 try
                 {
                     ks.load(new FileInputStream(ksName), ksPass);
+                    logger.info("loaded keystore object with given keystore details");
                 } catch (NoSuchAlgorithmException e)
                 {
                     logger.error("Failed to load keystore: " + ksName, e);
@@ -269,6 +272,7 @@ public abstract class NetModule extends BaseReceiverModule {
                 try
                 {
                     kmf = KeyManagerFactory.getInstance("SunX509");
+                    logger.info("Create SunX509  keystore manager factory object");
                 } catch (NoSuchAlgorithmException e)
                 {
                     logger.error("Failed to create key manager instance", e);
@@ -277,13 +281,17 @@ public abstract class NetModule extends BaseReceiverModule {
                 try
                 {
                     kmf.init(ks, ksPass);
+                    logger.info("Initiate SunX509  keystore manager factory object by passing JKS store details");
                 } catch (Exception e)
                 {
                     logger.error("Failed to initialise key manager instance", e);
                     throw new IOException("Error initialising SSL key manager instance");
                 }
+
                 // setup the trust manager factory
+                /*
                 TrustManagerFactory tmf;
+
                 try
                 {
                     tmf = TrustManagerFactory.getInstance("SunX509");
@@ -293,10 +301,28 @@ public abstract class NetModule extends BaseReceiverModule {
                     logger.error("Failed to create trust manager instance", e1);
                     throw new IOException("Error creating SSL trust manager instance");
                 }
+                */
+
+                // Create a trust manager that does not validate certificate chains
+                TrustManager[] trustAllCerts = new TrustManager[] {
+                        new X509TrustManager() {
+                            public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                                return new X509Certificate[0];
+                            }
+                            public void checkClientTrusted(
+                                    java.security.cert.X509Certificate[] certs, String authType) {
+                            }
+                            public void checkServerTrusted(
+                                    java.security.cert.X509Certificate[] certs, String authType) {
+                            }
+                        }
+                };
+                logger.info("Crated TrustMangar object");
                 SSLContext sc;
                 try
                 {
                     sc = SSLContext.getInstance(sslProtocol);
+                    logger.info("SSLContext objcect based on "+ sslProtocol+ "protocol" );
                 } catch (NoSuchAlgorithmException e)
                 {
                     logger.error("Failed to create SSL context instance", e);
@@ -304,42 +330,37 @@ public abstract class NetModule extends BaseReceiverModule {
                 }
                 try
                 {
-                    sc.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+                    sc.init(kmf.getKeyManagers(), trustAllCerts, null);
+                    logger.info("initialized SSLContext objcect based on  given keystore and  trust manager object" );
+                    //tmf.getTrustManagers(), null);
                 } catch (KeyManagementException e)
                 {
                     logger.error("Failed to initialise SSL context instance", e);
                     throw new IOException("Error initialising SSL context instance");
                 }
                 SSLServerSocketFactory ssf = sc.getServerSocketFactory();
+                logger.info("created SSLServerSocketFactory based on SSL context object " );
                 if (address != null)
                 {
+                    logger.info("initiating socket based on ssl for port "+port +" and  address"+address+" using initialized SSLServerSocketFactory object" );
                     socket = ssf.createServerSocket(port, 0, InetAddress.getByName(address));
+                    logger.info("created socked based on SSLServerSocketFactory based on SSL context object " );
                 } else
                 {
+                    logger.info("initiating socket based on ssl for port "+port +" using initialized SSLServerSocketFactory object" );
                     socket = ssf.createServerSocket(port);
+                    logger.info("created socked for port"+port+" based on SSLServerSocketFactory based on SSL context object " );
                 }
             } else
             {
-                //Added by Rupesh logger info and trycatch
-                logger.info("In http protocol setting implementation");
-                try {
-                    socket = new ServerSocket();
-                    if (address != null) {
-                        socket.bind(new InetSocketAddress(address, port));
-                    } else {
-                        socket.bind(new InetSocketAddress(port));
-                    }
-                }
-                //Added by Rupesh
-                catch (Exception exp)
+                socket = new ServerSocket();
+                if (address != null)
                 {
-
-                    logger.error("Unable to set socket for http connection");
-
-                    throw new IOException("Unable to set socket for http connection");
-
+                    socket.bind(new InetSocketAddress(address, port));
+                } else
+                {
+                    socket.bind(new InetSocketAddress(port));
                 }
-                //Added by Rupesh
             }
         }
 
