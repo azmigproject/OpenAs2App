@@ -267,8 +267,8 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 						optMap.put("blobContainer",msg.getPartnership().getAttribute("blobContainer"));
 						optMap.put("MaxFileSize_Queue",msg.getPartnership().getAttribute("MaxFileSize_Queue"));
 						getModule().getSession().getProcessor().handle(StorageModule.DO_STORE, msg,optMap);
-                        msg.setLogMsg("Received File Saved in "+msg.getHeader("AS2-From")+"queue" );
-                        logger.info(msg);
+                        msg.setLogMsg("Received File "+msg.getPayloadFilename()+" From Partner: "+msg.getHeader("AS2-From")+" Successfully");
+                        logger.error(msg);
 					} catch (OpenAS2Exception oae) {
 						msg.setLogMsg("Error handling received message: " + oae.getCause());
 						System.out.println("Error handling received message: " + oae.getCause());
@@ -309,7 +309,7 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 			                msg.setLogMsg("Message received and MDN sent successfully.");
 							msg.trackMsgState(getModule().getSession());
 
-							logger.info(msg);
+							logger.error(msg);
 
 						} else {
 							HTTPUtil.sendHTTPResponse(out, HttpURLConnection.HTTP_OK, false);
@@ -390,9 +390,10 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 			if (!( "true".equalsIgnoreCase(msg.getAttribute("isHealthCheck")))
                     &&  !( "true".equalsIgnoreCase(msg.getAttribute("isFavIcon")))
                     &&  !( "true".equalsIgnoreCase(msg.getAttribute("isRobotTxt")))) {
-
+				if(data != null)
+				{
 					LogHttpHeadersInBlob(msg, data);
-
+				}
 			}
 			if (out != null)
 			{
@@ -631,6 +632,7 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 							+ "\n" + MimeUtil.toString(msg.getData(), true));
 				}
             }
+			//Start Code to be added on as on 30/04/2019
 			logger.info("Sign Status is "+msg.getPartnership().getAttribute("sign"));
 			logger.info("msg.isRxdMsgWasSigned Status is "+msg.isRxdMsgWasSigned());
 			if(msg.getPartnership().getAttribute("sign")!=null && msg.getPartnership().getAttribute("sign").trim()!="") {

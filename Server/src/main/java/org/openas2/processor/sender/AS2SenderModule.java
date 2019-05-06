@@ -180,7 +180,7 @@ public class AS2SenderModule extends HttpSenderModule {
             } catch (HttpResponseException hre)
             {
                 msg.setLogMsg("(Error) Sending Message over AS2 For File"+msg.getPayloadFilename()+" MessageID=" +msg.getLogMsgID()+hre.getMessage());
-                logger.info(msg);
+                logger.error(msg);
                 if(logger.isDebugEnabled())
                     logger.debug("Error over AS2 Stage 2.1" +msg.getLogMsgID());
                 // Will have been logged so just resend
@@ -337,7 +337,7 @@ public class AS2SenderModule extends HttpSenderModule {
                                 msg.setLogMsg("Error due to Unhandled condition receiving synchronous MDN. Message and asociated files cleanup will be attempted but may be in an unknown state.");
                             }
                             logger.error(msg, e);
-                            logger.error(msg);
+                            //logger.error(msg);
                         }
                         /*
                          * Most likely a resend abort of max resend reached if
@@ -504,7 +504,7 @@ public class AS2SenderModule extends HttpSenderModule {
                 Thread.sleep(retryIntervalInSeconds * 1000);
                 if(retryAttempts==maxRetryAttempts)
                 {
-                    msg.setLogMsg("Error. Unable to connect to "+conn.getURL()+ex.getMessage());
+                    msg.setLogMsg("(Error). Unable to connect to "+conn.getURL()+ex.getMessage());
                     logger.error(msg,ex);
                     return;
                 }

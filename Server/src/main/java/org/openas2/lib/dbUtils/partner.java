@@ -51,7 +51,7 @@ public class partner {
         return _incomingMessageRequireSignature;
     }
     public void setIncomingMessageRequireSignature(boolean incomingMessageRequireSignature) {
-        this._incomingMessageRequireSignature = _incomingMessageRequireSignature;
+        this._incomingMessageRequireSignature = incomingMessageRequireSignature;
     }
     public boolean getIncomingMessageRequireEncryption() {
         return _incomingMessageRequireEncryption;

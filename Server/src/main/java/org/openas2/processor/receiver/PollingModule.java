@@ -52,7 +52,7 @@ public abstract class PollingModule extends MessageBuilderModule {
     public abstract void consumerPoll();
 
 
-    public void doStart()
+    public void doStart() throws OpenAS2Exception
     {
         producerTimer = new Timer(getName()+".ProducerTimer", false);
 
@@ -74,7 +74,7 @@ public abstract class PollingModule extends MessageBuilderModule {
 
     }
 
-    public void doStop()
+    public void doStop() throws OpenAS2Exception
     {
 
         if (timer != null)

@@ -326,7 +326,7 @@ public class DbLogger extends BaseLogger {
             {
                 //System.out.println("Successfull"+conn.getResponseCode());
                 FileLogger objFileLogger=new FileLogger();
-                objFileLogger.doLog(Level.FINE,"Successfully adding logs via API. Response Code got 200",objLog);
+                objFileLogger.doLog(Level.FINE,"Successfully adding logs via API. Response Code got 200 successfully"+jsonStr,objLog);
                 objFileLogger.destroy();
                 objFileLogger=null;
             }

@@ -151,9 +151,9 @@ public abstract class NetModule extends BaseReceiverModule {
             fOut.close();
 
             // make sure an error of this event is logged
-            InvalidMessageException im = new InvalidMessageException("Stored invalid message to " +
-                    msgFile.getAbsolutePath());
-            im.terminate();
+            //InvalidMessageException im = new InvalidMessageException("Stored invalid message to " +
+            //        msgFile.getAbsolutePath());
+            //im.terminate();
         } catch (OpenAS2Exception oae2)
         {
             oae2.addSource(OpenAS2Exception.SOURCE_MESSAGE, msg);
@@ -218,28 +218,28 @@ public abstract class NetModule extends BaseReceiverModule {
             String sslProtocol = "TLS";
             try
             {
-                logger.info("NetModule Details");
-                logger.info("Name"+owner.getName());
+               // logger.info("NetModule Details");
+               // logger.info("Name"+owner.getName());
 
                 protocol = owner.getParameter(PARAM_PROTOCOL, "http");
                 sslProtocol = owner.getParameter(PARAM_SSL_PROTOCOL, "TLS");
-                logger.info("protocol"+protocol);
-                logger.info("sslProtocol"+sslProtocol);
+               // logger.info("protocol"+protocol);
+                //logger.info("sslProtocol"+sslProtocol);
             } catch (InvalidParameterException e)
             {
                 // Do nothing
             }
             if ("https".equalsIgnoreCase(protocol))
             {
-                logger.info("In https protocol sets");
+                //logger.info("In https protocol sets");
                 String ksName;
                 char[] ksPass;
                 try
                 {
                     ksName = owner.getParameter(PARAM_SSL_KEYSTORE, true);
                     ksPass = owner.getParameter(PARAM_SSL_KEYSTORE_PASSWORD, true).toCharArray();
-                    logger.info("keystoreName"+ksName);
-                    logger.info("keystorePWD"+ksPass);
+                    //logger.info("keystoreName"+ksName);
+                    //logger.info("keystorePWD"+ksPass);
                 } catch (InvalidParameterException e)
                 {
                     logger.error("Required SSL parameter missing.", e);
@@ -249,7 +249,7 @@ public abstract class NetModule extends BaseReceiverModule {
                 try
                 {
                     ks = KeyStore.getInstance("JKS");
-                    logger.info("Initiate keystore object");
+                    //logger.info("Initiate keystore object");
                 } catch (KeyStoreException e)
                 {
                     logger.error("Failed to initialise SSL keystore.", e);
@@ -258,7 +258,7 @@ public abstract class NetModule extends BaseReceiverModule {
                 try
                 {
                     ks.load(new FileInputStream(ksName), ksPass);
-                    logger.info("loaded keystore object with given keystore details");
+                   // logger.info("loaded keystore object with given keystore details");
                 } catch (NoSuchAlgorithmException e)
                 {
                     logger.error("Failed to load keystore: " + ksName, e);
@@ -272,7 +272,7 @@ public abstract class NetModule extends BaseReceiverModule {
                 try
                 {
                     kmf = KeyManagerFactory.getInstance("SunX509");
-                    logger.info("Create SunX509  keystore manager factory object");
+                    //logger.info("Create SunX509  keystore manager factory object");
                 } catch (NoSuchAlgorithmException e)
                 {
                     logger.error("Failed to create key manager instance", e);
@@ -281,7 +281,7 @@ public abstract class NetModule extends BaseReceiverModule {
                 try
                 {
                     kmf.init(ks, ksPass);
-                    logger.info("Initiate SunX509  keystore manager factory object by passing JKS store details");
+                    //logger.info("Initiate SunX509  keystore manager factory object by passing JKS store details");
                 } catch (Exception e)
                 {
                     logger.error("Failed to initialise key manager instance", e);
@@ -317,12 +317,12 @@ public abstract class NetModule extends BaseReceiverModule {
                             }
                         }
                 };
-                logger.info("Crated TrustMangar object");
+                //logger.info("Crated TrustMangar object");
                 SSLContext sc;
                 try
                 {
                     sc = SSLContext.getInstance(sslProtocol);
-                    logger.info("SSLContext objcect based on "+ sslProtocol+ "protocol" );
+                    //logger.info("SSLContext objcect based on "+ sslProtocol+ "protocol" );
                 } catch (NoSuchAlgorithmException e)
                 {
                     logger.error("Failed to create SSL context instance", e);
@@ -331,7 +331,7 @@ public abstract class NetModule extends BaseReceiverModule {
                 try
                 {
                     sc.init(kmf.getKeyManagers(), trustAllCerts, null);
-                    logger.info("initialized SSLContext objcect based on  given keystore and  trust manager object" );
+                   // logger.info("initialized SSLContext objcect based on  given keystore and  trust manager object" );
                     //tmf.getTrustManagers(), null);
                 } catch (KeyManagementException e)
                 {
@@ -339,17 +339,17 @@ public abstract class NetModule extends BaseReceiverModule {
                     throw new IOException("Error initialising SSL context instance");
                 }
                 SSLServerSocketFactory ssf = sc.getServerSocketFactory();
-                logger.info("created SSLServerSocketFactory based on SSL context object " );
+                //logger.info("created SSLServerSocketFactory based on SSL context object " );
                 if (address != null)
                 {
-                    logger.info("initiating socket based on ssl for port "+port +" and  address"+address+" using initialized SSLServerSocketFactory object" );
+                    //logger.info("initiating socket based on ssl for port "+port +" and  address"+address+" using initialized SSLServerSocketFactory object" );
                     socket = ssf.createServerSocket(port, 0, InetAddress.getByName(address));
-                    logger.info("created socked based on SSLServerSocketFactory based on SSL context object " );
+                    //logger.info("created socked based on SSLServerSocketFactory based on SSL context object " );
                 } else
                 {
-                    logger.info("initiating socket based on ssl for port "+port +" using initialized SSLServerSocketFactory object" );
+                   // logger.info("initiating socket based on ssl for port "+port +" using initialized SSLServerSocketFactory object" );
                     socket = ssf.createServerSocket(port);
-                    logger.info("created socked for port"+port+" based on SSLServerSocketFactory based on SSL context object " );
+                   // logger.info("created socked for port"+port+" based on SSLServerSocketFactory based on SSL context object " );
                 }
             } else
             {
