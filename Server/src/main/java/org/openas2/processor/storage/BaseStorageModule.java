@@ -170,7 +170,7 @@ public abstract class BaseStorageModule extends BaseProcessorModule implements S
 
         }
         QueueHelper queueHelper=new QueueHelper();
-        queueHelper.AddMsgToQueue(receiverAS2Id+"|__|"+queueName, queueMsg);
+        queueHelper.AddMsgToQueue(receiverAS2Id+"-"+queueName, queueMsg);
 
     }
 

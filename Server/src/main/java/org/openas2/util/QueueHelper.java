@@ -41,6 +41,7 @@ public class QueueHelper {
         CloudStorageAccount storageAccount = null;
         CloudQueueClient queueClient = null;
         CloudQueue queue = null;
+
         try {
 
             storageAccount =
@@ -48,7 +49,7 @@ public class QueueHelper {
             // Create the queue client.
             queueClient = storageAccount.createCloudQueueClient();
             // Retrieve a reference to a queue.
-            queue = queueClient.getQueueReference(ConvertToCompatibleAzureName(queueName));
+            queue = queueClient.getQueueReference(ConvertToCompatibleAzureName(queueName.toLowerCase()));
             if (queue.exists()) {
                 // Peek at the next message.
                 CloudQueueMessage message = new CloudQueueMessage(Msg);
