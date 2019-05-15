@@ -1,23 +1,17 @@
 package org.openas2.util;
 import org.openas2.Constants;
 import org.openas2.lib.dbUtils.*;
-
 import com.microsoft.azure.storage.*;
 import com.microsoft.azure.storage.table.*;
 import com.microsoft.azure.documentdb.*;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import org.json.JSONObject;
 import org.json.JSONArray;
-import com.google.gson.*;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-
-
-import org.openas2.XMLSession;
 
 public class AzureUtil {
 
@@ -414,6 +408,7 @@ public class AzureUtil {
 private partner GetPartnerFromDocument(Document doc)
 {
     JSONObject objJSON=new JSONObject(doc.toJson());
+    //System.out.println(doc.toJson());
     partner partnerInfp=new partner();
     if(objJSON.has("IsActive")) {
         partnerInfp.setIsActive(objJSON.getBoolean("IsActive"));
@@ -438,20 +433,39 @@ private partner GetPartnerFromDocument(Document doc)
     partnerInfp.setIncomingQueue(objJSON.getString("IncomingQueue"));
     partnerInfp.setOutgoingQueue(objJSON.getString("OutgoingQueue"));
     partnerInfp.setSentQueue(objJSON.getString("SentQueue"));
+    partnerInfp.setContentTransferEncoding((objJSON.has("ContentTransferEncoding") && objJSON.getString("ContentTransferEncoding")!=null && objJSON.getString("ContentTransferEncoding")!="")?objJSON.getString("ContentTransferEncoding"):"8bit");
     partnerInfp.setInErrorQueue(objJSON.getString("IncomingErrorQueue"));
     partnerInfp.setIsFolderCreated(objJSON.getBoolean("IsFolderCreated"));
     partnerInfp.setIsMDNRequested(objJSON.getBoolean("IsMDNRequested"));
     partnerInfp.setISMDNSigned(objJSON.getBoolean("ISMDNSigned"));
     partnerInfp.setISMDNSigned(objJSON.getBoolean("IsSyncronous"));
     partnerInfp.setMaxAttempts(objJSON.getInt("MaxAttempts"));
-    partnerInfp.setResendInterval(objJSON.getInt("ResendInterval"));
-    partnerInfp.setRetryInterval(objJSON.getInt("RetryInterval"));
+    partnerInfp.setResendInterval(objJSON.getInt("ResendInterval"));    partnerInfp.setRetryInterval(objJSON.getInt("RetryInterval"));
     partnerInfp.setIsMessageCompressed(objJSON.getBoolean("ISMessageCompressed"));
     partnerInfp.setSendFileNameInContentType(objJSON.getBoolean("SendFileNameInContentType"));
+
     partnerInfp.setOnPremIncomingDirName(objJSON.getString("OnPremIncomingDirName"));
     partnerInfp.setOnPremOutgoingDirName(objJSON.getString("OnPremOutgoingDirName"));
-    partnerInfp.setOnPremSentDirName(objJSON.getString("OnPremSentDirName"));
-    partnerInfp.setOnPremErrDirName(objJSON.getString("OnPremErrDirName"));
+    try {
+        partnerInfp.setOnPremSentDirName(objJSON.getString("OnPremSentDirName"));
+        partnerInfp.setOnPremErrDirName(objJSON.getString("OnPremErrDirName"));
+    }
+    catch (Exception exp)
+    {
+        System.out.println(exp.getMessage());
+        System.out.println( " Error Jason ");
+        System.out.println(doc.toJson());
+        System.out.println( " For partner "  +partnerInfp.getAS2Identifier()+" with name: "+partnerInfp.getPartnerName()+" Its ID is "+partnerInfp.getId());
+        try
+        {
+            System.out.println("Value is"+objJSON.get("OnPremSentDirName").toString());
+        }
+        catch (Exception ex)
+        {
+            System.out.println("Error geting Value"+ex.getMessage());
+        }
+
+    }
     partnerInfp.SetSSLEnabledProtocolsSSLv2(objJSON.getBoolean("SSLEnabledProtocolsSSLv2"));
     partnerInfp.SetSSLEnabledProtocolsSSLv3(objJSON.getBoolean("SSLEnabledProtocolsSSLv3"));
     partnerInfp.SetSSLEnabledProtocolsTLSv1(objJSON.getBoolean("SSLEnabledProtocolsTLSv1"));

@@ -632,8 +632,21 @@ public class AS2Util {
 		X509Certificate senderCert = cFx.getCertificate(mdn, Partnership.PTYPE_RECEIVER);
 
 		msg.setStatus(Message.MSG_STATUS_MDN_PARSE);
+
 		if (logger.isTraceEnabled()) logger.trace("Parsing MDN: " + mdn.toString() + msg.getLogMsgID());
-		AS2Util.parseMDN(msg, senderCert);
+		try {
+
+			AS2Util.parseMDN(msg, senderCert);
+		}
+
+		catch (OpenAS2Exception exp)
+		{
+			Map<Object,Object> obMap=new HashMap<Object,Object>();
+			obMap.put("blobContainer",msg.getPartnership().getAttribute("blobContainer"));
+			//session.getProcessor().handle(StorageModule.DO_STOREMDN, msg, null);
+			session.getProcessor().handle(StorageModule.DO_STOREMDN, msg, obMap);
+			throw exp;
+		}
 				
 		//if (isAsyncMDN)
 		//{
@@ -740,7 +753,13 @@ public class AS2Util {
 			//AS2Util.resend(session, sourceClass, SenderModule.DO_SEND, msg, oae2, retries, true);
 			msg.setOption("STATE", Message.MSG_STATE_MSG_SENT_MDN_RECEIVED_ERROR);
 			msg.trackMsgState(session);
-			
+			if (logger.isTraceEnabled()) logger.trace("MDN processed. \n\tPayload file name: "
+					+ msg.getPayloadFilename() + "\n\tPersisting MDN report..." + msg.getLogMsgID());
+			Map<Object,Object> obMap=new HashMap<Object,Object>();
+			obMap.put("blobContainer",msg.getPartnership().getAttribute("blobContainer"));
+			//session.getProcessor().handle(StorageModule.DO_STOREMDN, msg, null);
+			session.getProcessor().handle(StorageModule.DO_STOREMDN, msg, obMap);
+			msg.setStatus(Message.MSG_STATUS_MSG_CLEANUP);
 			return;
 		}
 

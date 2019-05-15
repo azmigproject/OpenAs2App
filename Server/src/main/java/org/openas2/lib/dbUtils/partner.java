@@ -53,6 +53,14 @@ public class partner {
     public void setIncomingMessageRequireSignature(boolean incomingMessageRequireSignature) {
         this._incomingMessageRequireSignature = incomingMessageRequireSignature;
     }
+
+    public String getContentTransferEncoding() {
+        return _contentTransferEncoding;
+    }
+    public void setContentTransferEncoding(String  contentTransferEncoding) {
+        this._contentTransferEncoding = contentTransferEncoding;
+    }
+
     public boolean getIncomingMessageRequireEncryption() {
         return _incomingMessageRequireEncryption;
     }
@@ -285,6 +293,7 @@ public class partner {
 
 
     //private String _outErrorQueue;
+    private String _contentTransferEncoding;
     private boolean _isActive;
     private DateTime _createdOn;
     private DateTime _updatedOn;

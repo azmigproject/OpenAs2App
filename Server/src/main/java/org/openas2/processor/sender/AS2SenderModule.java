@@ -336,6 +336,7 @@ public class AS2SenderModule extends HttpSenderModule {
                             else {
                                 msg.setLogMsg("Error due to Unhandled condition receiving synchronous MDN. Message and asociated files cleanup will be attempted but may be in an unknown state.");
                             }
+
                             logger.error(msg, e);
                             //logger.error(msg);
                         }

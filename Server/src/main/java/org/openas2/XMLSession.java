@@ -182,12 +182,10 @@ public class XMLSession extends BaseSession {
 
        loadProperties(azureUtil.getProperties());
        loadCertificates(azureUtil.getCertificates());
-
        loadCommandProcessors(azureUtil.getCommandProcessors());
        LOGGER.info("MainProfile"+azureUtil.getMainProfile().getAS2Idenitfier());
        loadPartnerships(azureUtil.getPartnerList(),azureUtil.getMainProfile(),azureUtil.getAllProfile(),azureUtil.getServersSettings().get(0));
        loadCommands(azureUtil.getCommand());
-
        loadProcessor(azureUtil.getProcessor());
        loadLoggers(azureUtil);
    }

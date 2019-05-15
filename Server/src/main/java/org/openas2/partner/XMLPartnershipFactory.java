@@ -140,7 +140,7 @@ public class XMLPartnershipFactory extends BasePartnershipFactory{
 
             PartnerToServer.put("blobContainer",_serverSettings.getBlobContainerName());
             PartnerToServer.put("MaxFileSize_Queue",String.valueOf( _serverSettings.getMaxFileSize()));
-            PartnerToServer.put("content_transfer_encoding","8bit");
+
             PartnerToServer.put("mdnsubject","Your requested MDN response from $receiver.as2_id$");
             PartnerToServer.put("as2_mdn_to",companyPartner.getEmailAddress());
             PartnerToServer.put("prevent_canonicalization_for_mic","false");
@@ -163,6 +163,8 @@ public class XMLPartnershipFactory extends BasePartnershipFactory{
                 PartnerToServer.put("Outqueue",Partner.getOutgoingQueue());
                 PartnerToServer.put("SentQueue",Partner.getSentQueue());
                 PartnerToServer.put("InqueueError",Partner.getInErrorQueue());
+                PartnerToServer.put("content_transfer_encoding",Partner.getContentTransferEncoding());
+                //System.out.println("PartnerToServer value found for partner "+Partner.getAS2Identifier()+" is "+Partner.getContentTransferEncoding());
                 //PartnerToServer.put("OutqueueError",Partner.getOutErrorQueue());
                 PartnerToServer.put("sender",Partner.getPartnerName());
                 PartnerToServer.put("name",Partner.getPartnerName()+"-to-"+Profile.PROFILENAME);
@@ -173,7 +175,7 @@ public class XMLPartnershipFactory extends BasePartnershipFactory{
                 PartnerToServer.put("resend_max_retries",String.valueOf(Partner.getMaxAttempts()));
                 if(Partner.getISMDNSigned())
                 {
-                    PartnerToServer.put("as2_mdn_options","signed-receipt-protocol=optional, pkcs7-signature; signed-receipt-micalg=optional, SHA1");
+                    PartnerToServer.put("as2_mdn_options","signed-receipt-protocol=optional, pkcs7-signature; signed-receipt-micalg=optional, "+Partner.getSignatureAlgorithm());
                     //PartnerToServer.put("as2_mdn_options","signed-receipt-protocol=required, pkcs7-signature; signed-receipt-micalg=required, SHA1,MD5");
                 }
                 if(!Partner.getIsSyncronous())
@@ -197,7 +199,8 @@ public class XMLPartnershipFactory extends BasePartnershipFactory{
                 ServerToPartner.put("name",Profile.PROFILENAME+"-to-"+Partner.getPartnerName());
                 ServerToPartner.put("receiver",Partner.getPartnerName());
                 ServerToPartner.put("protocol","AS2");
-                ServerToPartner.put("content_transfer_encoding","8bit");
+                ServerToPartner.put("content_transfer_encoding",Partner.getContentTransferEncoding() );
+                //System.out.println("ServerToPartner value found for partner "+Partner.getAS2Identifier()+" is "+Partner.getContentTransferEncoding());
                 ServerToPartner.put("mdnsubject","Your requested MDN response from $receiver.as2_id$");
                 ServerToPartner.put("as2_mdn_to",Partner.getEmailAddress());
                 ServerToPartner.put("prevent_canonicalization_for_mic","false");
@@ -206,7 +209,7 @@ public class XMLPartnershipFactory extends BasePartnershipFactory{
                 ServerToPartner.put("emove_cms_algorithm_protection_attrib","false");
                 if(Partner.getISMDNSigned())
                 {
-                    ServerToPartner.put("as2_mdn_options","signed-receipt-protocol=optional, pkcs7-signature; signed-receipt-micalg=optional, SHA1");
+                    ServerToPartner.put("as2_mdn_options","signed-receipt-protocol=optional, pkcs7-signature; signed-receipt-micalg=optional,"+Partner.getSignatureAlgorithm());
                     //ServerToPartner.put("as2_mdn_options","signed-receipt-protocol=required, pkcs7-signature; signed-receipt-micalg=required, SHA1,MD5");
                 }
                 if(!Partner.getIsSyncronous())
@@ -275,7 +278,6 @@ public class XMLPartnershipFactory extends BasePartnershipFactory{
 
             PartnerToServer.put("blobContainer",_serverSettings.getBlobContainerName());
             PartnerToServer.put("MaxFileSize_Queue",String.valueOf( _serverSettings.getMaxFileSize()));
-            PartnerToServer.put("content_transfer_encoding","8bit");
             PartnerToServer.put("mdnsubject","Your requested MDN response from $receiver.as2_id$");
             PartnerToServer.put("as2_mdn_to",companyPartner.getEmailAddress());
             PartnerToServer.put("prevent_canonicalization_for_mic","false");
@@ -298,6 +300,7 @@ public class XMLPartnershipFactory extends BasePartnershipFactory{
                 PartnerToServer.put("Outqueue",Partner.getOutgoingQueue());
                 PartnerToServer.put("SentQueue",Partner.getSentQueue());
                 PartnerToServer.put("InqueueError",Partner.getInErrorQueue());
+                PartnerToServer.put("content_transfer_encoding",Partner.getContentTransferEncoding());
                 //PartnerToServer.put("OutqueueError",Partner.getOutErrorQueue());
                 PartnerToServer.put("sender",Partner.getPartnerName());
                 PartnerToServer.put("name",Partner.getPartnerName()+"-to-"+Profile.PROFILENAME);
@@ -307,7 +310,8 @@ public class XMLPartnershipFactory extends BasePartnershipFactory{
                 PartnerToServer.put("resend_max_retries",String.valueOf(Partner.getMaxAttempts()));
                 if(Partner.getISMDNSigned())
                 {
-                    PartnerToServer.put("as2_mdn_options","signed-receipt-protocol=optional, pkcs7-signature; signed-receipt-micalg=optional, SHA1");
+                    //PartnerToServer.put("as2_mdn_options","signed-receipt-protocol=optional, pkcs7-signature; signed-receipt-micalg=optional, SHA1");
+                    PartnerToServer.put("as2_mdn_options","signed-receipt-protocol=optional, pkcs7-signature; signed-receipt-micalg=optional, "+Partner.getSignatureAlgorithm());
                 }
                 if(!Partner.getIsSyncronous())
                 {
@@ -327,7 +331,7 @@ public class XMLPartnershipFactory extends BasePartnershipFactory{
                 ServerToPartner.put("name",Profile.PROFILENAME+"-to-"+Partner.getPartnerName());
                 ServerToPartner.put("receiver",Partner.getPartnerName());
                 ServerToPartner.put("protocol","AS2");
-                ServerToPartner.put("content_transfer_encoding","8bit");
+                ServerToPartner.put("content_transfer_encoding",Partner.getContentTransferEncoding() );
                 ServerToPartner.put("mdnsubject","Your requested MDN response from $receiver.as2_id$");
                 ServerToPartner.put("as2_mdn_to",Partner.getEmailAddress());
                 ServerToPartner.put("prevent_canonicalization_for_mic","false");
@@ -336,7 +340,8 @@ public class XMLPartnershipFactory extends BasePartnershipFactory{
                 ServerToPartner.put("emove_cms_algorithm_protection_attrib","false");
                 if(Partner.getISMDNSigned())
                 {
-                    ServerToPartner.put("as2_mdn_options","signed-receipt-protocol=optional, pkcs7-signature; signed-receipt-micalg=optional, SHA1");
+                    //ServerToPartner.put("as2_mdn_options","signed-receipt-protocol=optional, pkcs7-signature; signed-receipt-micalg=optional, SHA1");
+                    ServerToPartner.put("as2_mdn_options","signed-receipt-protocol=optional, pkcs7-signature; signed-receipt-micalg=optional,"+Partner.getSignatureAlgorithm());
                 }
                 if(!Partner.getIsSyncronous())
                 {
