@@ -28,7 +28,6 @@ public abstract class HttpSenderModule extends BaseSenderModule implements Sende
         HttpURLConnection connection = HTTPUtil.getConnection(url, output, input, useCaches, requestMethod);
         connection.setConnectTimeout(connectTimeout);
         connection.setReadTimeout(readTimeout);
-
         return connection;
     }
 }

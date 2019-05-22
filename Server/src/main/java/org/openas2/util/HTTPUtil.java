@@ -437,7 +437,7 @@ public class HTTPUtil {
     }
 
     public static String[] readRequest(InputStream in) throws IOException {
-        Log logger = LogFactory.getLog(HTTPUtil.class.getSimpleName());
+       // Log logger = LogFactory.getLog(HTTPUtil.class.getSimpleName());
         int byteBuf = in.read();
         StringBuffer strBuf = new StringBuffer();
 
@@ -449,7 +449,7 @@ public class HTTPUtil {
         if (byteBuf != -1) {
             in.read(); // read in the \n
         }
-        logger.info("Request saved"+strBuf.toString());
+        //logger.info("Request saved"+strBuf.toString());
         StringTokenizer tokens = new StringTokenizer(strBuf.toString(), " ");
         int tokenCount = tokens.countTokens();
 

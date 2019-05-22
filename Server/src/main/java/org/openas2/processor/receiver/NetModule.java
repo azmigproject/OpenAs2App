@@ -218,28 +218,20 @@ public abstract class NetModule extends BaseReceiverModule {
             String sslProtocol = "TLS";
             try
             {
-               // logger.info("NetModule Details");
-               // logger.info("Name"+owner.getName());
-
                 protocol = owner.getParameter(PARAM_PROTOCOL, "http");
                 sslProtocol = owner.getParameter(PARAM_SSL_PROTOCOL, "TLS");
-               // logger.info("protocol"+protocol);
-                //logger.info("sslProtocol"+sslProtocol);
             } catch (InvalidParameterException e)
             {
                 // Do nothing
             }
             if ("https".equalsIgnoreCase(protocol))
             {
-                //logger.info("In https protocol sets");
                 String ksName;
                 char[] ksPass;
                 try
                 {
                     ksName = owner.getParameter(PARAM_SSL_KEYSTORE, true);
                     ksPass = owner.getParameter(PARAM_SSL_KEYSTORE_PASSWORD, true).toCharArray();
-                    //logger.info("keystoreName"+ksName);
-                    //logger.info("keystorePWD"+ksPass);
                 } catch (InvalidParameterException e)
                 {
                     logger.error("Required SSL parameter missing.", e);
@@ -249,7 +241,6 @@ public abstract class NetModule extends BaseReceiverModule {
                 try
                 {
                     ks = KeyStore.getInstance("JKS");
-                    //logger.info("Initiate keystore object");
                 } catch (KeyStoreException e)
                 {
                     logger.error("Failed to initialise SSL keystore.", e);
@@ -258,7 +249,6 @@ public abstract class NetModule extends BaseReceiverModule {
                 try
                 {
                     ks.load(new FileInputStream(ksName), ksPass);
-                   // logger.info("loaded keystore object with given keystore details");
                 } catch (NoSuchAlgorithmException e)
                 {
                     logger.error("Failed to load keystore: " + ksName, e);
@@ -272,7 +262,6 @@ public abstract class NetModule extends BaseReceiverModule {
                 try
                 {
                     kmf = KeyManagerFactory.getInstance("SunX509");
-                    //logger.info("Create SunX509  keystore manager factory object");
                 } catch (NoSuchAlgorithmException e)
                 {
                     logger.error("Failed to create key manager instance", e);
@@ -281,17 +270,13 @@ public abstract class NetModule extends BaseReceiverModule {
                 try
                 {
                     kmf.init(ks, ksPass);
-                    //logger.info("Initiate SunX509  keystore manager factory object by passing JKS store details");
                 } catch (Exception e)
                 {
                     logger.error("Failed to initialise key manager instance", e);
                     throw new IOException("Error initialising SSL key manager instance");
                 }
-
                 // setup the trust manager factory
-                /*
-                TrustManagerFactory tmf;
-
+               /* TrustManagerFactory tmf;
                 try
                 {
                     tmf = TrustManagerFactory.getInstance("SunX509");
@@ -300,14 +285,13 @@ public abstract class NetModule extends BaseReceiverModule {
                 {
                     logger.error("Failed to create trust manager instance", e1);
                     throw new IOException("Error creating SSL trust manager instance");
-                }
-                */
-
-                // Create a trust manager that does not validate certificate chains
+                }*/
+				
+				 // Create a trust manager that does not validate certificate chains
                 TrustManager[] trustAllCerts = new TrustManager[] {
                         new X509TrustManager() {
                             public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-                                return new X509Certificate[0];
+                                return new java.security.cert.X509Certificate[0];
                             }
                             public void checkClientTrusted(
                                     java.security.cert.X509Certificate[] certs, String authType) {
@@ -317,12 +301,12 @@ public abstract class NetModule extends BaseReceiverModule {
                             }
                         }
                 };
-                //logger.info("Crated TrustMangar object");
+				
+				
                 SSLContext sc;
                 try
                 {
                     sc = SSLContext.getInstance(sslProtocol);
-                    //logger.info("SSLContext objcect based on "+ sslProtocol+ "protocol" );
                 } catch (NoSuchAlgorithmException e)
                 {
                     logger.error("Failed to create SSL context instance", e);
@@ -330,26 +314,20 @@ public abstract class NetModule extends BaseReceiverModule {
                 }
                 try
                 {
-                    sc.init(kmf.getKeyManagers(), trustAllCerts, null);
-                   // logger.info("initialized SSLContext objcect based on  given keystore and  trust manager object" );
-                    //tmf.getTrustManagers(), null);
+                    //sc.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+					sc.init(kmf.getKeyManagers(), trustAllCerts, null);
                 } catch (KeyManagementException e)
                 {
                     logger.error("Failed to initialise SSL context instance", e);
                     throw new IOException("Error initialising SSL context instance");
                 }
                 SSLServerSocketFactory ssf = sc.getServerSocketFactory();
-                //logger.info("created SSLServerSocketFactory based on SSL context object " );
                 if (address != null)
                 {
-                    //logger.info("initiating socket based on ssl for port "+port +" and  address"+address+" using initialized SSLServerSocketFactory object" );
                     socket = ssf.createServerSocket(port, 0, InetAddress.getByName(address));
-                    //logger.info("created socked based on SSLServerSocketFactory based on SSL context object " );
                 } else
                 {
-                   // logger.info("initiating socket based on ssl for port "+port +" using initialized SSLServerSocketFactory object" );
                     socket = ssf.createServerSocket(port);
-                   // logger.info("created socked for port"+port+" based on SSLServerSocketFactory based on SSL context object " );
                 }
             } else
             {

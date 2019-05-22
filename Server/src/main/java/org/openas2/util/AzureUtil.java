@@ -408,7 +408,6 @@ public class AzureUtil {
 private partner GetPartnerFromDocument(Document doc)
 {
     JSONObject objJSON=new JSONObject(doc.toJson());
-    //System.out.println(doc.toJson());
     partner partnerInfp=new partner();
     if(objJSON.has("IsActive")) {
         partnerInfp.setIsActive(objJSON.getBoolean("IsActive"));

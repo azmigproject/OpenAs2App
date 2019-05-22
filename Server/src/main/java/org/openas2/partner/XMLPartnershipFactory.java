@@ -25,6 +25,7 @@ import org.openas2.OpenAS2Exception;
 import org.openas2.lib.dbUtils.Profile;
 import org.openas2.lib.dbUtils.ServersSettings;
 import org.openas2.lib.dbUtils.partner;
+import org.openas2.logging.Logger;
 import org.openas2.schedule.HasSchedule;
 import org.openas2.Session;
 import org.openas2.WrappedException;
@@ -106,12 +107,12 @@ public class XMLPartnershipFactory extends BasePartnershipFactory{
         super.init(session, parameters);
         if(_partnerFromDB!=null && _profileFromDB!=null)
         {
-
+            logger.info("Runing multiple profile partnership settup");
             refresh(_partnerFromDB,_profileFromDB);
         }
-        if(_partnerFromDB!=null)
+        else if(_partnerFromDB!=null)
         {
-
+            logger.info("Runing single profile partnership settup");
              refresh(_partnerFromDB);
         }
         else {
@@ -134,19 +135,7 @@ public class XMLPartnershipFactory extends BasePartnershipFactory{
 
             loadPartner(newPartners, companyPartner);
 
-            Map<String ,String> PartnerToServer=new HashMap<String, String>();
-            PartnerToServer.put("receiver",Profile.PROFILENAME);
-            PartnerToServer.put("protocol","AS2");
 
-            PartnerToServer.put("blobContainer",_serverSettings.getBlobContainerName());
-            PartnerToServer.put("MaxFileSize_Queue",String.valueOf( _serverSettings.getMaxFileSize()));
-
-            PartnerToServer.put("mdnsubject","Your requested MDN response from $receiver.as2_id$");
-            PartnerToServer.put("as2_mdn_to",companyPartner.getEmailAddress());
-            PartnerToServer.put("prevent_canonicalization_for_mic","false");
-            PartnerToServer.put("no_set_transfer_encoding_for_signing","false");
-            PartnerToServer.put("rename_digest_to_old_name","false");
-            PartnerToServer.put("emove_cms_algorithm_protection_attrib","false");
 
 
             for (partner Partner : partners
@@ -159,6 +148,19 @@ public class XMLPartnershipFactory extends BasePartnershipFactory{
             }
             for (partner Partner : partners
                     ) {
+                Map<String ,String> PartnerToServer=new HashMap<String, String>();
+                PartnerToServer.put("receiver",Profile.PROFILENAME);
+                PartnerToServer.put("protocol","AS2");
+
+                PartnerToServer.put("blobContainer",_serverSettings.getBlobContainerName());
+                PartnerToServer.put("MaxFileSize_Queue",String.valueOf( _serverSettings.getMaxFileSize()));
+
+                PartnerToServer.put("mdnsubject","Your requested MDN response from $receiver.as2_id$");
+                PartnerToServer.put("as2_mdn_to",companyPartner.getEmailAddress());
+                PartnerToServer.put("prevent_canonicalization_for_mic","false");
+                PartnerToServer.put("no_set_transfer_encoding_for_signing","false");
+                PartnerToServer.put("rename_digest_to_old_name","false");
+                PartnerToServer.put("emove_cms_algorithm_protection_attrib","false");
                 PartnerToServer.put("Inqueue",Partner.getIncomingQueue());
                 PartnerToServer.put("Outqueue",Partner.getOutgoingQueue());
                 PartnerToServer.put("SentQueue",Partner.getSentQueue());
@@ -272,18 +274,7 @@ public class XMLPartnershipFactory extends BasePartnershipFactory{
 
             loadPartner(newPartners, companyPartner);
 
-            Map<String ,String> PartnerToServer=new HashMap<String, String>();
-            PartnerToServer.put("receiver",Profile.PROFILENAME);
-            PartnerToServer.put("protocol","AS2");
 
-            PartnerToServer.put("blobContainer",_serverSettings.getBlobContainerName());
-            PartnerToServer.put("MaxFileSize_Queue",String.valueOf( _serverSettings.getMaxFileSize()));
-            PartnerToServer.put("mdnsubject","Your requested MDN response from $receiver.as2_id$");
-            PartnerToServer.put("as2_mdn_to",companyPartner.getEmailAddress());
-            PartnerToServer.put("prevent_canonicalization_for_mic","false");
-            PartnerToServer.put("no_set_transfer_encoding_for_signing","false");
-            PartnerToServer.put("rename_digest_to_old_name","false");
-            PartnerToServer.put("emove_cms_algorithm_protection_attrib","false");
 
 
             for (partner Partner : partners
@@ -296,6 +287,18 @@ public class XMLPartnershipFactory extends BasePartnershipFactory{
             }
             for (partner Partner : partners
                     ) {
+                Map<String ,String> PartnerToServer=new HashMap<String, String>();
+                PartnerToServer.put("receiver",Profile.PROFILENAME);
+                PartnerToServer.put("protocol","AS2");
+
+                PartnerToServer.put("blobContainer",_serverSettings.getBlobContainerName());
+                PartnerToServer.put("MaxFileSize_Queue",String.valueOf( _serverSettings.getMaxFileSize()));
+                PartnerToServer.put("mdnsubject","Your requested MDN response from $receiver.as2_id$");
+                PartnerToServer.put("as2_mdn_to",companyPartner.getEmailAddress());
+                PartnerToServer.put("prevent_canonicalization_for_mic","false");
+                PartnerToServer.put("no_set_transfer_encoding_for_signing","false");
+                PartnerToServer.put("rename_digest_to_old_name","false");
+                PartnerToServer.put("emove_cms_algorithm_protection_attrib","false");
                 PartnerToServer.put("Inqueue",Partner.getIncomingQueue());
                 PartnerToServer.put("Outqueue",Partner.getOutgoingQueue());
                 PartnerToServer.put("SentQueue",Partner.getSentQueue());

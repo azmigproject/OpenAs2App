@@ -383,6 +383,9 @@ public class XMLSession extends BaseSession {
 
          //TODO ADD UPDATES TO PASS PARTNER DATA FROM partnerList
 
+        LOGGER.info("CompanyProfileInfo"+companyProfile.getAS2Idenitfier()+",Public Certificate"+ companyProfile.getPublicCertificate()+",Private Certificate"+companyProfile.getPrivateCertificate());
+        LOGGER.info("Total Profile count"+ profileList.size());
+
         XMLPartnershipFactory partnerFx = (XMLPartnershipFactory) XMLUtil
                 .getPartnerShipComponent("org.openas2.partner.XMLPartnershipFactory",parameters, partnerList,companyProfile,profileList,serverSetting,this);
 

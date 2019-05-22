@@ -338,7 +338,6 @@ public class AS2SenderModule extends HttpSenderModule {
                             }
 
                             logger.error(msg, e);
-                            //logger.error(msg);
                         }
                         /*
                          * Most likely a resend abort of max resend reached if
@@ -350,7 +349,7 @@ public class AS2SenderModule extends HttpSenderModule {
                             // Must have received MDN successfully
                             msg.setLogMsg("Exception receiving synchronous MDN. Message and asociated files cleanup will be attempted but may be in an unknown state.");
                             logger.error(msg, e);
-                            //logger.error(msg);
+
                         }
                         // Log significant msg state
                         msg.setOption("STATE", Message.MSG_STATE_SEND_FAIL);
@@ -558,35 +557,9 @@ public class AS2SenderModule extends HttpSenderModule {
                 logger.error("Error closing messageIn **** " + msg.getLogMsgID() + " - "+ioe2.getMessage());
             }
         }
-        // Check the HTTP Response code
-        //        int rc = 0;
-        //        try
-        //        {
-        //        	logger.info("Get Send Response Code Stage 1 **** " + msg.getLogMsgID() );
-        //        	rc = conn.getResponseCode();
-        //            logger.info("Get Send Response Code Stage 2 **** " + msg.getLogMsgID() );
-        //
-        //        logger.info("REVIEW message response Code. URL: " + conn.getURL().toString() + " ::: Response Code: " + rc
-        //                + " ::: Response Message: " + conn.getResponseMessage() + " - "+msg.getLogMsgID());
-        //        }catch(Exception re)
-        //        {
-        //        	logger.info("Error Receiving Send Response Code **** " + msg.getLogMsgID() + " - "+re.getMessage());
-        //        	throw re;
-        //        }
-        //
-        //        if ((rc != HttpURLConnection.HTTP_OK) && (rc != HttpURLConnection.HTTP_CREATED)
-        //                && (rc != HttpURLConnection.HTTP_ACCEPTED) && (rc != HttpURLConnection.HTTP_PARTIAL)
-        //                && (rc != HttpURLConnection.HTTP_NO_CONTENT))
-        //        {
-        //            msg.setLogMsg("Error sending message. URL: " + conn.getURL().toString() + " ::: Response Code: " + rc
-        //                    + " ::: Response Message: " + conn.getResponseMessage());
-        //            logger.error(msg);
-        //            throw new HttpResponseException(conn.getURL().toString(), rc, conn.getResponseMessage());
-        //        }
+        
         logger.info("AS2 Sending is complete **** For File"+msg.getPayloadFilename()+" MessageID=" + msg.getLogMsgID());
     }
-
-
 
 
     private void resend(Message msg, OpenAS2Exception cause, String tries) throws OpenAS2Exception
@@ -686,6 +659,8 @@ public class AS2SenderModule extends HttpSenderModule {
             }
             calcAndStoreMic(msg, dataBP, (sign || encrypt));
             X509Certificate senderCert = certFx.getCertificate(msg, Partnership.PTYPE_SENDER);
+            logger.info("CertNo"+senderCert.getSerialNumber());
+            logger.info(senderCert.getSerialNumber());
 
             PrivateKey senderKey = certFx.getPrivateKey(msg, senderCert);
             String digest = partnership.getAttribute(SecurePartnership.PA_SIGN);

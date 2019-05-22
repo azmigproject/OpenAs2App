@@ -50,16 +50,18 @@ public class PKCS12CertificateFactory extends BaseCertificateFactory implements
         if (partnershipType == Partnership.PTYPE_RECEIVER)
         {
             alias = partnership.getReceiverID(SecurePartnership.PID_X509_ALIAS);
+            logger.info("Alias foud for receiver is "+alias);
         } else if (partnershipType == Partnership.PTYPE_SENDER)
         {
             alias = partnership.getSenderID(SecurePartnership.PID_X509_ALIAS);
+            logger.info("Alias foud for sender is "+alias);
         }
 
         if (alias == null)
         {
             throw new CertificateNotFoundException(partnershipType, null);
         }
-        //logger.info("Alias from getAlias method in12" +alias);
+
         return alias;
     }
 
@@ -69,7 +71,7 @@ public class PKCS12CertificateFactory extends BaseCertificateFactory implements
         {
             KeyStore ks = getKeyStore();
             X509Certificate cert = (X509Certificate) ks.getCertificate(alias);
-
+            logger.info("Cert for alias"+alias+" is " +cert);
             if (cert == null)
             {
                 throw new CertificateNotFoundException(null, alias);
