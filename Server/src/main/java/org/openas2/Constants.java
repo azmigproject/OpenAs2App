@@ -7,6 +7,7 @@ import org.json.JSONArray;
 import org.openas2.lib.dbUtils.Profile;
 import org.openas2.lib.dbUtils.partner;
 import org.openas2.message.Message;
+import org.openas2.message.MessageMDN;
 import org.openas2.partner.AS2Partnership;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,40 +36,127 @@ public class Constants {
         return ticks+ instant.getMillis() / 1000;
     }
 
-    public static void UpdateMsgSenderPartnership(Message msg, String passedAS2ID)
+    public static void UpdateMsgSenderPartnership(Message msg, String passedAS2ID, boolean IsMsgSendingFromProfile)
+
     {
         Log logger = LogFactory.getLog(Constants.class.getSimpleName());
         if (logger.isInfoEnabled())
             logger.info("passed AS2ID: " + passedAS2ID);
+     if(!Constants.MainProfile.getAS2Idenitfier().trim().equalsIgnoreCase(passedAS2ID.trim())) {
+         if (msg != null) {
+             Profile profile = null;
+             for (int count = 0; count < Constants.AllProfiles.size(); count++) {
+                 profile = Constants.AllProfiles.get(count);
+                 String strProfile = profile.getAS2Idenitfier().trim();
+                 if (strProfile.equalsIgnoreCase(passedAS2ID.trim())) {
+                     // profile=Constants.AllProfiles.get(count);
+                     logger.info("passed AS2ID found in profile: " + profile.getAS2Idenitfier() + "from given profile");
+                     break;
+                 } else {
+                     logger.info("passed AS2ID not found in profile with id:" + profile.getAS2Idenitfier());
 
-        if(msg!=null)
-        {
-            Profile profile=null;
-            for(int count=0;count<Constants.AllProfiles.size();count++)
-            {
-                if(Constants.AllProfiles.get(count).getAS2Idenitfier()==passedAS2ID)
-                {
-                    profile=Constants.AllProfiles.get(count);
-                    break;
+                     profile = null;
+                 }
+
+             }
+
+             if (profile != null) {
+                 logger.info("Profile found for passedAs2Id");
+                 if (logger.isInfoEnabled()) {
+                     logger.info("passed AS2ID: " + profile.getAS2Idenitfier());
+                     logger.info("passed email ID: " + profile.getEmailAddress());
+                 }
+                 if (IsMsgSendingFromProfile) {
+                     //In-Outgoing Case
+                     msg.getPartnership().setSenderID(AS2Partnership.PID_AS2, profile.getAS2Idenitfier());
+                     msg.getPartnership().setAttribute("as2_mdn_to", profile.getEmailAddress());
+                     msg.setHeader("AS2-From", profile.getAS2Idenitfier());
+
+                 } else {
+                     //In-Incoming Case
+
+                     msg.getPartnership().setReceiverID(AS2Partnership.PID_AS2, profile.getAS2Idenitfier());
+                     msg.getPartnership().setAttribute("as2_mdn_to", profile.getEmailAddress());
+                     msg.setHeader("AS2-To", profile.getAS2Idenitfier());
+                 }
+                 if (logger.isInfoEnabled()) {
+                     logger.info("sender Id in message is : " + msg.getPartnership().getSenderID(AS2Partnership.PID_AS2));
+                     logger.info("as2_mdn_to " + msg.getPartnership().getAttribute("as2_mdn_to"));
+                 }
+             } else {
+                 logger.info("Profile not Found checking list of profile available");
+                 for (int count = 0; count < Constants.AllProfiles.size(); count++) {
+                     profile = Constants.AllProfiles.get(count);
+                     logger.info("profile found as  " + profile.getAS2Idenitfier());
+
+
+                 }
+             }
+         }
+     }
+    }
+
+
+    public static void UpdateMsgSenderPartnership(MessageMDN msg, String passedAS2ID, boolean IsMsgSendingFromProfile)
+
+    {
+        Log logger = LogFactory.getLog(Constants.class.getSimpleName());
+        if (logger.isInfoEnabled())
+            logger.info("passed AS2ID: " + passedAS2ID);
+        if(!Constants.MainProfile.getAS2Idenitfier().trim().equalsIgnoreCase(passedAS2ID.trim())) {
+            if (msg != null) {
+                Profile profile = null;
+                for (int count = 0; count < Constants.AllProfiles.size(); count++) {
+                    profile = Constants.AllProfiles.get(count);
+                    String strProfile = profile.getAS2Idenitfier().trim();
+                    if (strProfile.equalsIgnoreCase(passedAS2ID.trim())) {
+                        // profile=Constants.AllProfiles.get(count);
+                        logger.info("passed AS2ID found in profile: " + profile.getAS2Idenitfier() + "from given profile");
+                        break;
+                    } else {
+                        logger.info("passed AS2ID not found in profile with id:" + profile.getAS2Idenitfier());
+
+                        profile = null;
+                    }
+
                 }
-            }
 
-            if(profile!=null)
-            {
-                if (logger.isInfoEnabled()) {
-                    logger.info("passed AS2ID: " + profile.getAS2Idenitfier());
-                    logger.info("passed email ID: " + profile.getEmailAddress());
-                }
-                msg.getPartnership().setSenderID(AS2Partnership.PID_AS2,profile.getAS2Idenitfier());
-                msg.getPartnership().setAttribute("as2_mdn_to",profile.getEmailAddress());
+                if (profile != null) {
+                    logger.info("Profile found for passedAs2Id");
+                    if (logger.isInfoEnabled()) {
+                        logger.info("passed AS2ID: " + profile.getAS2Idenitfier());
+                        logger.info("passed email ID: " + profile.getEmailAddress());
+                    }
+                    if (IsMsgSendingFromProfile) {
+                        //In-Outgoing Case
+                        msg.getPartnership().setSenderID(AS2Partnership.PID_AS2, profile.getAS2Idenitfier());
+                        msg.getPartnership().setAttribute("as2_mdn_to", profile.getEmailAddress());
+                        msg.setHeader("AS2-From", profile.getAS2Idenitfier());
 
-                if (logger.isInfoEnabled()) {
-                    logger.info("sender Id in message is : " + msg.getPartnership().getSenderID(AS2Partnership.PID_AS2));
-                    logger.info("as2_mdn_to " + msg.getPartnership().getAttribute("as2_mdn_to"));
+                    } else {
+                        //In-Incoming Case
+
+                        msg.getPartnership().setReceiverID(AS2Partnership.PID_AS2, profile.getAS2Idenitfier());
+                        msg.getPartnership().setAttribute("as2_mdn_to", profile.getEmailAddress());
+                        msg.setHeader("AS2-To", profile.getAS2Idenitfier());
+                    }
+                    if (logger.isInfoEnabled()) {
+                        logger.info("sender Id in message is : " + msg.getPartnership().getSenderID(AS2Partnership.PID_AS2));
+                        logger.info("as2_mdn_to " + msg.getPartnership().getAttribute("as2_mdn_to"));
+                    }
+                } else {
+                    logger.info("Profile not Found checking list of profile available");
+                    for (int count = 0; count < Constants.AllProfiles.size(); count++) {
+                        profile = Constants.AllProfiles.get(count);
+                        logger.info("profile found as  " + profile.getAS2Idenitfier());
+
+
+                    }
                 }
             }
         }
     }
+
 
     public static String getNetTicks()
     {

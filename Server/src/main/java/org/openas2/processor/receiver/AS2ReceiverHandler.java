@@ -233,7 +233,7 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 
 						getModule().getSession().getPartnershipFactory().updatePartnership(msg, false);
 						//To do write function to update the recevier Id options with given As2_to
-						Constants.UpdateMsgSenderPartnership(msg,msg.getHeader("AS2-From"));
+						Constants.UpdateMsgSenderPartnership(msg,msg.getHeader("AS2-To"),false);
 					} catch (OpenAS2Exception oae) {
 						partnershipFound = false;
 						System.out.println(AS2ReceiverModule.DISP_PARTNERSHIP_NOT_FOUND);

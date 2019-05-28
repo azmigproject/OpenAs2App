@@ -223,7 +223,7 @@ public abstract class MessageBuilderModule extends BaseReceiverModule {
 			} catch (Exception e){}
 		try
 		{
-			Constants.UpdateMsgSenderPartnership(msg,AssosiatedAs2Id);
+			Constants.UpdateMsgSenderPartnership(msg,AssosiatedAs2Id,true);
 			msg.setStatus(Message.MSG_STATUS_MSG_SEND);
 			// Transmit the message
 			getSession().getProcessor().handle(SenderModule.DO_SEND, msg, options);

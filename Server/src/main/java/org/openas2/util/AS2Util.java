@@ -26,6 +26,7 @@ import javax.mail.internet.ParseException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.openas2.Constants;
 import org.openas2.DispositionException;
 import org.openas2.OpenAS2Exception;
 import org.openas2.Session;
@@ -109,10 +110,9 @@ public class AS2Util {
        System.out.print ("Message Status = "+msg.getOption("STATE"));
         if(msg.getOption("STATE") != "Partnership Not Found!")
         {
-	        mdn.getPartnership().setSenderID(AS2Partnership.PID_AS2, mdn.getHeader("AS2-From"));
-	        mdn.getPartnership().setReceiverID(AS2Partnership.PID_AS2, mdn.getHeader("AS2-To"));
-	        session.getPartnershipFactory().updatePartnership(mdn, true);
-	        
+	        //mdn.getPartnership().setSenderID(AS2Partnership.PID_AS2, mdn.getHeader("AS2-From"));
+
+
 	        mdn.setHeader("From", msg.getPartnership().getReceiverID(Partnership.PID_EMAIL));
 	        subject = mdn.getPartnership().getAttribute(ASXPartnership.PA_MDN_SUBJECT);
         }
@@ -610,8 +610,11 @@ public class AS2Util {
 		if (logger.isTraceEnabled()) logger.trace("HTTP headers in received MDN: " + AS2Util.printHeaders(mdn.getHeaders().getAllHeaders()));
 		// get the MDN partnership info
 		mdn.getPartnership().setSenderID(AS2Partnership.PID_AS2, mdn.getHeader("AS2-From"));
-		mdn.getPartnership().setReceiverID(AS2Partnership.PID_AS2, mdn.getHeader("AS2-To"));
+		//mdn.getPartnership().setReceiverID(AS2Partnership.PID_AS2, mdn.getHeader("AS2-To"));
+		mdn.getPartnership().setReceiverID(AS2Partnership.PID_AS2,Constants.MainProfile.getAS2Idenitfier());
+
 		session.getPartnershipFactory().updatePartnership(mdn, false);
+		Constants.UpdateMsgSenderPartnership(mdn, mdn.getHeader("AS2-To"), false);
 
 		MimeBodyPart part;
 		try
