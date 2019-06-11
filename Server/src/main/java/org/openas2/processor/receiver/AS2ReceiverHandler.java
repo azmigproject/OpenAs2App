@@ -514,7 +514,7 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 			// Log Request in blob
 			BlobHelper blobHelper = new BlobHelper();
 			try {
-				blobHelper.UploadFileInBlob((msg!=null && msg.getPartnership()!=null)?msg.getPartnership().getAttribute("blobContainer"):Constants.BLOBCONTAINER, (msg!=null)?msg.getMessageID().replace("<","").replace(">","").trim():DateTime.now().millisOfSecond() + ".req", ReqBulider.toString().getBytes());
+				blobHelper.UploadFileInBlob((msg!=null && msg.getPartnership()!=null)?msg.getPartnership().getAttribute("blobContainer"):Constants.BLOBCONTAINER, ((msg!=null)?msg.getMessageID().replace("<","").replace(">","").trim():DateTime.now().millisOfSecond()) + ".req", ReqBulider.toString().getBytes());
 				//if(logger.isDebugEnabled())
 					logger.info("LogHttpHeadersInBlob 6 upload content in blob "+((msg!=null)? msg.getMessageID().replace("<","").replace(">","").trim():DateTime.now().millisOfSecond()) + ".req in container "+((msg!=null && msg.getPartnership()!=null)?msg.getPartnership().getAttribute("blobContainer"):Constants.BLOBCONTAINER));
 			} catch (Exception exp) {
@@ -726,9 +726,10 @@ public class AS2ReceiverHandler implements NetModuleHandler {
 
         if (!mdnBlocked) {
             try {
-            	
+				logger.info("Before creating MDN disposition="+msg.getHeader("Disposition-Notification-Options"));
             	MessageMDN mdn = AS2Util.createMDN(getModule().getSession(), msg, mic, disposition, text);
-
+				logger.info("After Creating MDN disposition="+msg.getHeader("Disposition-Notification-Options"));
+				logger.info("mdn.partnerShips.RecieverId="+ ((mdn.getPartnership()!=null)?mdn.getPartnership().getReceiverID("x509_alias"):"No mdn Partnership"));
                 //if asyncMDN requested... 
                 if (msg.isRequestingAsynchMDN() ) {
                     HTTPUtil.sendHTTPResponse(out, HttpURLConnection.HTTP_OK, false);

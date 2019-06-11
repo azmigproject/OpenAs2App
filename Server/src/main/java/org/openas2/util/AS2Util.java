@@ -94,7 +94,7 @@ public class AS2Util {
 
     public static MessageMDN createMDN(Session session, AS2Message msg, String mic,
             DispositionType disposition, String text) throws Exception {
-
+        Log logger = LogFactory.getLog(AS2Util.class.getSimpleName());
     	AS2MessageMDN mdn = new AS2MessageMDN(msg, false);
         
         mdn.setHeader("AS2-Version", "1.1");
@@ -133,8 +133,8 @@ public class AS2Util {
         mdn.setAttribute(AS2MessageMDN.MDNA_DISPOSITION, disposition.toString());
 
         DispositionOptions dispOptions = new DispositionOptions(msg
-                .getHeader("Disposition-Notification-Options"));
-
+				.getHeader("Disposition-Notification-Options"));
+        logger.info("Disposition are:Micalg="+dispOptions.getMicalg()+"and Protocol="+dispOptions.getProtocol());
         mdn.setAttribute(AS2MessageMDN.MDNA_MIC, mic);
         createMDNData(session, mdn, dispOptions.getMicalg(), dispOptions.getProtocol());
 
@@ -197,12 +197,12 @@ public class AS2Util {
 
             try {
             	// The receiver of the original message is the sender of the MDN....
-            	if((mdn.getPartnership().getReceiverID(SecurePartnership.PID_X509_ALIAS) != null) && (mdn.getPartnership().getReceiverID(SecurePartnership.PID_X509_ALIAS) != null))
+            	if((mdn.getMessage().getPartnership().getReceiverID(SecurePartnership.PID_X509_ALIAS) != null) && (mdn.getMessage().getPartnership().getReceiverID(SecurePartnership.PID_X509_ALIAS) != null))
             	{	
-	            	X509Certificate senderCert = certFx.getCertificate(mdn,
+	            	X509Certificate senderCert = certFx.getCertificate(mdn.getMessage(),
 	                        Partnership.PTYPE_RECEIVER);                
-	                PrivateKey senderKey = certFx.getPrivateKey(mdn, senderCert);
-	        		Partnership p = mdn.getPartnership();
+	                PrivateKey senderKey = certFx.getPrivateKey(mdn.getMessage(), senderCert);
+	        		Partnership p = mdn.getMessage().getPartnership();
 	                String contentTxfrEncoding =  p.getAttribute(Partnership.PA_CONTENT_TRANSFER_ENCODING);
 	                boolean isRemoveCmsAlgorithmProtectionAttr = "true".equalsIgnoreCase(p.getAttribute(Partnership.PA_REMOVE_PROTECTION_ATTRIB));
 	        		if (contentTxfrEncoding == null)
