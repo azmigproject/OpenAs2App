@@ -158,6 +158,18 @@ public class partner {
     public void setPublicCertificate(String publicCertificate) {
         this._publicCertificate = publicCertificate;
     }
+    public String getSigningCertificate() {
+        return _signingCertificate;
+    }
+    public void setSigningCertificate(String signingCertificate) {
+        this._signingCertificate = signingCertificate;
+    }
+    public String getSSLCertificate() {
+        return _sslCertificate;
+    }
+    public void setSSLCertificate(String sslCertificate) {
+        this._sslCertificate = sslCertificate;
+    }
     public String getEmailAddress() {
         return _emailAddress;
     }
@@ -310,6 +322,8 @@ public class partner {
     private String _inErrorQueue;
     private String _emailAddress;
     private String _publicCertificate;
+    private String _signingCertificate;
+    private String _sslCertificate;
     private String _signatureAlgorithm;
     private String _encryptionAlgorithm;
     private String _blobFoldername;

@@ -1,8 +1,5 @@
 package org.openas2.processor.receiver;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -246,6 +243,7 @@ public abstract class NetModule extends BaseReceiverModule {
                     logger.error("Failed to initialise SSL keystore.", e);
                     throw new IOException("Error initialising SSL keystore");
                 }
+
                 try
                 {
                     ks.load(new FileInputStream(ksName), ksPass);
@@ -288,20 +286,28 @@ public abstract class NetModule extends BaseReceiverModule {
                 }*/
 				
 				 // Create a trust manager that does not validate certificate chains
-                TrustManager[] trustAllCerts = new TrustManager[] {
-                        new X509TrustManager() {
-                            public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-                                return new java.security.cert.X509Certificate[0];
+
+                TrustManager[] trustAllCerts=this.getLocalTrustManager();
+
+                if(trustAllCerts==null) {
+                    logger.info("unable to get local trust manager setting default trust manager");
+                    trustAllCerts = new TrustManager[]{
+                            new X509TrustManager() {
+                                public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                                    return new java.security.cert.X509Certificate[0];
+                                }
+
+                                public void checkClientTrusted(
+                                        java.security.cert.X509Certificate[] certs, String authType) {
+                                }
+
+                                public void checkServerTrusted(
+                                        java.security.cert.X509Certificate[] certs, String authType) {
+                                }
                             }
-                            public void checkClientTrusted(
-                                    java.security.cert.X509Certificate[] certs, String authType) {
-                            }
-                            public void checkServerTrusted(
-                                    java.security.cert.X509Certificate[] certs, String authType) {
-                            }
-                        }
-                };
-				
+                    };
+
+                }
 				
                 SSLContext sc;
                 try
@@ -339,6 +345,32 @@ public abstract class NetModule extends BaseReceiverModule {
                 {
                     socket.bind(new InetSocketAddress(port));
                 }
+            }
+        }
+
+        public  TrustManager[] getLocalTrustManager()  {
+
+            try {
+                String strfilename = this.owner.getSession().getCertificateFactory().getParameters().get("filename");
+                String strPassword = this.owner.getSession().getCertificateFactory().getParameters().get("password");
+                TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("X509");
+               // KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
+                KeyStore keystore = KeyStore.getInstance("PKCS12");
+                FileInputStream fin = new FileInputStream(strfilename);
+                //InputStream keystoreStream = HTTPServerThread.class.getResourceAsStream(strfilename);
+               // keystore.load(keystoreStream, strPassword.toCharArray());
+                keystore.load(fin, strPassword.toCharArray());
+                fin.close();
+                trustManagerFactory.init(keystore);
+                TrustManager[] trustManagers = trustManagerFactory.getTrustManagers();
+                logger.info("successfully loaded the certificate information for trust manager");
+                return trustManagers;
+            }
+            catch (Exception exp)
+            {
+                logger.info("unable to load ssl store  Error is"+exp.getMessage());
+                logger.info(exp);
+                return null;
             }
         }
 

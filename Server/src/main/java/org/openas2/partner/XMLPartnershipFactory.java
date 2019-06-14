@@ -464,6 +464,8 @@ public class XMLPartnershipFactory extends BasePartnershipFactory{
         newPartner.put("name",Partner.getPartnerName());
         newPartner.put("as2_id",Partner.getAS2Identifier());
         newPartner.put("x509_alias",Partner.getPublicCertificate());
+        newPartner.put("x509_sign_alias",Partner.getSigningCertificate());
+        newPartner.put("x509_ssl_alias",Partner.getSSLCertificate());
         newPartner.put("email",Partner.getEmailAddress());
         newPartner=XMLUtil.mapAttributes(newPartner, requiredAttributes);
 

@@ -624,7 +624,7 @@ public class AS2ReceiverHandler implements NetModuleHandler {
             	msg.setRxdMsgWasSigned(true);
             	if (logger.isDebugEnabled()) logger.debug("verifying signature"+msg.getLogMsgID());
 
-                X509Certificate senderCert = certFx.getCertificate(msg, Partnership.PTYPE_SENDER);
+                X509Certificate senderCert = certFx.getSigningCertificate(msg, Partnership.PTYPE_SENDER);
                 msg.setData(AS2Util.getCryptoHelper().verifySignature(msg.getData(), senderCert));
 				if (logger.isTraceEnabled() && "true".equalsIgnoreCase(System.getProperty("logRxdMsgMimeBodyParts", "false")))
 				{

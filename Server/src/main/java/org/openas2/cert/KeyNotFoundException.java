@@ -12,11 +12,11 @@ public class KeyNotFoundException extends OpenAS2Exception {
 	private static final long serialVersionUID = 1L;
 
 	public KeyNotFoundException(X509Certificate cert, String alias) {
-		super("Key Not Found For Certificate: Alias: " + alias +",Cert :" + cert );
+		super("Key Not Found For Certificate: Alias: " + alias +",Cert :"  +cert.getIssuerDN()+","+cert.getSigAlgName()+","+cert.getSubjectDN() );
 	}
 	
 	public KeyNotFoundException(X509Certificate cert, String alias, Throwable cause) {
-		super("Key Not Found For Certificate: Alias: " + alias +",Cert :" + cert);
+		super("Key Not Found For Certificate: Alias: " + alias +",Cert :" +cert.getIssuerDN()+","+cert.getSigAlgName()+","+cert.getSubjectDN());
 		initCause(cause);
 	}
 }

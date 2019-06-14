@@ -632,7 +632,7 @@ public class AS2Util {
 		}
 
 		CertificateFactory cFx = session.getCertificateFactory();
-		X509Certificate senderCert = cFx.getCertificate(mdn, Partnership.PTYPE_RECEIVER);
+		X509Certificate senderCert = cFx.getSigningCertificate(mdn, Partnership.PTYPE_RECEIVER);
 
 		msg.setStatus(Message.MSG_STATUS_MDN_PARSE);
 

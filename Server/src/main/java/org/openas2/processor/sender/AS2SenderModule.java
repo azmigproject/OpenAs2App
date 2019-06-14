@@ -658,6 +658,7 @@ public class AS2SenderModule extends HttpSenderModule {
                 addCustomOuterMimeHeaders(msg, dataBP);
             }
             calcAndStoreMic(msg, dataBP, (sign || encrypt));
+            logger.info("In process signing data.finding the cert for message="+msg.getMessageID()+" and  partner ship is "+msg.getPartnership());
             X509Certificate senderCert = certFx.getCertificate(msg, Partnership.PTYPE_SENDER);
             logger.info("CertNo"+senderCert.getSerialNumber());
             logger.info(senderCert.getSerialNumber());

@@ -12,7 +12,9 @@ public interface CertificateFactory extends Component {
 	public static final String COMPID_CERTIFICATE_FACTORY = "certificatefactory";
 	
 	public X509Certificate getCertificate(Message msg, String partnershipType) throws OpenAS2Exception;
+	public X509Certificate getSigningCertificate(Message msg, String partnershipType) throws OpenAS2Exception;
 	public PrivateKey getPrivateKey(Message msg, X509Certificate cert) throws OpenAS2Exception;
 	public X509Certificate getCertificate(MessageMDN msg, String partnershipType) throws OpenAS2Exception;
+	public X509Certificate getSigningCertificate(MessageMDN msg, String partnershipType) throws OpenAS2Exception;
 	public PrivateKey getPrivateKey(MessageMDN msg, X509Certificate cert) throws OpenAS2Exception;
 }

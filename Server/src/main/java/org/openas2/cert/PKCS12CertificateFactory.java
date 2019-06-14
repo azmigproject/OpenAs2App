@@ -65,13 +65,38 @@ public class PKCS12CertificateFactory extends BaseCertificateFactory implements
         return alias;
     }
 
+
+    public String getSigningAlias(Partnership partnership, String partnershipType) throws OpenAS2Exception
+    {
+        String alias = null;
+
+        if (partnershipType == Partnership.PTYPE_RECEIVER)
+        {
+            alias = partnership.getReceiverID(SecurePartnership.PID_X509_SignALIAS);
+            logger.info("Signing Alias foud for receiver is "+alias);
+        } else if (partnershipType == Partnership.PTYPE_SENDER)
+        {
+            alias = partnership.getSenderID(SecurePartnership.PID_X509_SignALIAS);
+            logger.info("Signing Alias foud for sender is "+alias);
+        }
+
+        if (alias == null)
+        {
+
+
+            alias=getAlias(partnership, partnershipType);
+        }
+
+        return alias;
+    }
+
     public X509Certificate getCertificate(String alias) throws OpenAS2Exception
     {
         try
         {
             KeyStore ks = getKeyStore();
             X509Certificate cert = (X509Certificate) ks.getCertificate(alias);
-            logger.info("Cert for alias"+alias+" is " +cert);
+            logger.info("Cert for alias"+alias+" is " +cert.getIssuerDN()+","+cert.getSigAlgName()+","+cert.getSubjectDN());
             if (cert == null)
             {
                 throw new CertificateNotFoundException(null, alias);
@@ -89,7 +114,22 @@ public class PKCS12CertificateFactory extends BaseCertificateFactory implements
     {
         try
         {
+            logger.info("In getCertificate with MessageID="+msg.getMessageID()+" and partnershipType="+partnershipType);
             return getCertificate(getAlias(msg.getPartnership(), partnershipType));
+        } catch (CertificateNotFoundException cnfe)
+        {
+            cnfe.setPartnershipType(partnershipType);
+            throw cnfe;
+        }
+    }
+
+    public X509Certificate getSigningCertificate(Message msg, String partnershipType)
+            throws OpenAS2Exception
+    {
+        try
+        {
+            logger.info("In getSigningCertificate with MessageID="+msg.getMessageID()+" and partnershipType="+partnershipType);
+            return getCertificate(getSigningAlias(msg.getPartnership(), partnershipType));
         } catch (CertificateNotFoundException cnfe)
         {
             cnfe.setPartnershipType(partnershipType);
@@ -102,7 +142,22 @@ public class PKCS12CertificateFactory extends BaseCertificateFactory implements
     {
         try
         {
+            logger.info("In getCertificate with MessageMDN="+mdn.getMessageID()+" and partnershipType="+partnershipType);
             return getCertificate(getAlias(mdn.getPartnership(), partnershipType));
+        } catch (CertificateNotFoundException cnfe)
+        {
+            cnfe.setPartnershipType(partnershipType);
+            throw cnfe;
+        }
+    }
+
+    public X509Certificate getSigningCertificate(MessageMDN mdn, String partnershipType)
+            throws OpenAS2Exception
+    {
+        try
+        {
+            logger.info("In getSigningCertificate with MessageMDN="+mdn.getMessageID()+" and partnershipType="+partnershipType);
+            return getCertificate(getSigningAlias(mdn.getPartnership(), partnershipType));
         } catch (CertificateNotFoundException cnfe)
         {
             cnfe.setPartnershipType(partnershipType);
@@ -177,6 +232,7 @@ public class PKCS12CertificateFactory extends BaseCertificateFactory implements
         try
         {
             alias = ks.getCertificateAlias(cert);
+            logger.info("Alias found="+alias +"for cert"+cert.getSubjectDN()+","+cert.getIssuerDN());
 
             if (alias == null)
             {
@@ -199,6 +255,7 @@ public class PKCS12CertificateFactory extends BaseCertificateFactory implements
 
     public PrivateKey getPrivateKey(Message msg, X509Certificate cert) throws OpenAS2Exception
     {
+        logger.info("MSG Passed is"+msg.getMessageID()+" and cert is "+cert.getSubjectDN()+","+cert.getSignature() );
         return getPrivateKey(cert);
     }
 

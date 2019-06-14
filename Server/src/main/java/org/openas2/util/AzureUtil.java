@@ -465,6 +465,16 @@ private partner GetPartnerFromDocument(Document doc)
         }
 
     }
+    partnerInfp.setSigningCertificate("");
+    partnerInfp.setSSLCertificate("");
+    if(objJSON.has("SigningCertificate") && !objJSON.isNull("SigningCertificate"))
+    {
+        partnerInfp. setSigningCertificate(objJSON.getString("SigningCertificate"));
+    }
+    if(objJSON.has("SSLCertificate") && !objJSON.isNull("SSLCertificate"))
+    {
+        partnerInfp.setSSLCertificate(objJSON.getString("SSLCertificate"));
+    }
     partnerInfp.SetSSLEnabledProtocolsSSLv2(objJSON.getBoolean("SSLEnabledProtocolsSSLv2"));
     partnerInfp.SetSSLEnabledProtocolsSSLv3(objJSON.getBoolean("SSLEnabledProtocolsSSLv3"));
     partnerInfp.SetSSLEnabledProtocolsTLSv1(objJSON.getBoolean("SSLEnabledProtocolsTLSv1"));
