@@ -364,6 +364,7 @@ public class AzureUtil {
         queryOptions.setPageSize(-1);
         queryOptions.setEnableCrossPartitionQuery(true);
         List<partner> partnerlist=new ArrayList<partner>();
+        List<String> certList=new ArrayList<String>();
 
         String collectionLink = String.format("/dbs/%s/colls/%s", COSMOS_DB_NAME, PARTNER_TABLE_NAME);
         FeedResponse<Document> queryResults = this.documentClient.queryDocuments(collectionLink,
@@ -374,8 +375,29 @@ public class AzureUtil {
 
 
             partnerlist.add(partnerInfp);
+            if(partnerInfp.getIsActive())
+            {
+                if(!certList.contains(partnerInfp.getPublicCertificate()))
+                {
+                    certList.add(partnerInfp.getPublicCertificate());
+                }
+                if(!certList.contains(partnerInfp.getSigningCertificate()))
+                {
+                    certList.add(partnerInfp.getSigningCertificate());
+                }
+                if(!certList.contains(partnerInfp.getSSLCertificate()))
+                {
+                    certList.add(partnerInfp.getSSLCertificate());
+                }
+                if(!certList.contains(partnerInfp.getSSLClientPrivateCertificate()))
+                {
+                    certList.add(partnerInfp.getSSLClientPrivateCertificate());
+                }
+
+            }
         }
         Constants.CURRENTPARTNERLIST=partnerlist;
+        Constants.ACTIVEPARTNERCERTALIAS=certList;
         return partnerlist;
     }
 
@@ -467,6 +489,37 @@ private partner GetPartnerFromDocument(Document doc)
     }
     partnerInfp.setSigningCertificate("");
     partnerInfp.setSSLCertificate("");
+    partnerInfp.setCertificatePassword("");
+    partnerInfp.setSSLClientPrivateCertificate("");
+    partnerInfp.setHttpAuthenticationType("");
+    partnerInfp.setIsAllowHttpAuthentication(false);
+    partnerInfp.setHttpAuthUserName("");
+    partnerInfp.setHttpAuthPwd("");
+    if(objJSON.has("IsAllowHttpAuthentication") && !objJSON.isNull("IsAllowHttpAuthentication"))
+    {
+        partnerInfp. setIsAllowHttpAuthentication(objJSON.getBoolean("IsAllowHttpAuthentication"));
+    }
+    if(objJSON.has("httpAuthenticationType") && !objJSON.isNull("httpAuthenticationType"))
+    {
+        partnerInfp. setHttpAuthenticationType(objJSON.getString("httpAuthenticationType"));
+    }
+    if(objJSON.has("httpAuthUserName") && !objJSON.isNull("httpAuthUserName"))
+    {
+        partnerInfp. setHttpAuthUserName(objJSON.getString("httpAuthUserName"));
+    }
+    if(objJSON.has("httpAuthPwd") && !objJSON.isNull("httpAuthPwd"))
+    {
+        partnerInfp. setHttpAuthPwd(objJSON.getString("httpAuthPwd"));
+    }
+    if(objJSON.has("SSLClientPrivateCertificate") && !objJSON.isNull("SSLClientPrivateCertificate"))
+    {
+        partnerInfp. setSSLClientPrivateCertificate(objJSON.getString("SSLClientPrivateCertificate"));
+    }
+    if(objJSON.has("CertificatePassword") && !objJSON.isNull("CertificatePassword"))
+    {
+        partnerInfp. setCertificatePassword(objJSON.getString("CertificatePassword"));
+    }
+
     if(objJSON.has("SigningCertificate") && !objJSON.isNull("SigningCertificate"))
     {
         partnerInfp. setSigningCertificate(objJSON.getString("SigningCertificate"));

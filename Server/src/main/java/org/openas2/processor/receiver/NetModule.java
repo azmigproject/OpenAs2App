@@ -11,6 +11,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -18,6 +19,7 @@ import javax.net.ssl.*;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.openas2.Constants;
 import org.openas2.OpenAS2Exception;
 import org.openas2.Session;
 import org.openas2.WrappedException;
@@ -361,6 +363,16 @@ public abstract class NetModule extends BaseReceiverModule {
                // keystore.load(keystoreStream, strPassword.toCharArray());
                 keystore.load(fin, strPassword.toCharArray());
                 fin.close();
+                Enumeration<String> aliasesList=keystore.aliases();
+
+                while(aliasesList.hasMoreElements())
+                {
+                    String enumAlias=aliasesList.nextElement();
+                    if(!Constants.ACTIVEPARTNERCERTALIAS.contains(enumAlias))
+                    {
+                        keystore.deleteEntry(enumAlias);
+                    }
+                }
                 trustManagerFactory.init(keystore);
                 TrustManager[] trustManagers = trustManagerFactory.getTrustManagers();
                 logger.info("successfully loaded the certificate information for trust manager");

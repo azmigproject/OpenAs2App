@@ -224,7 +224,7 @@ public class PKCS12CertificateFactory extends BaseCertificateFactory implements
         getParameters().put(PARAM_PASSWORD, new String(password));
     }
 
-    private PrivateKey getPrivateKey(X509Certificate cert) throws OpenAS2Exception
+    public PrivateKey getPrivateKey(X509Certificate cert) throws OpenAS2Exception
     {
         KeyStore ks = getKeyStore();
         String alias = null;
@@ -253,6 +253,35 @@ public class PKCS12CertificateFactory extends BaseCertificateFactory implements
         }
     }
 
+    public PrivateKey getPrivateKey(X509Certificate cert,String strPassword) throws OpenAS2Exception
+    {
+        KeyStore ks = getKeyStore();
+        String alias = null;
+
+        try
+        {
+            alias = ks.getCertificateAlias(cert);
+            logger.info("Alias found="+alias +"for cert"+cert.getSubjectDN()+","+cert.getIssuerDN());
+
+            if (alias == null)
+            {
+                throw new KeyNotFoundException(cert, "-- alias null from getCertificateAlias(cert) call");
+            }
+
+            PrivateKey key = (PrivateKey) ks.getKey(alias, strPassword.toCharArray());
+
+            if (key == null)
+            {
+                throw new KeyNotFoundException(cert, "-- key null from getKey(" + alias + ") call");
+            }
+
+            return key;
+        } catch (GeneralSecurityException e)
+        {
+            throw new KeyNotFoundException(cert, alias, e);
+        }
+    }
+
     public PrivateKey getPrivateKey(Message msg, X509Certificate cert) throws OpenAS2Exception
     {
         logger.info("MSG Passed is"+msg.getMessageID()+" and cert is "+cert.getSubjectDN()+","+cert.getSignature() );
@@ -263,6 +292,39 @@ public class PKCS12CertificateFactory extends BaseCertificateFactory implements
     {
         return getPrivateKey(cert);
     }
+
+    public Certificate[] getCertChain(String alias)  throws OpenAS2Exception
+    {
+        KeyStore ks = getKeyStore();
+
+        try
+        {
+            if (!ks.containsAlias(alias))
+            {
+                throw new CertificateNotFoundException(null, alias);
+            }
+
+            Certificate[] certChain = ks.getCertificateChain(alias);
+            if (certChain == null) {
+                X509Certificate x509cert = (X509Certificate) ks.getCertificate(alias);
+                if (x509cert.getSubjectDN().equals(x509cert.getIssuerDN()))
+                {
+                    // Trust chain is to itself
+                    certChain = new X509Certificate[]{x509cert, x509cert};
+                    if (logger.isInfoEnabled())
+                    {
+                        logger.info("Detected self-signed certificate and allowed import. Alias: " + alias);
+                    }
+                }
+            }
+
+            return certChain;
+        } catch (GeneralSecurityException gse)
+        {
+            throw new WrappedException(gse);
+        }
+    }
+
 
     public void addCertificate(String alias, X509Certificate cert, boolean overwrite)
             throws OpenAS2Exception

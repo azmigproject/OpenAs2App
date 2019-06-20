@@ -35,19 +35,13 @@ import java.util.StringTokenizer;
 import javax.mail.Header;
 import javax.mail.MessagingException;
 import javax.mail.internet.InternetHeaders;
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.X509TrustManager;
+import javax.net.ssl.*;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.bouncycastle.util.encoders.Base64;
 import org.openas2.OpenAS2Exception;
 import org.openas2.WrappedException;
-import org.openas2.message.AS2Message;
 import org.openas2.message.Message;
 
 public class HTTPUtil {
@@ -641,6 +635,96 @@ public class HTTPUtil {
         }
     }
 
+    public static HttpURLConnection getConnection(String url, String AuthType,String AuthUser,String AuthPassword, boolean output, boolean input,
+                                                  boolean useCaches, String requestMethod) throws OpenAS2Exception {
+        if (url == null) throw new OpenAS2Exception("HTTP getConnection method received empty URL string.");
+        try {
+            HttpURLConnection conn;
+            URL urlObj = new URL(url);
+
+            conn = (HttpURLConnection) urlObj.openConnection(getProxy("http"));
+            if (!urlObj.getProtocol().equalsIgnoreCase("https")) {
+              if(AuthType!=null && AuthType!="") {
+                  if (AuthType == "Basic") {
+                      String authstring = AuthUser + ":" + AuthPassword;
+                      authstring = Base64.toBase64String(authstring.getBytes());
+                      conn.setRequestProperty("Authorization", "Basic " + authstring);
+
+
+                  }
+                  /*
+                  else //if(AuthType=="Digest")
+
+                  {
+                      //DigestSchemeFactory fact=new DigestSchemeFactory();
+                      //fact.create(new HttpContext());
+
+
+                  }*/
+              }
+            }
+            conn.setDoOutput(output);
+            conn.setDoInput(input);
+            conn.setUseCaches(useCaches);
+            conn.setRequestMethod(requestMethod);
+            return conn;
+        } catch (IOException ioe) {
+            throw new WrappedException("URL connection failed connecting to: " + url, ioe);
+        }
+
+    }
+
+    public static HttpURLConnection getConnection(String url, boolean output, boolean input, java.security.PrivateKey certKey, String strPassword, java.security.cert.Certificate[] certChain,
+                                                  boolean useCaches, String requestMethod) throws OpenAS2Exception
+    {
+        if (url == null) throw new OpenAS2Exception("HTTP getConnection method received empty URL string.");
+        try {
+            initializeProxyAuthenticator();
+            HttpURLConnection conn;
+            URL urlObj = new URL(url);
+            if (urlObj.getProtocol().equalsIgnoreCase("https"))
+            {
+                HttpsURLConnection connS = (HttpsURLConnection) urlObj.openConnection(getProxy("https"));
+                String selfSignedCN = System.getProperty("org.openas2.cert.TrustSelfSignedCN");
+                if (selfSignedCN != null)
+                {
+                    try
+                    {
+                        KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
+                        KeyStore ks = KeyStore.getInstance("PKCS12");
+                        ks.setKeyEntry("sslhandshek",certKey,strPassword.toCharArray(),certChain);
+                        SSLContext context = SSLContext.getInstance("TLS");
+                        TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory
+                                .getDefaultAlgorithm());
+                        tmf.init(ks);
+                        keyManagerFactory.init(ks, strPassword.toCharArray());
+                        X509TrustManager defaultTrustManager = (X509TrustManager) tmf.getTrustManagers()[0];
+                        SelfSignedTrustManager tm = new SelfSignedTrustManager(defaultTrustManager);
+                        tm.setTrustCN(selfSignedCN);
+                        context.init(keyManagerFactory.getKeyManagers(), null, new  java.security.SecureRandom());
+                        connS.setSSLSocketFactory(context.getSocketFactory());
+
+                    } catch (Exception e)
+                    {
+                        throw new OpenAS2Exception("Self-signed certificate URL connection failed connecting to : " + url, e);
+                    }
+                }
+                conn = connS;
+            } else
+            {
+                conn = (HttpURLConnection) urlObj.openConnection(getProxy("http"));
+            }
+
+            conn.setDoOutput(output);
+            conn.setDoInput(input);
+            conn.setUseCaches(useCaches);
+            conn.setRequestMethod(requestMethod);
+
+            return conn;
+        } catch (IOException ioe) {
+            throw new WrappedException("URL connection failed connecting to: " + url, ioe);
+        }
+    }
 
     public static HttpURLConnection getConnection(String url, boolean output, boolean input,
             boolean useCaches, String requestMethod) throws OpenAS2Exception
@@ -651,7 +735,7 @@ public class HTTPUtil {
                 HttpURLConnection conn;
                 URL urlObj = new URL(url);
                 if (urlObj.getProtocol().equalsIgnoreCase("https"))
-                {
+                 {
                 	HttpsURLConnection connS = (HttpsURLConnection) urlObj.openConnection(getProxy("https"));
                 	String selfSignedCN = System.getProperty("org.openas2.cert.TrustSelfSignedCN");
     				if (selfSignedCN != null)
@@ -691,6 +775,7 @@ public class HTTPUtil {
     						tm.setTrustCN(selfSignedCN);
     						context.init(null, new TrustManager[] { tm }, null);
     						connS.setSSLSocketFactory(context.getSocketFactory());
+
     					} catch (Exception e)
     					{
     			        	throw new OpenAS2Exception("Self-signed certificate URL connection failed connecting to : " + url, e);
@@ -701,6 +786,7 @@ public class HTTPUtil {
     			{
     				conn = (HttpURLConnection) urlObj.openConnection(getProxy("http"));
     			}
+
                 conn.setDoOutput(output);
                 conn.setDoInput(input);
                 conn.setUseCaches(useCaches);

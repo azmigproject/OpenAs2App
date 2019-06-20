@@ -466,6 +466,18 @@ public class XMLPartnershipFactory extends BasePartnershipFactory{
         newPartner.put("x509_alias",Partner.getPublicCertificate());
         newPartner.put("x509_sign_alias",Partner.getSigningCertificate());
         newPartner.put("x509_ssl_alias",Partner.getSSLCertificate());
+        if(Partner.getSSLClientPrivateCertificate()!="" && Partner.getCertificatePassword()!="")
+        {
+            newPartner.put("ssl_pvt_cert",Partner.getSSLClientPrivateCertificate());
+            newPartner.put("ssl_pvt_cert_pwd",Partner.getCertificatePassword());
+        }
+        if( Partner.getIsAllowHttpAuthentication() && Partner.getHttpAuthPwd()!="" && Partner.getHttpAuthUserName()!="")
+        {
+            newPartner.put("allow_httpauth","true");
+            newPartner.put("http_auth_usr",Partner.getHttpAuthUserName());
+            newPartner.put("http_auth_usr_pwd",Partner.getHttpAuthPwd());
+            newPartner.put("http_auth_type",Partner.getHttpAuthenticationType());
+        }
         newPartner.put("email",Partner.getEmailAddress());
         newPartner=XMLUtil.mapAttributes(newPartner, requiredAttributes);
 

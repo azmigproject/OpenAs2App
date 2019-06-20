@@ -20,6 +20,7 @@ public class Constants {
     public static  String  STORAGEACCOUNTKEY="";
     public static  String BLOBCONTAINER="";
     public static List<partner> CURRENTPARTNERLIST=new ArrayList<partner>();
+    public static List<String> ACTIVEPARTNERCERTALIAS=new ArrayList<String>();
     public static  List<Profile> AllProfiles=new ArrayList<Profile>();
     public static Profile MainProfile=null;
     public  static JSONArray APIDataInJASON=null;

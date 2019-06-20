@@ -140,6 +140,11 @@ public class partner {
     public void setBlobFoldername(String blobFoldername) {
         this._blobFoldername = blobFoldername;
     }
+
+
+
+
+
     public String getEncryptionAlgorithm() {
         return _encryptionAlgorithm;
     }
@@ -268,6 +273,7 @@ public class partner {
         this._sslEnabledProtocolsSSLv2 = sslEnabledProtocolsSSLv2;
     }
 
+
     public boolean getSSLEnabledProtocolsSSLv3() {
         return _sslEnabledProtocolsSSLv3;
     }
@@ -304,7 +310,55 @@ public class partner {
     }
 
 
+    public boolean getIsAllowHttpAuthentication() {
+        return _isAllowHttpAuthentication;
+    }
+    public void setIsAllowHttpAuthentication(boolean isAllowHttpAuthentication) {
+        this._isAllowHttpAuthentication = isAllowHttpAuthentication;
+    }
+
+    public String getHttpAuthenticationType() {
+        return _httpAuthenticationType;
+    }
+    public void setHttpAuthenticationType(String httpAuthenticationType) {
+        this._httpAuthenticationType = httpAuthenticationType;
+    }
+
+    public String getSSLClientPrivateCertificate() {
+        return _sslClientPrivateCertificate;
+    }
+    public void setSSLClientPrivateCertificate(String sslClientPrivateCertificate) {
+        this._sslClientPrivateCertificate = sslClientPrivateCertificate;
+    }
+
+    public String getCertificatePassword() {
+        return _certificatePassword;
+    }
+    public void setCertificatePassword(String certificatePassword) {
+        this._certificatePassword = certificatePassword;
+    }
+
+    public String getHttpAuthPwd() {
+        return _httpAuthPwd;
+    }
+    public void setHttpAuthPwd(String _httpAuthPwd) {
+        this._httpAuthPwd = _httpAuthPwd;
+    }
+
+    public String getHttpAuthUserName() {
+        return _httpAuthUserName;
+    }
+    public void setHttpAuthUserName(String httpAuthUserName) {
+        this._httpAuthUserName =   httpAuthUserName;
+    }
+
     //private String _outErrorQueue;
+    private boolean _isAllowHttpAuthentication;
+    private String _sslClientPrivateCertificate;
+    private String _certificatePassword;
+    private String _httpAuthenticationType;
+    private String _httpAuthPwd;
+    private String _httpAuthUserName;
     private String _contentTransferEncoding;
     private boolean _isActive;
     private DateTime _createdOn;

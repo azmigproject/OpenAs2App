@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Locale;
@@ -16,6 +18,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openas2.OpenAS2Exception;
 import org.openas2.WrappedException;
+import org.openas2.cert.CertificateFactory;
 import org.openas2.message.AS2Message;
 import org.openas2.message.Message;
 import org.openas2.message.MessageMDN;
@@ -88,11 +91,63 @@ public class AsynchMDNSenderModule extends HttpSenderModule {
 		try {
 
 			MessageMDN mdn = msg.getMDN();
-
+			HttpURLConnection conn =null;
 			// Create a HTTP connection
 			if (logger.isDebugEnabled()) logger.debug("ASYNC MDN attempting connection to: " + url + msg.getLogMsgID());
-			HttpURLConnection conn = getConnection(url, true, true, false,
-					"POST");
+
+
+			String ssl_CLIENT_CERT="";
+			String ssl_CLIENT_CERT_PWD="";
+			boolean isAllowHttpAuth=false;
+			String http_AUTH_TYPE="";
+			String http_AUTH_USER="";
+			String http_AUTH_USER_PWD="";
+
+			if(msg.getPartnership().getReceiverID(SSL_CLIENT_CERTIFICATE)!=null && msg.getPartnership().getReceiverID(SSL_CLIENT_CERTIFICATE_PASSWORD)!=null && msg.getPartnership().getReceiverID(SSL_CLIENT_CERTIFICATE)!="" && msg.getPartnership().getReceiverID(SSL_CLIENT_CERTIFICATE_PASSWORD)!="" )
+			{
+				ssl_CLIENT_CERT=msg.getPartnership().getSenderID(SSL_CLIENT_CERTIFICATE);
+				ssl_CLIENT_CERT_PWD=msg.getPartnership().getSenderID(SSL_CLIENT_CERTIFICATE_PASSWORD);
+			}
+			if(msg.getPartnership().getReceiverID(ALLOW_HTTPAUTH)!=null && msg.getPartnership().getReceiverID(ALLOW_HTTPAUTH).equalsIgnoreCase("true"))
+			{
+				isAllowHttpAuth=true;
+				http_AUTH_TYPE=msg.getPartnership().getReceiverID(HTTP_AUTH_TYPE);
+				http_AUTH_USER=msg.getPartnership().getReceiverID(HTTP_AUTH_USER);
+				http_AUTH_USER_PWD=msg.getPartnership().getReceiverID(HTTP_AUTH_USER_PWD);
+			}
+			logger.info("ssl_CLIENT_CERT - " + ssl_CLIENT_CERT);
+			logger.info("ssl_CLIENT_CERT_PWD - " + ssl_CLIENT_CERT_PWD);
+			logger.info("isAllowHttpAuth - " + isAllowHttpAuth);
+			logger.info("http_AUTH_TYPE - " + http_AUTH_TYPE);
+			logger.info("http_AUTH_USER - " + http_AUTH_USER);
+			logger.info("http_AUTH_USER_PWD - " + http_AUTH_USER_PWD);
+			if(logger.isDebugEnabled())
+				logger.debug("Partnership Data - " + msg.getPartnership().toString());
+			if(ssl_CLIENT_CERT!="" && ssl_CLIENT_CERT_PWD!="")
+			{
+				CertificateFactory cerfact=getSession().getCertificateFactory();
+				X509Certificate xcert= cerfact.getCertificate(ssl_CLIENT_CERT);
+				PrivateKey pvtKey=cerfact.getPrivateKey(xcert);
+				java.security.cert.Certificate[] certchain=cerfact.getCertChain(ssl_CLIENT_CERT);
+				logger.info("calling -  getConnectionWithSSLClientAuth");
+				conn=getConnectionWithSSLClientAuth(url, true, true, pvtKey,ssl_CLIENT_CERT_PWD,certchain, false, "POST", 180000, 180000);
+				logger.info("called -  getConnectionWithSSLClientAuth");
+			}
+			else if(isAllowHttpAuth)
+			{
+				logger.info("calling -  getConnectionWithHTTPAuth");
+				conn = getConnectionWithHTTPAuth(url, true, true, http_AUTH_TYPE,http_AUTH_USER,http_AUTH_USER_PWD,false, "POST", 180000, 180000);
+				logger.info("called  -  getConnectionWithHTTPAuth");
+			}
+			else
+			{
+				conn = getConnection(url, true, true, false, "POST", 180000, 180000);
+			}
+
+
+
+			//HttpURLConnection conn = getConnection(url, true, true, false,
+			//		"POST");
 
 			try {
 

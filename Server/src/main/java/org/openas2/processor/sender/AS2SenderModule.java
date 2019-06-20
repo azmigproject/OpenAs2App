@@ -8,10 +8,11 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.security.PrivateKey;
+
 import java.security.cert.X509Certificate;
 import java.util.Locale;
 import java.util.Map;
-import java.io.*;
+
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeBodyPart;
@@ -20,12 +21,12 @@ import javax.net.ssl.SSLHandshakeException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.h2.util.Task;
+
 import org.joda.time.DateTime;
-import org.joda.time.Instant;
 import org.openas2.OpenAS2Exception;
 import org.openas2.Session;
 import org.openas2.cert.CertificateFactory;
+
 import org.openas2.lib.helper.ICryptoHelper;
 import org.openas2.message.AS2Message;
 import org.openas2.message.AS2MessageMDN;
@@ -40,7 +41,7 @@ import org.openas2.partner.Partnership;
 import org.openas2.partner.SecurePartnership;
 import org.openas2.processor.resender.ResenderModule;
 import org.openas2.util.*;
-import java.io.BufferedReader;
+
 
 public class AS2SenderModule extends HttpSenderModule {
 
@@ -161,9 +162,54 @@ public class AS2SenderModule extends HttpSenderModule {
             {
                 // Create the HTTP connection and set up headers
                 String url = msg.getPartnership().getAttribute(AS2Partnership.PA_AS2_URL);
+                String ssl_CLIENT_CERT="";
+                String ssl_CLIENT_CERT_PWD="";
+                boolean isAllowHttpAuth=false;
+                String http_AUTH_TYPE="";
+                String http_AUTH_USER="";
+                String http_AUTH_USER_PWD="";
+
+                if(msg.getPartnership().getSenderID(SSL_CLIENT_CERTIFICATE)!=null && msg.getPartnership().getSenderID(SSL_CLIENT_CERTIFICATE_PASSWORD)!=null && msg.getPartnership().getSenderID(SSL_CLIENT_CERTIFICATE)!="" && msg.getPartnership().getSenderID(SSL_CLIENT_CERTIFICATE_PASSWORD)!="" )
+                {
+                    ssl_CLIENT_CERT=msg.getPartnership().getSenderID(SSL_CLIENT_CERTIFICATE);
+                    ssl_CLIENT_CERT_PWD=msg.getPartnership().getSenderID(SSL_CLIENT_CERTIFICATE_PASSWORD);
+                }
+                if(msg.getPartnership().getSenderID(ALLOW_HTTPAUTH)!=null && msg.getPartnership().getSenderID(ALLOW_HTTPAUTH).equalsIgnoreCase("true"))
+                {
+                    isAllowHttpAuth=true;
+                    http_AUTH_TYPE=msg.getPartnership().getSenderID(HTTP_AUTH_TYPE);
+                    http_AUTH_USER=msg.getPartnership().getSenderID(HTTP_AUTH_USER);
+                    http_AUTH_USER_PWD=msg.getPartnership().getSenderID(HTTP_AUTH_USER_PWD);
+                }
+                logger.info("ssl_CLIENT_CERT - " + ssl_CLIENT_CERT);
+                logger.info("ssl_CLIENT_CERT_PWD - " + ssl_CLIENT_CERT_PWD);
+                logger.info("isAllowHttpAuth - " + isAllowHttpAuth);
+                logger.info("http_AUTH_TYPE - " + http_AUTH_TYPE);
+                logger.info("http_AUTH_USER - " + http_AUTH_USER);
+                logger.info("http_AUTH_USER_PWD - " + http_AUTH_USER_PWD);
                 if(logger.isDebugEnabled())
                     logger.debug("Partnership Data - " + msg.getPartnership().toString());
-                conn = getConnection(url, true, true, false, "POST", 180000, 180000);
+                if(ssl_CLIENT_CERT!="" && ssl_CLIENT_CERT_PWD!="")
+                {
+                  CertificateFactory cerfact=getSession().getCertificateFactory();
+                   X509Certificate xcert= cerfact.getCertificate(ssl_CLIENT_CERT);
+                   PrivateKey pvtKey=cerfact.getPrivateKey(xcert);
+                   java.security.cert.Certificate[] certchain=cerfact.getCertChain(ssl_CLIENT_CERT);
+                    logger.info("calling -  getConnectionWithSSLClientAuth");
+                    conn=getConnectionWithSSLClientAuth(url, true, true, pvtKey,ssl_CLIENT_CERT_PWD,certchain, false, "POST", 180000, 180000);
+                    logger.info("called -  getConnectionWithSSLClientAuth");
+                }
+                else if(isAllowHttpAuth)
+                {
+                    logger.info("calling -  getConnectionWithHTTPAuth");
+                    conn = getConnectionWithHTTPAuth(url, true, true, http_AUTH_TYPE,http_AUTH_USER,http_AUTH_USER_PWD,false, "POST", 180000, 180000);
+                    logger.info("called  -  getConnectionWithHTTPAuth");
+                }
+                else
+                {
+                    conn = getConnection(url, true, true, false, "POST", 180000, 180000);
+                }
+
                 if(logger.isDebugEnabled())
                     logger.debug("*****Connection/Read Timeout Value = Connection:" +conn.getConnectTimeout()+ " - Read:"+conn.getReadTimeout()+"- For File"+msg.getPayloadFilename()+" MessageID="+msg.getLogMsgID());
 
@@ -227,7 +273,7 @@ public class AS2SenderModule extends HttpSenderModule {
                     if(logger.isDebugEnabled())
                     logger.debug("Checking MDN NOW Stage2..." + msg.getLogMsgID());
                     if (logger.isTraceEnabled())
-                    {
+                     {
                         logger.trace("Waiting for synchronous MDN response..." + msg.getLogMsgID());
                     }
                     // Create a MessageMDN and copy HTTP headers
