@@ -103,17 +103,17 @@ public class AsynchMDNSenderModule extends HttpSenderModule {
 			String http_AUTH_USER="";
 			String http_AUTH_USER_PWD="";
 
-			if(msg.getPartnership().getReceiverID(SSL_CLIENT_CERTIFICATE)!=null && msg.getPartnership().getReceiverID(SSL_CLIENT_CERTIFICATE_PASSWORD)!=null && msg.getPartnership().getReceiverID(SSL_CLIENT_CERTIFICATE)!="" && msg.getPartnership().getReceiverID(SSL_CLIENT_CERTIFICATE_PASSWORD)!="" )
+			if(msg.getPartnership().getSenderID(SSL_CLIENT_CERTIFICATE)!=null && msg.getPartnership().getSenderID(SSL_CLIENT_CERTIFICATE_PASSWORD)!=null && msg.getPartnership().getReceiverID(SSL_CLIENT_CERTIFICATE)!="" && msg.getPartnership().getReceiverID(SSL_CLIENT_CERTIFICATE_PASSWORD)!="" )
 			{
 				ssl_CLIENT_CERT=msg.getPartnership().getSenderID(SSL_CLIENT_CERTIFICATE);
 				ssl_CLIENT_CERT_PWD=msg.getPartnership().getSenderID(SSL_CLIENT_CERTIFICATE_PASSWORD);
 			}
-			if(msg.getPartnership().getReceiverID(ALLOW_HTTPAUTH)!=null && msg.getPartnership().getReceiverID(ALLOW_HTTPAUTH).equalsIgnoreCase("true"))
+			if(msg.getPartnership().getSenderID(ALLOW_HTTPAUTH)!=null && msg.getPartnership().getSenderID(ALLOW_HTTPAUTH).equalsIgnoreCase("true"))
 			{
 				isAllowHttpAuth=true;
-				http_AUTH_TYPE=msg.getPartnership().getReceiverID(HTTP_AUTH_TYPE);
-				http_AUTH_USER=msg.getPartnership().getReceiverID(HTTP_AUTH_USER);
-				http_AUTH_USER_PWD=msg.getPartnership().getReceiverID(HTTP_AUTH_USER_PWD);
+				http_AUTH_TYPE=msg.getPartnership().getSenderID(HTTP_AUTH_TYPE);
+				http_AUTH_USER=msg.getPartnership().getSenderID(HTTP_AUTH_USER);
+				http_AUTH_USER_PWD=msg.getPartnership().getSenderID(HTTP_AUTH_USER_PWD);
 			}
 			logger.info("ssl_CLIENT_CERT - " + ssl_CLIENT_CERT);
 			logger.info("ssl_CLIENT_CERT_PWD - " + ssl_CLIENT_CERT_PWD);

@@ -37,16 +37,24 @@ import javax.mail.MessagingException;
 import javax.mail.internet.InternetHeaders;
 import javax.net.ssl.*;
 
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.bouncycastle.util.encoders.Base64;
 import org.openas2.OpenAS2Exception;
 import org.openas2.WrappedException;
 import org.openas2.message.Message;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Random;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public class HTTPUtil {
     public static final String MA_HTTP_REQ_TYPE = "HTTP_REQUEST_TYPE";
     public static final String MA_HTTP_REQ_URL = "HTTP_REQUEST_URL";
+
+
 
     public static String getHTTPResponseMessage(int responseCode) {
         String msg = "Unknown";
@@ -637,6 +645,12 @@ public class HTTPUtil {
 
     public static HttpURLConnection getConnection(String url, String AuthType,String AuthUser,String AuthPassword, boolean output, boolean input,
                                                   boolean useCaches, String requestMethod) throws OpenAS2Exception {
+        Log logger = LogFactory.getLog(HTTPUtil.class.getSimpleName());
+         String authMethod = "auth";
+         String realm = "";
+
+        String nonce;
+        StringBuilder sb = new StringBuilder(128);
         if (url == null) throw new OpenAS2Exception("HTTP getConnection method received empty URL string.");
         try {
             HttpURLConnection conn;
@@ -645,22 +659,61 @@ public class HTTPUtil {
             conn = (HttpURLConnection) urlObj.openConnection(getProxy("http"));
             if (!urlObj.getProtocol().equalsIgnoreCase("https")) {
               if(AuthType!=null && AuthType!="") {
-                  if (AuthType == "Basic") {
+                  if (AuthType.equalsIgnoreCase("Basic")) {
                       String authstring = AuthUser + ":" + AuthPassword;
+                      logger.info("authstring"+authstring);
                       authstring = Base64.toBase64String(authstring.getBytes());
                       conn.setRequestProperty("Authorization", "Basic " + authstring);
 
 
                   }
-                  /*
+
                   else //if(AuthType=="Digest")
 
                   {
                       //DigestSchemeFactory fact=new DigestSchemeFactory();
                       //fact.create(new HttpContext());
+                      nonce = calculateNonce();
+                      conn.connect();
+                      String authHeader=conn.getHeaderField("Authorization");
+                      if(authHeader.startsWith("Digest"))
+                      {
+                          String method = conn.getRequestMethod();
+
+                          String ha1 = DigestUtils.md5Hex(AuthUser + ":" + realm + ":" + AuthPassword);
+
+                          String qop = conn.getHeaderField("qop");
+
+                          String ha2;
+
+                          String reqURI = conn.getHeaderField("uri");
+
+                          if (!StringUtils.isBlank(qop) && qop.equals("auth-int")) {
+                              String entityBodyMd5 = DigestUtils.md5Hex(HTTPUtil.getBody(conn.getInputStream()));
+                              ha2 = DigestUtils.md5Hex(method + ":" + reqURI + ":" + entityBodyMd5);
+                          } else {
+                              ha2 = DigestUtils.md5Hex(method + ":" + reqURI);
+                          }
+                          String ha3 = DigestUtils.md5Hex(ha1 +":"+nonce+":"+ha2);
 
 
-                  }*/
+                          sb.append("Digest ");
+                          sb.append("username").append("=\"").append(AuthUser                ).append("\",");
+                          sb.append("realm"   ).append("=\"").append(realm ).append("\",");
+                          sb.append("nonce"   ).append("=\"").append(nonce ).append("\",");
+                          sb.append("uri"     ).append("=\"").append(urlObj.getPath()).append("\",");
+                          //sb.append("qop"     ).append('='  ).append("auth"                  ).append(",");
+                          sb.append("response").append("=\"").append(ha3                     ).append("\"");
+
+                      }
+                      else
+                      {
+                          throw new WrappedException(" Digest authentication URL connection failed connecting to: " + url);
+                      }
+
+                      conn.disconnect();
+                      conn.setRequestProperty("Authorization", sb.toString());
+                  }
               }
             }
             conn.setDoOutput(output);
@@ -670,6 +723,9 @@ public class HTTPUtil {
             return conn;
         } catch (IOException ioe) {
             throw new WrappedException("URL connection failed connecting to: " + url, ioe);
+        }
+        finally {
+            logger=null;
         }
 
     }
@@ -949,4 +1005,52 @@ public class HTTPUtil {
     		}
 
     	}
+
+
+    private HashMap<String, String> parseHeader(String headerString) {
+        // seperte out the part of the string which tells you which Auth scheme is it
+        String headerStringWithoutScheme = headerString.substring(headerString.indexOf(" ") + 1).trim();
+        HashMap<String, String> values = new HashMap<String, String>();
+        String keyValueArray[] = headerStringWithoutScheme.split(",");
+        for (String keyval : keyValueArray) {
+            if (keyval.contains("=")) {
+                String key = keyval.substring(0, keyval.indexOf("="));
+                String value = keyval.substring(keyval.indexOf("=") + 1);
+                values.put(key.trim(), value.replaceAll("\"", "").trim());
+            }
+        }
+        return values;
+    }
+
+    private String getAuthenticateHeader(String realm,String authMethod,String nonce) {
+        String header = "";
+
+        header += "Digest realm=\"" + realm + "\",";
+        if (!StringUtils.isBlank(authMethod)) {
+            header += "qop=" + authMethod + ",";
+        }
+        header += "nonce=\"" + nonce + "\",";
+        header += "opaque=\"" + getOpaque(realm, nonce) + "\"";
+
+        return header;
+    }
+
+    /**
+     * Calculate the nonce based on current time-stamp upto the second, and a
+     * random seed
+     *
+     * @return
+     */
+    public static String calculateNonce() {
+        Date d = new Date();
+        SimpleDateFormat f = new SimpleDateFormat("yyyy:MM:dd:hh:mm:ss");
+        String fmtDate = f.format(d);
+        Random rand = new Random(100000);
+        Integer randomInt = rand.nextInt();
+        return DigestUtils.md5Hex(fmtDate + randomInt.toString());
+    }
+
+    private String getOpaque(String domain, String nonce) {
+        return DigestUtils.md5Hex(domain + nonce);
+    }
 }
