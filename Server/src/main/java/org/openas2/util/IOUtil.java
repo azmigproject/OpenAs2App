@@ -134,8 +134,40 @@ public class IOUtil {
         try
         {
             File errorDir = IOUtil.getDirectoryFile(errorDirectory);
-
-            destFile = new File(errorDir, file.getName());
+            String newFname = file.getName();
+//            int endIndx = file.getName().indexOf(".processing");
+//            if (endIndx != -1)
+//            {
+//            	newFname = file.getName().substring(0, endIndx)+".downloaded";
+//            }else
+//            {
+//            	newFname = file.getName()+".downloaded";
+//            }
+            
+            logger.debug("****** FILENAME to ERROR Folder IOUTil: " + file.getName());
+            int endIndx = file.getName().indexOf(".processing");
+            String leftOverNm = "";
+            String fileAS2Id = "";
+            
+            
+            if (endIndx != -1)
+            {
+            	leftOverNm = file.getName().substring(endIndx);
+            	int as2Indx1 = leftOverNm.indexOf('@');
+            	int as2Indx2 = leftOverNm.indexOf('_');
+            	fileAS2Id = leftOverNm.substring(as2Indx1, as2Indx2-1);	
+            }
+            
+            if (endIndx != -1)
+            {
+            	newFname = fileAS2Id + "-_-"+ file.getName().substring(0, endIndx)+".downloaded";
+            }else
+            {
+            	newFname = fileAS2Id + "-_-"+ file.getName()+".downloaded";
+            }
+            
+            
+            destFile = new File(errorDir, newFname);
 
             // move the file
             destFile = IOUtil.moveFile(file, destFile, false);

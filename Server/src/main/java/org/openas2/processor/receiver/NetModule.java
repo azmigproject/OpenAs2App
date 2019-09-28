@@ -356,23 +356,42 @@ public abstract class NetModule extends BaseReceiverModule {
                 String strfilename = this.owner.getSession().getCertificateFactory().getParameters().get("filename");
                 String strPassword = this.owner.getSession().getCertificateFactory().getParameters().get("password");
                 TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("X509");
+
+                logger.info("loading ssl store located at"+strfilename);
+
                // KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
                 KeyStore keystore = KeyStore.getInstance("PKCS12");
                 FileInputStream fin = new FileInputStream(strfilename);
+
                 //InputStream keystoreStream = HTTPServerThread.class.getResourceAsStream(strfilename);
                // keystore.load(keystoreStream, strPassword.toCharArray());
                 keystore.load(fin, strPassword.toCharArray());
-                fin.close();
-                Enumeration<String> aliasesList=keystore.aliases();
 
-                while(aliasesList.hasMoreElements())
+                fin.close();
+               /* Enumeration<String> aliasesList=keystore.aliases();
+                logger.info("get alias from keystore load "+aliasesList.toString());
+                /*while(aliasesList.hasMoreElements())
                 {
+                    logger.info("In While loop");
                     String enumAlias=aliasesList.nextElement();
+                    logger.info("In While loop"+enumAlias);
                     if(!Constants.ACTIVEPARTNERCERTALIAS.contains(enumAlias))
                     {
-                        keystore.deleteEntry(enumAlias);
+                        try {
+                            logger.info("In DELETING ALIASES"+enumAlias);
+                            keystore.deleteEntry(enumAlias);
+                            logger.info("remove"+enumAlias);
+
+                            }
+                            catch (Exception exp)
+                            {
+                                logger.info("unable to remove"+enumAlias);
+                            }
+
+
                     }
                 }
+                logger.info("update loaded keystore");*/
                 trustManagerFactory.init(keystore);
                 TrustManager[] trustManagers = trustManagerFactory.getTrustManagers();
                 logger.info("successfully loaded the certificate information for trust manager");

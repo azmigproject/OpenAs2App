@@ -147,6 +147,8 @@ public class DbLogger extends BaseLogger {
             if(as2Msg.getPartnership()!=null) {
                 objLog.setReceiverId(as2Msg.getPartnership().getReceiverID(AS2Partnership.PID_AS2));
                 objLog.setSenderId(as2Msg.getPartnership().getSenderID(AS2Partnership.PID_AS2));
+                objLog.setIsMsgEncrypted(as2Msg.getPartnership().getAttribute("encrypt")!=null);
+                objLog.setIsMsgSigned(as2Msg.getPartnership().getAttribute("sign")!=null);
             }
             objLog.setFileName(as2Msg.getPayloadFilename());
             objLog.setMessageID(as2Msg.getMessageID());
@@ -157,8 +159,7 @@ public class DbLogger extends BaseLogger {
             }
             objLog.setAS2To(as2Msg.getHeader("As2-To"));
             objLog.setAS2From(as2Msg.getHeader("As2-From"));
-            objLog.setIsMsgEncrypted(as2Msg.getPartnership().getAttribute("encrypt")!=null);
-            objLog.setIsMsgSigned(as2Msg.getPartnership().getAttribute("sign")!=null);
+
             objLog.setIsConfiguredForMDN(as2Msg.isConfiguredForMDN());
             objLog.setIsConfiguredForAsyncMDN(as2Msg.isConfiguredForAsynchMDN());
             objLog.setIsMDNRequired(as2Msg.isRequestingMDN());
@@ -319,17 +320,15 @@ public class DbLogger extends BaseLogger {
                 objFileLogger=null;
                 throw new RuntimeException("Failed : HTTP Error code : "
                         + ResponseMsg +ResponseCode);
-
-
             }
-            else
+           /* else
             {
-                //System.out.println("Successfull"+conn.getResponseCode());
-               // FileLogger objFileLogger=new FileLogger();
-               // objFileLogger.doLog(Level.FINE,"Successfully adding logs via API. Response Code got 200 successfully"+jsonStr,objLog);
-             //   objFileLogger.destroy();
-               // objFileLogger=null;
-            }
+                System.out.println("Successfull"+ResponseCode);
+                FileLogger objFileLogger=new FileLogger();
+                objFileLogger.doLog(Level.FINE,"Successfully adding logs via API. Response Code got 200 successfully"+jsonStr,objLog);
+                objFileLogger.destroy();
+                objFileLogger=null;
+            }*/
 
 
         }

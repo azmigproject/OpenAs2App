@@ -46,7 +46,7 @@ public class PKCS12CertificateFactory extends BaseCertificateFactory implements
     public String getAlias(Partnership partnership, String partnershipType) throws OpenAS2Exception
     {
         String alias = null;
-
+        logger.info("Find  Alias for Partnership type as "+partnershipType+ " and Partnership is "+partnership.toString());
         if (partnershipType == Partnership.PTYPE_RECEIVER)
         {
             alias = partnership.getReceiverID(SecurePartnership.PID_X509_ALIAS);
@@ -69,22 +69,24 @@ public class PKCS12CertificateFactory extends BaseCertificateFactory implements
     public String getSigningAlias(Partnership partnership, String partnershipType) throws OpenAS2Exception
     {
         String alias = null;
-
+        logger.info("Find signing Alias for  Partnership type as "+partnershipType+ " and Partnership is "+partnership.toString());
         if (partnershipType == Partnership.PTYPE_RECEIVER)
         {
             alias = partnership.getReceiverID(SecurePartnership.PID_X509_SignALIAS);
-            logger.info("Signing Alias foud for receiver is "+alias);
+            logger.info("Signing Alias found for receiver is "+alias);
         } else if (partnershipType == Partnership.PTYPE_SENDER)
         {
             alias = partnership.getSenderID(SecurePartnership.PID_X509_SignALIAS);
-            logger.info("Signing Alias foud for sender is "+alias);
+            logger.info("Signing Alias found for sender is "+alias);
         }
 
-        if (alias == null)
+        if (alias == null|| alias.trim().equalsIgnoreCase(""))
         {
-
+            logger.info("Signing Alias for  Partnership not found. Getting default alias");
 
             alias=getAlias(partnership, partnershipType);
+
+            logger.info("Default Alias found for sender is "+alias);
         }
 
         return alias;
@@ -94,6 +96,7 @@ public class PKCS12CertificateFactory extends BaseCertificateFactory implements
     {
         try
         {
+            logger.info("Fetching certificate for alias"+ alias);
             KeyStore ks = getKeyStore();
             X509Certificate cert = (X509Certificate) ks.getCertificate(alias);
             logger.info("Cert for alias"+alias+" is " +cert.getIssuerDN()+","+cert.getSigAlgName()+","+cert.getSubjectDN());
@@ -167,7 +170,7 @@ public class PKCS12CertificateFactory extends BaseCertificateFactory implements
 
     public Map<String, X509Certificate> getCertificates() throws OpenAS2Exception
     {
-        KeyStore ks = getKeyStore();
+          KeyStore ks = getKeyStore();
 
         try
         {
@@ -206,7 +209,7 @@ public class PKCS12CertificateFactory extends BaseCertificateFactory implements
 
     public KeyStore getKeyStore()
     {
-        return keyStore;
+        return this.keyStore;
     }
 
     public void setKeyStore(KeyStore keyStore)
@@ -232,7 +235,7 @@ public class PKCS12CertificateFactory extends BaseCertificateFactory implements
         try
         {
             alias = ks.getCertificateAlias(cert);
-            logger.info("Alias found="+alias +"for cert"+cert.getSubjectDN()+","+cert.getIssuerDN());
+            logger.info("Alias found="+alias +"for cert"+cert. getSubjectDN()+","+cert.getIssuerDN()+","+cert.getSigAlgName());
 
             if (alias == null)
             {
@@ -250,6 +253,50 @@ public class PKCS12CertificateFactory extends BaseCertificateFactory implements
         } catch (GeneralSecurityException e)
         {
             throw new KeyNotFoundException(cert, alias, e);
+        }
+    }
+
+    public PrivateKey getPrivateKey(String alias) throws OpenAS2Exception
+    {
+        KeyStore ks = getKeyStore();
+        boolean isAliasFound=false;
+
+        try
+        {
+            Enumeration e=ks.aliases();
+            while(e.hasMoreElements())
+            {
+                String tempAlias=(String)e.nextElement();
+                if(tempAlias.equalsIgnoreCase(alias))
+                {
+                    isAliasFound=true;
+                    logger.info("Alias found with name "+alias);
+                    break;
+                }
+
+            }
+            //alias = ks.getCertificateAlias(cert);
+            //logger.info("Alias found="+alias +"for cert"+cert. getSubjectDN()+","+cert.getIssuerDN()+","+cert.getSigAlgName());
+
+            if (!isAliasFound)
+            {
+                throw new KeyNotFoundException(alias);
+            }
+
+            PrivateKey key = (PrivateKey) ks.getKey(alias, getPassword());
+
+
+             if (key == null)
+
+            {
+                logger.info("Key not found for Alias name "+alias);
+                throw new KeyNotFoundException(alias);
+            }
+
+            return key;
+        } catch (GeneralSecurityException e)
+        {
+            throw new KeyNotFoundException( alias, e);
         }
     }
 
@@ -288,9 +335,20 @@ public class PKCS12CertificateFactory extends BaseCertificateFactory implements
         return getPrivateKey(cert);
     }
 
+    public PrivateKey getPrivateKey(Message msg, String alias) throws OpenAS2Exception
+    {
+        logger.info("MSG Passed is"+msg.getMessageID()+" and Alias is "+alias );
+        return getPrivateKey(alias);
+    }
+
     public PrivateKey getPrivateKey(MessageMDN mdn, X509Certificate cert) throws OpenAS2Exception
     {
         return getPrivateKey(cert);
+    }
+
+    public PrivateKey getPrivateKey(MessageMDN mdn,String alias) throws OpenAS2Exception
+    {
+        return getPrivateKey(alias);
     }
 
     public Certificate[] getCertChain(String alias)  throws OpenAS2Exception
@@ -413,6 +471,15 @@ public class PKCS12CertificateFactory extends BaseCertificateFactory implements
         try
         {
             this.keyStore = AS2Util.getCryptoHelper().getKeyStore();
+            if(this.keyStore!=null) {
+                logger.info("keystore loaded during initialization");
+            }
+            else
+
+            {
+                logger.info("keystore not loaded during initialization");
+            }
+
         } catch (Exception e)
         {
             throw new WrappedException(e);

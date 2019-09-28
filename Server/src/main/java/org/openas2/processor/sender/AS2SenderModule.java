@@ -721,7 +721,10 @@ public class AS2SenderModule extends HttpSenderModule {
             logger.info("CertNo"+senderCert.getSerialNumber());
             logger.info(senderCert.getSerialNumber());
 
-            PrivateKey senderKey = certFx.getPrivateKey(msg, senderCert);
+            //PrivateKey senderKey = certFx.getPrivateKey(msg, senderCert);
+            logger.info("alias found is "+partnership.getSenderID(SecurePartnership.PID_X509_ALIAS));
+            PrivateKey senderKey = certFx.getPrivateKey(partnership.getSenderID(SecurePartnership.PID_X509_ALIAS));
+
             String digest = partnership.getAttribute(SecurePartnership.PA_SIGN);
 
             if (logger.isDebugEnabled())

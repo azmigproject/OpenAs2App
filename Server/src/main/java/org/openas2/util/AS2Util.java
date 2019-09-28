@@ -940,7 +940,7 @@ public class AS2Util {
 				{
 					if (isError) {
 						if( msg.getAttribute(FileAttribute.MA_FILENAME)!=null && msg.getAttribute(FileAttribute.MA_FILENAME).length()>0) {
-							tgtFile = new File(tgtDir + "/" +  msg.getAttribute(FileAttribute.MA_FILENAME));
+							tgtFile = new File(tgtDir + "/" +  msg.getAttribute(FileAttribute.MA_AS2ID)+"-_-"+msg.getAttribute(FileAttribute.MA_FILENAME));
 						}
 						else if(msg.getPayloadFilename()!=null && msg.getPayloadFilename().length()>0) {
 							tgtFile = new File(tgtDir + "/" + msg.getPayloadFilename());
@@ -954,7 +954,48 @@ public class AS2Util {
 					{
 						tgtFile = new File(tgtDir + "/" + fPendingFile.getName());
 					}
-                        if (tgtFile.exists())
+                        
+					logger.debug("****** FILENAME to ERROR Folder: " + tgtFile.getName());
+					
+					String newFname = tgtFile.getName();
+		            int endIndx = tgtFile.getName().indexOf(".processing");
+		            String leftOverNm = "";
+		            String fileAS2Id = "";
+		            
+		            
+		            if (endIndx != -1)
+		            {
+		            	leftOverNm = tgtFile.getName().substring(endIndx);
+		            	int as2Indx1 = leftOverNm.indexOf('@');
+		            	int as2Indx2 = leftOverNm.indexOf('_');
+		            	fileAS2Id = leftOverNm.substring(as2Indx1, as2Indx2-1);	
+		            }
+		            
+		            
+		            if (isError)
+					{ 
+			            if (endIndx != -1)
+			            {
+			            	newFname = fileAS2Id + "-_-"+ tgtFile.getName().substring(0, endIndx)+".downloaded";
+			            }else
+			            {
+			            	newFname = tgtFile.getName()+".downloaded";
+			            }
+					}else
+					{
+						if (endIndx != -1)
+			            {
+			            	newFname = tgtFile.getName().substring(0, endIndx)+".downloaded";
+			            }else
+			            {
+			            	newFname = tgtFile.getName()+".downloaded";
+			            }
+					}
+		            
+		            File rplcFile = new File(tgtDir,newFname);
+		            tgtFile = rplcFile;
+		            
+					if (tgtFile.exists())
                         {
 
                         	    //Check to see if a list of files with this name has an extension.
@@ -1021,7 +1062,7 @@ public class AS2Util {
 
     }
     
-    public static boolean testStreamforCompleteData(AS2Message msg, byte[] data,  Session session)
+    public static boolean  testStreamforCompleteData(AS2Message msg, byte[] data,  Session session)
     {
     	
     	Log logger = LogFactory.getLog(AS2Util.class.getSimpleName());
@@ -1034,8 +1075,16 @@ public class AS2Util {
     	{
 		// get the MDN partnership info
 		mdn.getPartnership().setSenderID(AS2Partnership.PID_AS2, mdn.getHeader("AS2-From"));
-		mdn.getPartnership().setReceiverID(AS2Partnership.PID_AS2, mdn.getHeader("AS2-To"));
+		mdn.getPartnership().setReceiverID(AS2Partnership.PID_AS2,Constants.MainProfile.getAS2Idenitfier());
 		session.getPartnershipFactory().updatePartnership(mdn, false);
+		Constants.UpdateMsgSenderPartnership(mdn, mdn.getHeader("AS2-To"), false);
+
+		//Old Code
+		//mdn.getPartnership().setSenderID(AS2Partnership.PID_AS2, mdn.getHeader("AS2-From"));
+		//mdn.getPartnership().setReceiverID(AS2Partnership.PID_AS2, mdn.getHeader("AS2-To"));
+		//session.getPartnershipFactory().updatePartnership(mdn, false);
+		//end of old code
+
     	}catch(Exception ex)
     	{
     		logger.error("Error retrieving session to buil header for testing stream message" +  msg.getLogMsgID());

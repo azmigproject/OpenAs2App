@@ -208,7 +208,7 @@ public class XMLPartnershipFactory extends BasePartnershipFactory{
                 ServerToPartner.put("prevent_canonicalization_for_mic","false");
                 ServerToPartner.put("no_set_transfer_encoding_for_signing","false");
                 ServerToPartner.put("rename_digest_to_old_name","false");
-                ServerToPartner.put("emove_cms_algorithm_protection_attrib","false");
+                ServerToPartner.put("remove_cms_algorithm_protection_attrib","false");
                 if(Partner.getISMDNSigned())
                 {
                     ServerToPartner.put("as2_mdn_options","signed-receipt-protocol=optional, pkcs7-signature; signed-receipt-micalg=optional,"+Partner.getSignatureAlgorithm());
@@ -340,7 +340,7 @@ public class XMLPartnershipFactory extends BasePartnershipFactory{
                 ServerToPartner.put("prevent_canonicalization_for_mic","false");
                 ServerToPartner.put("no_set_transfer_encoding_for_signing","false");
                 ServerToPartner.put("rename_digest_to_old_name","false");
-                ServerToPartner.put("emove_cms_algorithm_protection_attrib","false");
+                ServerToPartner.put("remove_cms_algorithm_protection_attrib","false");
                 if(Partner.getISMDNSigned())
                 {
                     //ServerToPartner.put("as2_mdn_options","signed-receipt-protocol=optional, pkcs7-signature; signed-receipt-micalg=optional, SHA1");

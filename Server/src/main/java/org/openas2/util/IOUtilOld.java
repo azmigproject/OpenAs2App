@@ -6,12 +6,15 @@ import java.io.IOException;
 import java.util.UUID;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.openas2.OpenAS2Exception;
 import org.openas2.message.InvalidMessageException;
 
 
 public class IOUtilOld {
     private static final String VALID_FILENAME_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.@-";
+    private static final Log logger = LogFactory.getLog(IOUtil.class.getSimpleName());
 
     public static File getDirectoryFile(String directory)
             throws IOException
@@ -108,7 +111,41 @@ public class IOUtilOld {
         {
             File errorDir = IOUtilOld.getDirectoryFile(errorDirectory);
 
-            destFile = new File(errorDir, file.getName().replace(".downloaded","").replace( ".processing",""));
+            //destFile = new File(errorDir, file.getName().replace(".downloaded","").replace( ".processing",""));
+           // destFile = new File(errorDir, file.getName().replace( ".processing",".downloaded"));
+
+            String newFname = file.getName();
+//            int endIndx = file.getName().indexOf(".processing");
+//            if (endIndx != -1)
+//            {
+//            	newFname = file.getName().substring(0, endIndx)+".downloaded";
+//            }else
+//            {
+//            	newFname = file.getName()+".downloaded";
+//            }
+            logger.debug("****** FILENAME to ERROR Folder IOUTilOld: " + file.getName());
+            int endIndx = file.getName().indexOf(".processing");
+            String leftOverNm = "";
+            String fileAS2Id = "";
+            
+            
+            if (endIndx != -1)
+            {
+            	leftOverNm = file.getName().substring(endIndx);
+            	int as2Indx1 = leftOverNm.indexOf('@');
+            	int as2Indx2 = leftOverNm.indexOf('_');
+            	fileAS2Id = leftOverNm.substring(as2Indx1, as2Indx2-1);	
+            }
+            
+            if (endIndx != -1)
+            {
+            	newFname = fileAS2Id + "-_-"+ file.getName().substring(0, endIndx)+".downloaded";
+            }else
+            {
+            	newFname = fileAS2Id + "-_-"+ file.getName()+".downloaded";
+            }
+            
+            destFile = new File(errorDir, newFname);
 
             // move the file
             destFile = IOUtilOld.moveFile(file, destFile, false, true);

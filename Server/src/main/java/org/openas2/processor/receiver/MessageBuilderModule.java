@@ -56,7 +56,8 @@ public abstract class MessageBuilderModule extends BaseReceiverModule {
 	//protected Message processDocument(InputStream ip, String filename, File sourceFile) throws OpenAS2Exception, FileNotFoundException
 	protected Message  processDocument(String filename,String AssosiatedAs2Id, File sourceFile,String errorDir) throws OpenAS2Exception, FileNotFoundException,Exception
 	{
-		Message msg = buildMessageMetadata(filename);
+		logger.debug("****** FILE NAME processDocument:" +filename);
+		Message msg = buildMessageMetadata(filename, AssosiatedAs2Id);
 		
         File destFile = new File(sourceFile.getAbsolutePath()+".start."+msg.getMessageID());
              
@@ -223,8 +224,12 @@ public abstract class MessageBuilderModule extends BaseReceiverModule {
 			} catch (Exception e){}
 		try
 		{
-			Constants.UpdateMsgSenderPartnership(msg,AssosiatedAs2Id,true);
+			
+			Constants.UpdateMsgSenderPartnership(msg,AssosiatedAs2Id,true); 
 			msg.setStatus(Message.MSG_STATUS_MSG_SEND);
+			logger.info("Before REQ Header Sender AS2ID: " + msg.getHeader("AS2-From"));
+            logger.info("Before REQ Sender AS2ID: " + msg.getPartnership().getSenderID(AS2Partnership.PID_AS2));
+            
 			// Transmit the message
 			getSession().getProcessor().handle(SenderModule.DO_SEND, msg, options);
 		} catch (Exception e)
@@ -261,10 +266,11 @@ public abstract class MessageBuilderModule extends BaseReceiverModule {
 
 	protected abstract Message createMessage();
 
-	public Message buildMessageMetadata(String filename) throws OpenAS2Exception
+	public Message buildMessageMetadata(String filename, String as2IdName) throws OpenAS2Exception
 	{
 		Message msg = createMessage();
 		msg.setAttribute(FileAttribute.MA_FILENAME, filename);
+		msg.setAttribute(FileAttribute.MA_AS2ID, as2IdName);
 
 
 		msg.setPayloadFilename(filename);

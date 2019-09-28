@@ -14,9 +14,18 @@ public class KeyNotFoundException extends OpenAS2Exception {
 	public KeyNotFoundException(X509Certificate cert, String alias) {
 		super("Key Not Found For Certificate: Alias: " + alias +",Cert :"  +cert.getIssuerDN()+","+cert.getSigAlgName()+","+cert.getSubjectDN() );
 	}
+
+	public KeyNotFoundException(String alias) {
+		super("Key Not Found For Certificate: Alias: " + alias);
+	}
 	
 	public KeyNotFoundException(X509Certificate cert, String alias, Throwable cause) {
 		super("Key Not Found For Certificate: Alias: " + alias +",Cert :" +cert.getIssuerDN()+","+cert.getSigAlgName()+","+cert.getSubjectDN());
+		initCause(cause);
+	}
+
+	public KeyNotFoundException(String alias, Throwable cause) {
+		super("Key Not Found For Certificate: Alias: " + alias);
 		initCause(cause);
 	}
 }
