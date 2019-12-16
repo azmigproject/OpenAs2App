@@ -109,7 +109,7 @@ public class SocketCommandProcessor extends BaseCommandProcessor {
         try
         {
             socket = (SSLSocket) sslserversocket.accept();
-            socket.setSoTimeout(2000);
+            socket.setSoTimeout(10000);
             rdr = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             wrtr = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
 
@@ -148,7 +148,7 @@ public class SocketCommandProcessor extends BaseCommandProcessor {
                     	rdr.close();
                     	wrtr.close();
                     	IOUtils.closeQuietly(socket);
-                        terminate();
+                        //terminate();
                     } else
                     {
                         List<String> params = new ArrayList<String>();

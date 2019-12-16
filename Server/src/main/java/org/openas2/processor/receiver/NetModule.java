@@ -337,6 +337,7 @@ public abstract class NetModule extends BaseReceiverModule {
                 {
                     socket = ssf.createServerSocket(port);
                 }
+                socket.setSoTimeout(5000);
             } else
             {
                 socket = new ServerSocket();

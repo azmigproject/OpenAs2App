@@ -36,15 +36,22 @@ public class OpenAS2Server {
 
     public static void main(String[] args) throws Exception
     {
-        //String[] argtmp=new String[1];
-        //argtmp[0]="http://localhost:64418/api/partnerapi";
+        String[] argtmp=new String[8];
+        argtmp[0]="http://localhost:64417/api/partnerapi";
+        argtmp[1]="100";
+        argtmp[2]="100";
+        argtmp[3]="1";
+        argtmp[4]="50";
+        argtmp[5]="50";
+        argtmp[6]="5";
+        argtmp[7]="5";
         ThreadCleanUP cleanUP=new ThreadCleanUP();
         cleanUP.start();
 
         new OpenAS2Server.Builder()
                 .registerShutdownHook()
-                .run(args);
-                //.run(argtmp);
+                //.run(args);
+                .run(argtmp);
 
     }
 

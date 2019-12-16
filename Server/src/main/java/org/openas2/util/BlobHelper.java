@@ -38,7 +38,7 @@ public class BlobHelper {
             // Create the queue if it doesn't already exist.
             //blockBlobContainer.createIfNotExists();
             CloudBlockBlob blockBlob = blockBlobContainer.getBlockBlobReference(blobName);
-            blockBlob.uploadFromByteArray(byteContent, 100, byteContent.length);
+            blockBlob.uploadFromByteArray(byteContent, 0, byteContent.length);
         }
         catch (Exception e)
         {
