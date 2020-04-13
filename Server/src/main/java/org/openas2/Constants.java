@@ -25,6 +25,7 @@ public class Constants {
     public static Profile MainProfile=null;
     public  static JSONArray APIDataInJASON=null;
     public static String LastUpdateTimeStamp="";
+    public static String As2IdSeperatorString="_n_";
     public static  int DOWNLLOADFILETHRESHOLD=100;
     static long DATETIME_MAXVALUE_TICKS = 3155378975999999999L;
     static long EPOCH_OFFSET =62135596800000L;// Instant.parse("0001-01-01T00:00:00Z").getMillis()
@@ -35,6 +36,30 @@ public class Constants {
         long seconds = instant.getMillis()+ EPOCH_OFFSET;
         long ticks = seconds* 10000L;
         return ticks+ instant.getMillis() / 1000;
+    }
+
+    public static String[] GetAS2IDsBasedOnSeperator(String PartnerID)
+    {
+        Log logger = LogFactory.getLog(Constants.class.getSimpleName());
+       String[] returnString=null;
+        if(PartnerID.lastIndexOf(As2IdSeperatorString)>0)
+        {
+            returnString=new String[2];
+            returnString[0]= PartnerID.split(As2IdSeperatorString)[0];
+            returnString[1]= PartnerID.split(As2IdSeperatorString)[1];
+            logger.info("GetAS2IDsBasedOnSeperator-As2ID1" + returnString[0]);
+            logger.info("GetAS2IDsBasedOnSeperator-As2ID2" + returnString[1]);
+        }
+        else
+        {
+            returnString=new String[1];
+            returnString[0]=PartnerID;
+            logger.info("GetAS2IDsBasedOnSeperator-As2ID1" + returnString[0]);
+        }
+
+
+
+        return returnString;
     }
 
     public static void UpdateMsgSenderPartnership(Message msg, String passedAS2ID, boolean IsMsgSendingFromProfile)

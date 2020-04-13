@@ -609,7 +609,8 @@ public class AS2Util {
 		MessageMDN mdn = msg.getMDN();
 		if (logger.isTraceEnabled()) logger.trace("HTTP headers in received MDN: " + AS2Util.printHeaders(mdn.getHeaders().getAllHeaders()));
 		// get the MDN partnership info
-		mdn.getPartnership().setSenderID(AS2Partnership.PID_AS2, mdn.getHeader("AS2-From"));
+		//mdn.getPartnership().setSenderID(AS2Partnership.PID_AS2, mdn.getHeader("AS2-From"));
+        mdn.getPartnership().setSenderID(AS2Partnership.PID_AS2, mdn.getHeader("AS2-From").split(",")[0]);
 		//mdn.getPartnership().setReceiverID(AS2Partnership.PID_AS2, mdn.getHeader("AS2-To"));
 		mdn.getPartnership().setReceiverID(AS2Partnership.PID_AS2,Constants.MainProfile.getAS2Idenitfier());
 
@@ -1074,9 +1075,12 @@ public class AS2Util {
     	try
     	{
 		// get the MDN partnership info
-		mdn.getPartnership().setSenderID(AS2Partnership.PID_AS2, mdn.getHeader("AS2-From"));
+			logger.info("testStreamforCompleteData-As2-From"+mdn.getHeader("AS2-From"));
+			logger.info("testStreamforCompleteData-As2-to"+mdn.getHeader("AS2-To"));
+		mdn.getPartnership().setSenderID(AS2Partnership.PID_AS2, mdn.getHeader("AS2-From").split(",")[0]);
 		mdn.getPartnership().setReceiverID(AS2Partnership.PID_AS2,Constants.MainProfile.getAS2Idenitfier());
-		session.getPartnershipFactory().updatePartnership(mdn, false);
+		//session.getPartnershipFactory().updatePartnership(mdn, false,mdn.getHeader("AS2-To"));
+        session.getPartnershipFactory().updatePartnership(mdn, false);
 		Constants.UpdateMsgSenderPartnership(mdn, mdn.getHeader("AS2-To"), false);
 
 		//Old Code
@@ -1088,6 +1092,7 @@ public class AS2Util {
     	}catch(Exception ex)
     	{
     		logger.error("Error retrieving session to buil header for testing stream message" +  msg.getLogMsgID());
+    		ex.printStackTrace();
     		result = false;
     		return result;
     	}

@@ -23,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.joda.time.DateTime;
+import org.openas2.Constants;
 import org.openas2.OpenAS2Exception;
 import org.openas2.Session;
 import org.openas2.cert.CertificateFactory;
@@ -989,10 +990,12 @@ public class AS2SenderModule extends HttpSenderModule {
         {
             cte = Session.DEFAULT_CONTENT_TRANSFER_ENCODING;
         }
+        String[] As2Ids=Constants.GetAS2IDsBasedOnSeperator(partnership.getReceiverID(AS2Partnership.PID_AS2));
         conn.setRequestProperty("Content-Transfer-Encoding", cte);
         conn.setRequestProperty("Recipient-Address", partnership.getAttribute(AS2Partnership.PA_AS2_URL));
-        conn.setRequestProperty("AS2-To", partnership.getReceiverID(AS2Partnership.PID_AS2));
-        conn.setRequestProperty("AS2-From", partnership.getSenderID(AS2Partnership.PID_AS2));
+        conn.setRequestProperty("AS2-To", As2Ids[0]);
+        //conn.setRequestProperty("AS2-From", partnership.getSenderID(AS2Partnership.PID_AS2));
+        conn.setRequestProperty("AS2-From", As2Ids.length>1?As2Ids[1]:partnership.getSenderID(AS2Partnership.PID_AS2));
         conn.setRequestProperty("Subject", msg.getSubject());
         conn.setRequestProperty("From", partnership.getSenderID(Partnership.PID_EMAIL));
 

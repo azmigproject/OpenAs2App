@@ -710,7 +710,8 @@ private partner GetPartnerFromDocument(Document doc)
     {
         String returnString="";
         URL url = new URL(strURL);//your url i.e fetch data from .
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+
+       HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");
         conn.setRequestProperty("Accept", "application/json");
         if (conn.getResponseCode() != 200) {

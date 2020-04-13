@@ -7,7 +7,10 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.openas2.BaseComponent;
+import org.openas2.Constants;
 import org.openas2.OpenAS2Exception;
 import org.openas2.message.FileAttribute;
 import org.openas2.message.Message;
@@ -17,7 +20,7 @@ import org.openas2.params.ParameterParser;
 
 public abstract class BasePartnershipFactory extends BaseComponent implements PartnershipFactory {
     private List<Partnership> partnerships;
-
+    private Log logger = LogFactory.getLog(BasePartnershipFactory.class.getSimpleName());
     public Partnership getPartnership(Partnership p, boolean reverseLookup) throws OpenAS2Exception {
          Partnership ps = (p.getName() == null) ? null : getPartnership(p.getName());
 
@@ -28,6 +31,7 @@ public abstract class BasePartnershipFactory extends BaseComponent implements Pa
             	ps = getPartnership(p.getSenderIDs(), p.getReceiverIDs());
         }
 
+
         if (ps == null) {
             throw new PartnershipNotFoundException(p);
         }
@@ -35,11 +39,13 @@ public abstract class BasePartnershipFactory extends BaseComponent implements Pa
         return ps;
     }
 
+
+
     public void setPartnerships(List<Partnership> list) {
         partnerships = list;
     }
 
-    public List<Partnership> getPartnerships() {
+    public List<Partnership>  getPartnerships() {
         if (partnerships == null) {
             partnerships = new ArrayList<Partnership>();
         }
@@ -87,12 +93,92 @@ public abstract class BasePartnershipFactory extends BaseComponent implements Pa
         }
     }
 
+    public void updatePartnership(Message msg, boolean overwrite,String OtherAs2Id) throws OpenAS2Exception
+    {
+        Partnership partnership =null;
+        try {
+            // Fill in any available partnership information
+             partnership = getPartnership(msg.getPartnership(), false);
+        }
+        catch (OpenAS2Exception e)
+        {
+            if(OtherAs2Id!=null && OtherAs2Id.length()>0)
+            {
+                msg.getPartnership().setSenderID(AS2Partnership.PID_AS2, msg.getPartnership().getSenderID(AS2Partnership.PID_AS2)+Constants.As2IdSeperatorString+OtherAs2Id);
+                partnership = getPartnership(msg.getPartnership(), false);
+            }
+            else
+            {
+                throw  e;
+            }
+        }
+        msg.getPartnership().copy(partnership);
+        //  Now set dynamic parms based on file name if configured to
+        String filename = msg.getAttribute(FileAttribute.MA_FILENAME);
+        String filenameToParmsList = msg.getPartnership().getAttribute(AS2Partnership.PA_ATTRIB_NAMES_FROM_FILENAME);
+        if (filename != null && filenameToParmsList != null && filenameToParmsList.length() > 0)
+        {
+            String[] headerNames = filenameToParmsList.split("\\s*,\\s*");
+
+            String regex = msg.getPartnership().getAttribute(AS2Partnership.PA_ATTRIB_VALUES_REGEX_ON_FILENAME);
+            if (regex != null)
+            {
+                Pattern p = Pattern.compile(regex);
+                Matcher m = p.matcher(filename);
+                if (!m.find() || m.groupCount() != headerNames.length)
+                {
+                    throw new OpenAS2Exception("Could not match filename (" + filename + ") to parameters required using the regex provided (" + regex + "): "
+                            + (m.find() ? ("Mismatch in parameter count to extracted group count: " + headerNames.length
+                            + "::" + m.groupCount()) : "No match found in filename"));
+                }
+                for (int i = 0; i < headerNames.length; i++)
+                {
+                    msg.setAttribute(headerNames[i], m.group(i + 1));
+                }
+            }
+        }
+
+
+        // Set attributes
+        if (overwrite) {
+            String subject = partnership.getAttribute(Partnership.PA_SUBJECT);
+            if (subject != null) {
+                msg.setSubject(ParameterParser.parse(subject, new MessageParameters(msg)));
+            }
+        }
+    }
+
+
     public void updatePartnership(MessageMDN mdn, boolean overwrite) throws OpenAS2Exception {
         // Fill in any available partnership information
         // the MDN partnership should be the one used to send original message hence reverse lookup
         Partnership partnership = getPartnership(mdn.getPartnership(), true);
         mdn.getPartnership().copy(partnership);
     }
+
+
+    public void updatePartnership(MessageMDN mdn, boolean overwrite,String OtherAs2Id) throws OpenAS2Exception {
+        // Fill in any available partnership information
+        // the MDN partnership should be the one used to send original message hence reverse lookup
+        Partnership partnership=null;
+        try {
+            partnership = getPartnership(mdn.getPartnership(), true);
+        }
+        catch (OpenAS2Exception ex)
+        {
+            if(OtherAs2Id!=null && OtherAs2Id.length()>0)
+            {
+                mdn.getPartnership().setSenderID(AS2Partnership.PID_AS2, mdn.getPartnership().getSenderID(AS2Partnership.PID_AS2)+Constants.As2IdSeperatorString+OtherAs2Id);
+                partnership = getPartnership(mdn.getPartnership(), true);
+            }
+            else
+            {
+                throw  ex;
+            }
+        }
+        mdn.getPartnership().copy(partnership);
+    }
+
 
     protected Partnership getPartnership(Map<String, Object> senderIDs, Map<String, Object> receiverIDs) {
         Iterator<Partnership> psIt = getPartnerships().iterator();
@@ -152,6 +238,8 @@ public abstract class BasePartnershipFactory extends BaseComponent implements Pa
             searchKey = (String) searchEntry.getKey();
             searchValue = searchEntry.getValue();
             partnerValue = partnerIds.get(searchKey);
+            //searchValue =Constants.RemoveAS2IDSeperator((String)searchEntry.getValue());
+            //partnerValue =Constants.RemoveAS2IDSeperator((String)partnerIds.get(searchKey));
 
             if ((searchValue == null) && (partnerValue != null)) {
                 return false;
